@@ -1,0 +1,152 @@
+/*==============================================================================
+** Copyright (C) 2024-2027 WingSummer
+**
+** This program is free software: you can redistribute it and/or modify it under
+** the terms of the GNU Affero General Public License as published by the Free
+** Software Foundation, version 3.
+**
+** This program is distributed in the hope that it will be useful, but WITHOUT
+** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+** FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+** details.
+**
+** You should have received a copy of the GNU Affero General Public License
+** along with this program. If not, see <https://www.gnu.org/licenses/>.
+** =============================================================================
+*/
+
+#ifndef CTYPE_PARSER_H
+#define CTYPE_PARSER_H
+
+#include <QDir>
+#include <QFile>
+#include <QHash>
+#include <QList>
+#include <QPair>
+#include <QRegularExpression>
+#include <QString>
+#include <QStringList>
+#include <QTextStream>
+
+/// @beief Struct for variable declaration
+///
+/// A variable declaration may contain 4 parts
+/// (take this statement as example: char* argv[2]):
+///    - data_type:     char
+///    - var_name:      argv
+///    - array_size:    2
+///    - is_pointer:    true
+/// @note Only one-demension array is supported here, but it's easy to extend
+/// with this awareness
+///
+typedef struct {
+    QString data_type;  ///< name of a data type, either basic type or
+                        ///< user-defined type
+    QString var_name;   ///< variable name
+    qsizetype offset;   ///< member offset in struct: -1 for non-struct
+    size_t array_size;  ///< array size: 0 for non-array
+    bool is_pointer;    ///< true when it's a pointer
+    qsizetype var_size; ///< size in bytes
+} VariableDeclaration;
+
+enum class PointerMode { X86, X64 };
+
+enum class LongMode { LLP64, LP64 };
+
+class CTypeParser {
+    friend class CStructVisitorParser;
+
+public:
+    explicit CTypeParser();
+    virtual ~CTypeParser();
+
+public:
+    bool parseFile(const QString &file);
+    bool parseSource(const QString &src);
+
+public:
+    qsizetype padAlignment() const;
+    void setPadAlignment(qsizetype newKAlignment);
+
+    PointerMode pointerMode() const;
+    void setPointerMode(PointerMode newPmode);
+
+    LongMode longMode() const;
+    void setLongmode(LongMode newLmode);
+
+    const QHash<QString, QList<VariableDeclaration>> &structDefs() const;
+
+    const QHash<QString, QHash<QString, int>> &enumDefs() const;
+
+    const QHash<QString, QPair<QMetaType::Type, qsizetype>> &types() const;
+
+    QPair<QMetaType::Type, qsizetype> type(const QString &t) const;
+
+    const QHash<QString, qulonglong> &constDefs() const;
+
+    const QHash<QString, QList<VariableDeclaration>> &unionDefs() const;
+
+public:
+    void dumpTypeDefs() const;
+
+    void reset();
+
+private:
+    qsizetype padStruct(QList<VariableDeclaration> &members);
+    qsizetype calcUnionSize(const QList<VariableDeclaration> &members) const;
+
+    void storeStructUnionDef(const bool is_struct, const QString &type_name,
+                             QList<VariableDeclaration> &members);
+
+private:
+    /// read in basic data such as keywords/qualifiers, and basic data type
+    /// sizes
+    void initialize();
+
+    void findHeaderFiles(const QString &path);
+    QString getFile(QString &filename) const;
+
+    qsizetype getTypeSize(const QString &data_type) const;
+
+    /// class members
+private:
+    qsizetype kAlignment_ = 1; ///< alignment
+
+private:
+    CStructVisitorParser *_visitor = nullptr;
+
+    PointerMode _pmode;
+    LongMode _lmode;
+
+    /// Size of C data types and also user-defined struct/union types
+    /// @note All enum types have fixed size, so they're not stored
+    QHash<QString, QPair<QMetaType::Type, qsizetype>> type_maps_;
+
+    /// basic types
+    QStringList base_types_;
+
+    /// unsigned types
+    QStringList unsigned_types_;
+
+    /// Parsing result - extracted type definitions
+    /// for below 3 maps:
+    /// key     - type name
+    /// value   - type members
+
+    /// struct definitions
+    QHash<QString, QList<VariableDeclaration>> struct_defs_;
+
+    /// union definitions
+    QHash<QString, QList<VariableDeclaration>> union_defs_;
+
+    /// enum definitions
+    QHash<QString, QHash<QString, int>> enum_defs_;
+
+    /// constants and macros that have integer values
+    /// key     - constant/macro name
+    /// value   - an integer (all types of number are cast to long type for
+    /// convenience)
+    QHash<QString, qulonglong> const_defs_;
+};
+
+#endif // _TYPE_PARSER_H_
