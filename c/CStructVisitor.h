@@ -23,8 +23,6 @@ public:
 
     virtual std::any visitPostfixExpression(CStructParser::PostfixExpressionContext *context) = 0;
 
-    virtual std::any visitArgumentExpressionList(CStructParser::ArgumentExpressionListContext *context) = 0;
-
     virtual std::any visitUnaryExpression(CStructParser::UnaryExpressionContext *context) = 0;
 
     virtual std::any visitUnaryOperator(CStructParser::UnaryOperatorContext *context) = 0;
@@ -43,9 +41,9 @@ public:
 
     virtual std::any visitInclusiveOrExpression(CStructParser::InclusiveOrExpressionContext *context) = 0;
 
-    virtual std::any visitAssignmentExpression(CStructParser::AssignmentExpressionContext *context) = 0;
+    virtual std::any visitAssignmentExpressionDef(CStructParser::AssignmentExpressionDefContext *context) = 0;
 
-    virtual std::any visitExpression(CStructParser::ExpressionContext *context) = 0;
+    virtual std::any visitAssignmentExpression(CStructParser::AssignmentExpressionContext *context) = 0;
 
     virtual std::any visitDeclaration(CStructParser::DeclarationContext *context) = 0;
 
@@ -111,13 +109,13 @@ public:
 
     virtual std::any visitTypedefName(CStructParser::TypedefNameContext *context) = 0;
 
-    virtual std::any visitExpressionStatement(CStructParser::ExpressionStatementContext *context) = 0;
-
     virtual std::any visitCompilationUnit(CStructParser::CompilationUnitContext *context) = 0;
 
     virtual std::any visitTranslationUnit(CStructParser::TranslationUnitContext *context) = 0;
 
     virtual std::any visitExternalDeclaration(CStructParser::ExternalDeclarationContext *context) = 0;
+
+    virtual std::any visitDefineDecl(CStructParser::DefineDeclContext *context) = 0;
 
     virtual std::any visitDeclarationList(CStructParser::DeclarationListContext *context) = 0;
 

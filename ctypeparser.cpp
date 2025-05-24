@@ -322,7 +322,7 @@ const QHash<QString, qulonglong> &CTypeParser::constDefs() const {
     return const_defs_;
 }
 
-const QHash<QString, QHash<QString, int>> &CTypeParser::enumDefs() const {
+const QHash<QString, QHash<QString, qint64>> &CTypeParser::enumDefs() const {
     return enum_defs_;
 }
 

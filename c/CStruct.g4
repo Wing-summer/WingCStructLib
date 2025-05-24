@@ -36,20 +36,14 @@ grammar CStruct;
 primaryExpression
     : Identifier
     | IntegerConstant
-    | '(' expression ')'
+    | '(' assignmentExpression ')'
     ;
 
 postfixExpression
     : primaryExpression (
-        '[' expression ']'
-        | '(' argumentExpressionList? ')'
-        | '++'
+        '++'
         | '--'
     )*
-    ;
-
-argumentExpressionList
-    : assignmentExpression (',' assignmentExpression)*
     ;
 
 unaryExpression
@@ -60,12 +54,9 @@ unaryExpression
     ;
 
 unaryOperator
-    : '&'
-    | '*'
-    | '+'
+    : '+'
     | '-'
     | '~'
-    | '!'
     ;
 
 castExpression
@@ -98,13 +89,13 @@ inclusiveOrExpression
     : exclusiveOrExpression ('|' exclusiveOrExpression)*
     ;
 
+assignmentExpressionDef
+    : assignmentExpression ';'* EOF
+    ;
+
 assignmentExpression
     : IntegerConstant
     | inclusiveOrExpression
-    ;
-
-expression
-    : assignmentExpression (',' assignmentExpression)*
     ;
 
 declaration
@@ -270,10 +261,6 @@ typedefName
     : Identifier
     ;
 
-expressionStatement
-    : expression? ';'
-    ;
-
 compilationUnit
     : translationUnit? EOF
     ;
@@ -284,7 +271,13 @@ translationUnit
 
 externalDeclaration
     : declaration
+    | defineDecl
     | ';' // stray ;
+    ;
+
+defineDecl
+    : DirectiveDefine
+    | MultiLineMacroDefine
     ;
 
 declarationList
@@ -567,11 +560,6 @@ fragment DigitSequence
     : Digit+
     ;
 
-fragment HexadecimalFractionalConstant
-    : HexadecimalDigitSequence? '.' HexadecimalDigitSequence
-    | HexadecimalDigitSequence '.'
-    ;
-
 fragment BinaryExponentPart
     : [pP] Sign? DigitSequence
     ;
@@ -604,26 +592,38 @@ fragment HexadecimalEscapeSequence
     : '\\x' HexadecimalDigit+
     ;
 
+MultiLineMacroDefine
+    :'#' 'define' (~[\n]*? '\\' '\r'? '\n')+ ~ [\n]+ 
+    ;
+
 MultiLineMacro
-    : '#' (~[\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> channel (HIDDEN)
+    : '#' Identifier (~[\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> skip
+    ;
+
+DirectiveDefine
+    : '#' 'define' ~ [\n]* 
     ;
 
 Directive
-    : '#' ~ [\n]* -> channel (HIDDEN)
+    : '#' Identifier ~ [\n]* ->skip
     ;
 
 Whitespace
-    : [ \t]+ -> channel(HIDDEN)
+    : [ \t]+ -> skip
     ;
 
 Newline
-    : ('\r' '\n'? | '\n') -> channel(HIDDEN)
+    : ('\r' '\n'? | '\n') -> skip
+    ;
+
+LINE_CONTINUATION
+    :   '\\' [\r]? '\n' -> skip
     ;
 
 BlockComment
-    : '/*' .*? '*/' -> channel(HIDDEN)
+    : '/*' .*? '*/' -> skip
     ;
 
 LineComment
-    : '//' ~[\r\n]* -> channel(HIDDEN)
+    : '//' ~[\r\n]* -> skip
     ;

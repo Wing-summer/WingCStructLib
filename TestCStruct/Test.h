@@ -1,14 +1,22 @@
+// other marcos will be ignored
+#ifdef OS_WIN
+#endif
+
 // Top-level define and typedef
 #define DEFAULT_VALUE  42
+#define DVALUE \
+                    ((2 << 1) + 1)
 typedef unsigned char  Byte;
 
 // Enum for testing
 enum TestEnum { Test1, Test2, Test3 };
-enum Status { OK = 0u, ERROR = 1 << 0, WARN = 1 << 2 };
+enum Status { OK = (8u), ERROR = 1 << 0 << 1 << 1, WARN = 1 << 4 };
 
 // A struct containing a nested struct and a nested union
 struct Container {
-    int id;
+    int id, uid;
+
+    void (*greet)(const char *name);  // function pointer
     
     // Nested struct
     struct InnerStruct {

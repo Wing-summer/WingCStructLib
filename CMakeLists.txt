@@ -36,7 +36,8 @@ set(CDES_PARSER
 
 add_library(
     WingCStructLib STATIC ${CDES_PARSER} ctypeparser.cpp ctypeparser.h
-                          cstructvisitorparser.h cstructvisitorparser.cpp)
+                          cstructvisitorparser.h cstructvisitorparser.cpp
+                          define.h)
 
 target_include_directories(WingCStructLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(WingCStructLib PRIVATE Qt${QT_VERSION_MAJOR}::Core

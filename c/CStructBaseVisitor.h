@@ -23,10 +23,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitArgumentExpressionList(CStructParser::ArgumentExpressionListContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitUnaryExpression(CStructParser::UnaryExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -63,11 +59,11 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitAssignmentExpression(CStructParser::AssignmentExpressionContext *ctx) override {
+  virtual std::any visitAssignmentExpressionDef(CStructParser::AssignmentExpressionDefContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual std::any visitExpression(CStructParser::ExpressionContext *ctx) override {
+  virtual std::any visitAssignmentExpression(CStructParser::AssignmentExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -199,10 +195,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitExpressionStatement(CStructParser::ExpressionStatementContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitCompilationUnit(CStructParser::CompilationUnitContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -212,6 +204,10 @@ public:
   }
 
   virtual std::any visitExternalDeclaration(CStructParser::ExternalDeclarationContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitDefineDecl(CStructParser::DefineDeclContext *ctx) override {
     return visitChildren(ctx);
   }
 
