@@ -129,6 +129,33 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
     return std::nullopt;
 }
 
+bool CStructVisitorParser::isInteger(const QString &text) {
+    if (parser->enum_defs_.contains(text)) {
+        return true;
+    }
+
+    auto type = parser->type(text);
+    switch (type.first) {
+    case QMetaType::Int:
+    case QMetaType::UInt:
+    case QMetaType::LongLong:
+    case QMetaType::ULongLong:
+    case QMetaType::Long:
+    case QMetaType::Short:
+    case QMetaType::Char:
+    case QMetaType::Char16:
+    case QMetaType::Char32:
+    case QMetaType::ULong:
+    case QMetaType::UShort:
+    case QMetaType::UChar:
+    case QMetaType::SChar:
+    case QMetaType::QChar:
+        return true;
+    default:
+        return false;
+    }
+}
+
 std::any CStructVisitorParser::visitAndExpression(
     CStructParser::AndExpressionContext *ctx) {
     quint64 v = std::numeric_limits<quint64>::max();
@@ -421,14 +448,7 @@ std::any CStructVisitorParser::visitStructOrUnionSpecifier(
     auto name = ctx->Identifier();
     auto memdecls = ctx->structDeclarationList();
 
-    if (name) {
-        if (memdecls) {
-            bool isStruct = ctx->structOrUnion()->Struct();
-
-        } else {
-        }
-    } else {
-    }
+    parseStructOrUnion(ctx);
 
     return defaultResult();
 }
@@ -489,33 +509,107 @@ std::any CStructVisitorParser::visitAssignmentExpressionDef(
     return defaultResult();
 }
 
+QString CStructVisitorParser::getFinalDeclaratorName(
+    CStructParser::DirectDeclaratorContext *ctx) {
+    while (ctx) {
+        if (ctx->Identifier()) {
+            return QString::fromStdString(ctx->Identifier()->getText());
+        }
+    }
+    return {};
+}
+
+std::optional<CStructVisitorParser::Declarator>
+CStructVisitorParser::getDeclarator(
+    CStructParser::DirectDeclaratorContext *ctx) {
+    if (!ctx) {
+        return std::nullopt;
+    }
+
+    Declarator dor;
+
+    if (ctx->Identifier()) {
+        // Identifier only
+        dor.retName = QString::fromStdString(ctx->Identifier()->getText());
+        if (ctx->Colon()) {
+            // bit field
+            dor.bitField =
+                parseIntegerConstant(ctx->IntegerConstant()->getText()).value();
+        }
+    } else if (ctx->declarator()) {
+        auto d = ctx->declarator();
+
+        // only pointer in the first level is valid member in struct
+        if (d->pointer()) {
+            dor.retName =
+                QString::fromStdString(d->directDeclarator()->getText());
+            dor.isPointer = true;
+        } else {
+            return std::nullopt;
+        }
+    } else if (ctx->assignmentExpression()) {
+        // array
+        auto r = visitAssignmentExpression(ctx->assignmentExpression());
+        if (r.type() == typeid(quint64)) {
+            auto v = std::any_cast<quint64>(r);
+            dor.arrayCount = v;
+        } else if (r.type() == typeid(qint64)) {
+            auto v = std::any_cast<qint64>(r);
+            dor.arrayCount = v;
+        } else {
+            return std::nullopt;
+        }
+        dor.next = ctx->directDeclarator();
+    } else {
+        // function pointer
+        dor.retName =
+            QString::fromStdString(ctx->directDeclarator()->getText());
+    }
+
+    return dor;
+}
+
 std::optional<CStructVisitorParser::Specifier>
 CStructVisitorParser::getSpecifier(
     CStructParser::SpecifierQualifierListContext *ctx) {
+    if (!ctx) {
+        return std::nullopt;
+    }
+
     Specifier sq;
+    size_t longdecl = 0;
 
     // I only focus on typeSpecifier
-
-    while (ctx->typeSpecifier()) {
+    while (ctx && ctx->typeSpecifier()) {
         auto s = ctx->typeSpecifier();
         if (s->Signed()) {
+            if (sq.isUnsigned || sq.type != StructMemType::Normal) {
+                return std::nullopt;
+            }
             sq.isSigned = true;
-        }
-
-        if (s->Unsigned()) {
+        } else if (s->Unsigned()) {
+            if (sq.isSigned || sq.type != StructMemType::Normal) {
+                return std::nullopt;
+            }
             sq.isUnsigned = true;
-        }
-
-        if (s->enumSpecifier()) {
+        } else if (s->enumSpecifier()) {
+            if (sq.isSigned || sq.isUnsigned || !sq.tname.isEmpty() ||
+                sq.type != StructMemType::Normal) {
+                return std::nullopt;
+            }
             auto es = s->enumSpecifier();
             if (es->enumeratorList()) {
                 sq.type = StructMemType::Enum;
+                // I won't use enum type name declared
+                // TODO
             } else {
                 return std::nullopt;
             }
-        }
-
-        if (s->structOrUnionSpecifier()) {
+        } else if (s->structOrUnionSpecifier()) {
+            if (sq.isSigned || sq.isUnsigned || !sq.tname.isEmpty() ||
+                sq.type != StructMemType::Normal) {
+                return std::nullopt;
+            }
             auto sus = s->structOrUnionSpecifier();
             if (sus->structDeclarationList()) {
                 sq.type = sus->structOrUnion()->Struct() ? StructMemType::Struct
@@ -524,12 +618,48 @@ CStructVisitorParser::getSpecifier(
                 // sq.tname = "";
                 // I won't use struc or union type name declared
                 // in struct or union
+                // parse struct and get the internal name
+                // TODO
+
             } else {
                 return std::nullopt;
+            }
+        } else {
+            if (sq.type != StructMemType::Normal) {
+                return std::nullopt;
+            }
+
+            if (s->Double() || s->Float()) {
+                if (sq.isSigned || sq.isUnsigned) {
+                    return std::nullopt;
+                }
+            }
+
+            if (s->Long()) {
+                longdecl++;
+                if (longdecl > 2) {
+                    return std::nullopt;
+                }
+            } else {
+                sq.tname = QString::fromStdString(s->getText());
             }
         }
 
         ctx = ctx->specifierQualifierList();
+    }
+
+    if (longdecl > 0) {
+        if (sq.tname == QStringLiteral("int")) {
+            sq.tname.clear();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    if (sq.tname.isEmpty()) {
+        for (size_t i = 0; i < longdecl; ++i) {
+            sq.tname.append(QStringLiteral("long"));
+        }
     }
 
     return sq;
@@ -552,11 +682,52 @@ CStructVisitorParser::parseStructOrUnion(
     }
 
     for (auto &m : mems->structDeclaration()) {
-        auto decl = m->specifierQualifierList();
+        auto dl = getSpecifier(m->specifierQualifierList());
 
         auto dclist = m->structDeclaratorList();
         if (dclist) {
             for (auto &sub : dclist->structDeclarator()) {
+                VariableDeclaration var;
+                if (sub->declarator()) {
+                    auto d = sub->declarator()->directDeclarator();
+                    if (sub->declarator()->pointer()) {
+
+                    } else {
+                        auto info = getDeclarator(d);
+                        if (info) {
+                            if (info->arrayCount == 0) {
+                                var.array_size = 0;
+
+                                continue; // no nessesary to deep parse
+                            }
+                            auto nestedInfo = getDeclarator(info->next);
+                            QString name;
+                            if (nestedInfo) {
+                                auto lastInfo = nestedInfo;
+                                while (nestedInfo &&
+                                       nestedInfo->arrayCount > 1 &&
+                                       nestedInfo->next) {
+                                    info->arrayCount *= nestedInfo->arrayCount;
+                                    lastInfo = nestedInfo;
+                                    nestedInfo =
+                                        getDeclarator(nestedInfo->next);
+                                }
+                                // TODO
+                                var.var_name =
+                                    getFinalDeclaratorName(lastInfo->next);
+                                var.array_size = info->arrayCount;
+                                var.data_type = info->retName;
+                                decl.second.append(var);
+                            } else {
+                                name = info->retName;
+                            }
+
+                        } else {
+                            return std::nullopt;
+                        }
+                    }
+                } else {
+                }
             }
         }
     }

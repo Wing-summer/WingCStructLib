@@ -12,6 +12,10 @@ typedef unsigned char  Byte;
 enum TestEnum { Test1, Test2, Test3 };
 enum Status { OK = (8u), ERROR = 1 << 0 << 1 << 1, WARN = 1 << 4 };
 
+struct Cont {
+    int id[8][4];
+};
+
 // A struct containing a nested struct and a nested union
 struct Container {
     int id, uid;
@@ -33,7 +37,7 @@ struct Container {
 
     uint8 te;
     
-    enum Status state;
+    enum Status state; // pre-declaration
 };
 
 // A union containing a nested struct and a nested union
@@ -41,7 +45,7 @@ union Variant {
     
     // Nested struct inside union
     struct {
-        char name[DEFAULT_VALUE];
+        char name[DEFAULT_VALUE][1];
         int  count;
     } info;
     
@@ -58,7 +62,7 @@ struct Mix {
     union Variant v;         // union inside struct
 };
 
-union Mirror;  // ignore forword declaration
+union Mirror;  // forword declaration
 
 union Mirror {
     struct Container c;      // struct inside union

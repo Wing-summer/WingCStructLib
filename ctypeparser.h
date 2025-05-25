@@ -29,6 +29,8 @@
 #include <QStringList>
 #include <QTextStream>
 
+class CStructVisitorParser;
+
 enum class PointerMode { X86, X64 };
 
 enum class LongMode { LLP64, LP64 };

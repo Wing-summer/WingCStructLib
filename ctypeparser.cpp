@@ -88,7 +88,6 @@ void CTypeParser::initialize() {
     // LLP64: sizeof(long) = 4
     // LP64: sizeof(long) = 8
     ADD_TYPE(long, QMetaType::Long);
-
     ADD_TYPE(float, QMetaType::Float);
     ADD_TYPE(double, QMetaType::Double);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -310,7 +309,7 @@ CTypeParser::types() const {
 }
 
 QPair<QMetaType::Type, qsizetype> CTypeParser::type(const QString &t) const {
-    return type_maps_.value(t);
+    return type_maps_.value(t, qMakePair(QMetaType::Type::UnknownType, -1));
 }
 
 const QHash<QString, QList<VariableDeclaration>> &

@@ -52,6 +52,19 @@ private:
     std::optional<Specifier>
     getSpecifier(CStructParser::SpecifierQualifierListContext *ctx);
 
+    struct Declarator {
+        QString retName;
+        bool isPointer = false;
+        size_t arrayCount = 1;
+        size_t bitField = 0;
+        CStructParser::DirectDeclaratorContext *next = nullptr;
+    };
+
+    std::optional<Declarator>
+    getDeclarator(CStructParser::DirectDeclaratorContext *ctx);
+
+    QString getFinalDeclaratorName(CStructParser::DirectDeclaratorContext *ctx);
+
 private:
     CTypeParser *parser;
 
@@ -92,6 +105,9 @@ public:
 
 private:
     std::optional<qint64> parseIntegerConstant(const std::string &text);
+
+private:
+    bool isInteger(const QString &text);
 
 private:
     quint64 _anomyIndex = 0;
