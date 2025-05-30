@@ -445,11 +445,13 @@ std::any CStructVisitorParser::visitPrimaryExpression(
 
 std::any CStructVisitorParser::visitStructOrUnionSpecifier(
     CStructParser::StructOrUnionSpecifierContext *ctx) {
-    auto name = ctx->Identifier();
-    auto memdecls = ctx->structDeclarationList();
-
-    parseStructOrUnion(ctx);
-
+    auto decl = parseStructOrUnion(ctx);
+    if (decl) {
+        if (!decl->name.isEmpty()) {
+            parser->storeStructUnionDef(decl->isStruct, decl->name,
+                                        decl->members);
+        }
+    }
     return defaultResult();
 }
 
@@ -509,12 +511,26 @@ std::any CStructVisitorParser::visitAssignmentExpressionDef(
     return defaultResult();
 }
 
+std::any CStructVisitorParser::visitExternalDeclaration(
+    CStructParser::ExternalDeclarationContext *ctx) {
+    // if (ctx->Typedef()) {
+    //     // TODO
+    //     return defaultResult();
+    // } else {
+    return visitChildren(ctx);
+    // }
+}
+
 QString CStructVisitorParser::getFinalDeclaratorName(
     CStructParser::DirectDeclaratorContext *ctx) {
     while (ctx) {
         if (ctx->Identifier()) {
             return QString::fromStdString(ctx->Identifier()->getText());
+        } else if (ctx->declarator()) {
+            ctx = ctx->declarator()->directDeclarator();
+            continue;
         }
+        ctx = ctx->directDeclarator();
     }
     return {};
 }
@@ -541,8 +557,7 @@ CStructVisitorParser::getDeclarator(
 
         // only pointer in the first level is valid member in struct
         if (d->pointer()) {
-            dor.retName =
-                QString::fromStdString(d->directDeclarator()->getText());
+            dor.retName = getFinalDeclaratorName(d->directDeclarator());
             dor.isPointer = true;
         } else {
             return std::nullopt;
@@ -562,8 +577,9 @@ CStructVisitorParser::getDeclarator(
         dor.next = ctx->directDeclarator();
     } else {
         // function pointer
-        dor.retName =
-            QString::fromStdString(ctx->directDeclarator()->getText());
+        dor.isPointer = true;
+        dor.isFunctionPtr = true;
+        dor.retName = getFinalDeclaratorName(ctx);
     }
 
     return dor;
@@ -670,7 +686,7 @@ CStructVisitorParser::parseStructOrUnion(
     CStructParser::StructOrUnionSpecifierContext *ctx) {
 
     StructUnionDecl decl;
-    // decl.isStruct = ctx->structOrUnion()->Struct() != nullptr;
+    decl.isStruct = ctx->structOrUnion()->Struct();
 
     auto mems = ctx->structDeclarationList();
     if (!mems) {
@@ -678,50 +694,68 @@ CStructVisitorParser::parseStructOrUnion(
     }
 
     if (ctx->Identifier()) {
-        decl.first = QString::fromStdString(ctx->Identifier()->getText());
+        decl.name = QString::fromStdString(ctx->Identifier()->getText());
     }
 
     for (auto &m : mems->structDeclaration()) {
         auto dl = getSpecifier(m->specifierQualifierList());
+        auto t = parser->type(dl->tname);
 
         auto dclist = m->structDeclaratorList();
         if (dclist) {
             for (auto &sub : dclist->structDeclarator()) {
                 VariableDeclaration var;
-                if (sub->declarator()) {
-                    auto d = sub->declarator()->directDeclarator();
-                    if (sub->declarator()->pointer()) {
+                var.data_type = dl->tname;
 
+                auto declor = sub->declarator();
+                if (declor) {
+                    auto d = declor->directDeclarator();
+                    if (declor->pointer()) {
+                        var.is_pointer = true;
+                        var.var_name = getFinalDeclaratorName(d);
+                        var.var_size = parser->pointerMode() == PointerMode::X64
+                                           ? sizeof(quint64)
+                                           : sizeof(quint32);
+                        decl.members.append(var);
                     } else {
+                        if (t.first == QMetaType::UnknownType) {
+                            return std::nullopt;
+                        }
+
                         auto info = getDeclarator(d);
+                        var.is_pointer = info->isPointer;
                         if (info) {
                             if (info->arrayCount == 0) {
-                                var.array_size = 0;
+                                var.array_dims.clear();
 
                                 continue; // no nessesary to deep parse
                             }
                             auto nestedInfo = getDeclarator(info->next);
-                            QString name;
+
+                            QVector<size_t> dims;
+                            dims.append(info->arrayCount);
+
                             if (nestedInfo) {
-                                auto lastInfo = nestedInfo;
                                 while (nestedInfo &&
                                        nestedInfo->arrayCount > 1 &&
                                        nestedInfo->next) {
-                                    info->arrayCount *= nestedInfo->arrayCount;
-                                    lastInfo = nestedInfo;
+                                    dims.prepend(nestedInfo->arrayCount);
                                     nestedInfo =
                                         getDeclarator(nestedInfo->next);
                                 }
-                                // TODO
-                                var.var_name =
-                                    getFinalDeclaratorName(lastInfo->next);
-                                var.array_size = info->arrayCount;
-                                var.data_type = info->retName;
-                                decl.second.append(var);
+                                var.var_name = getFinalDeclaratorName(d);
+                                var.array_dims = dims;
+                                var.var_size =
+                                    t.second *
+                                    std::accumulate(dims.begin(), dims.end(),
+                                                    size_t(1),
+                                                    std::multiplies<size_t>());
+                                decl.members.append(var);
                             } else {
-                                name = info->retName;
+                                var.var_name = info->retName;
+                                var.var_size = t.second;
+                                decl.members.append(var);
                             }
-
                         } else {
                             return std::nullopt;
                         }

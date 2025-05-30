@@ -83,18 +83,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitInitDeclaratorList(CStructParser::InitDeclaratorListContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitInitDeclarator(CStructParser::InitDeclaratorContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitStorageClassSpecifier(CStructParser::StorageClassSpecifierContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitTypeSpecifier(CStructParser::TypeSpecifierContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -163,18 +151,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitParameterTypeList(CStructParser::ParameterTypeListContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitParameterList(CStructParser::ParameterListContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitParameterDeclaration(CStructParser::ParameterDeclarationContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitIdentifierList(CStructParser::IdentifierListContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -208,10 +184,6 @@ public:
   }
 
   virtual std::any visitDefineDecl(CStructParser::DefineDeclContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitDeclarationList(CStructParser::DeclarationListContext *ctx) override {
     return visitChildren(ctx);
   }
 

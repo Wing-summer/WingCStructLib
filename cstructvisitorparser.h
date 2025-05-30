@@ -30,6 +30,9 @@ public:
     virtual std::any visitAssignmentExpressionDef(
         CStructParser::AssignmentExpressionDefContext *ctx) override;
 
+    virtual std::any visitExternalDeclaration(
+        CStructParser::ExternalDeclarationContext *ctx) override;
+
 private:
     using EnumDecl = QPair<QString, QHash<QString, qint64>>;
 
@@ -37,7 +40,11 @@ private:
 
     enum class StructMemType { Normal, Pointer, Enum, Struct, Union };
 
-    using StructUnionDecl = QPair<QString, QVector<VariableDeclaration>>;
+    struct StructUnionDecl {
+        QString name;
+        bool isStruct = true;
+        QVector<VariableDeclaration> members;
+    };
 
     std::optional<StructUnionDecl>
     parseStructOrUnion(CStructParser::StructOrUnionSpecifierContext *ctx);
@@ -55,6 +62,7 @@ private:
     struct Declarator {
         QString retName;
         bool isPointer = false;
+        bool isFunctionPtr = false;
         size_t arrayCount = 1;
         size_t bitField = 0;
         CStructParser::DirectDeclaratorContext *next = nullptr;

@@ -6,21 +6,31 @@
 #define DEFAULT_VALUE  42
 #define DVALUE \
                     ((2 << 1) + 1)
-typedef unsigned char  Byte;
+// typedef unsigned char  Byte;
 
 // Enum for testing
 enum TestEnum { Test1, Test2, Test3 };
 enum Status { OK = (8u), ERROR = 1 << 0 << 1 << 1, WARN = 1 << 4 };
 
 struct Cont {
-    int id[8][4];
+    int id[8][4],sub;
+    char c;    
+    char tc[3];
+    int v;
+    int op;
+    int* h;
+    const char *name;  
+};
+
+union UCont{
+    int heu;
+    short ss;
+    uint64 ts;
 };
 
 // A struct containing a nested struct and a nested union
-struct Container {
+/*struct Container {
     int id, uid;
-
-    void (*greet)(const char *name);  // function pointer
     
     // Nested struct
     struct InnerStruct {
@@ -66,7 +76,7 @@ union Mirror;  // forword declaration
 
 union Mirror {
     struct Container c;      // struct inside union
-};
+};*/
 
 // A stray semicolon to test that rule
 ;

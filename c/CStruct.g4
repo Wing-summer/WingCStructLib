@@ -99,7 +99,7 @@ assignmentExpression
     ;
 
 declaration
-    : declarationSpecifiers initDeclaratorList? ';'
+    : declarationSpecifiers ';'
     ;
 
 declarationSpecifiers
@@ -111,25 +111,8 @@ declarationSpecifiers2
     ;
 
 declarationSpecifier
-    : storageClassSpecifier
-    | typeSpecifier
+    : typeSpecifier
     | typeQualifier
-    ;
-
-initDeclaratorList
-    : initDeclarator (',' initDeclarator)*
-    ;
-
-initDeclarator
-    : declarator 
-    ;
-
-storageClassSpecifier
-    : 'typedef'
-    | 'extern'
-    | 'static'
-    | 'auto'
-    | 'register'
     ;
 
 typeSpecifier
@@ -210,8 +193,6 @@ directDeclarator
     : Identifier
     | '(' declarator ')'
     | directDeclarator '[' assignmentExpression ']'
-    | directDeclarator '(' parameterTypeList ')'
-    | directDeclarator '(' identifierList? ')'
     | Identifier ':' IntegerConstant         // bit field
     ;
 
@@ -221,19 +202,6 @@ pointer
 
 typeQualifierList
     : typeQualifier+
-    ;
-
-parameterTypeList
-    : parameterList (',' '...')?
-    ;
-
-parameterList
-    : parameterDeclaration (',' parameterDeclaration)*
-    ;
-
-parameterDeclaration
-    : declarationSpecifiers declarator
-    | declarationSpecifiers2 abstractDeclarator?
     ;
 
 identifierList
@@ -252,9 +220,7 @@ abstractDeclarator
 directAbstractDeclarator
     : '(' abstractDeclarator ')'
     | '[' assignmentExpression ']'
-    | '(' parameterTypeList? ')' 
     | directAbstractDeclarator '[' assignmentExpression ']'
-    | directAbstractDeclarator '(' parameterTypeList? ')' 
     ;
 
 typedefName
@@ -278,10 +244,6 @@ externalDeclaration
 defineDecl
     : DirectiveDefine
     | MultiLineMacroDefine
-    ;
-
-declarationList
-    : declaration+
     ;
 
 Auto
@@ -451,11 +413,7 @@ Semi
 Comma
     : ','
     ;
-
-Ellipsis
-    : '...'
-    ;
-
+    
 Identifier
     : IdentifierNondigit (IdentifierNondigit | Digit)*
     ;

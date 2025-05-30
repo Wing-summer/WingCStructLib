@@ -2,6 +2,7 @@
 #define DEFINE_H
 
 #include <QString>
+#include <QVector>
 
 /// @beief Struct for variable declaration
 ///
@@ -14,14 +15,25 @@
 /// @note Only one-demension array is supported here, but it's easy to extend
 /// with this awareness
 ///
-typedef struct {
+struct VariableDeclaration {
     QString data_type;  ///< name of a data type, either basic type or
                         ///< user-defined type
     QString var_name;   ///< variable name
-    qsizetype offset;   ///< member offset in struct: -1 for non-struct
-    size_t array_size;  ///< array size: 0 for non-array
-    bool is_pointer;    ///< true when it's a pointer
-    qsizetype var_size; ///< size in bytes
-} VariableDeclaration;
+    qsizetype offset = -1;   ///< member offset in struct: -1 for non-struct
+    size_t bit_size = 0;     // int v : bit_size , 0 for no bit_size exists
+    size_t mask = std::numeric_limits<size_t>::max(); // mask for bit_field
+    QVector<size_t> array_dims; ///< array size: empty for non-array
+    bool is_pointer = false; ///< true when it's a pointer
+    qsizetype var_size = -1; ///< total size in bytes
+
+public:
+    size_t element_count() const {
+        size_t ret = 1;
+        for (auto &dims : array_dims) {
+            ret *= dims;
+        }
+        return ret;
+    }
+};
 
 #endif // DEFINE_H

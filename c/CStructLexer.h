@@ -19,10 +19,10 @@ public:
     RightBracket = 25, LeftBrace = 26, RightBrace = 27, LeftShift = 28, 
     RightShift = 29, Plus = 30, PlusPlus = 31, Minus = 32, MinusMinus = 33, 
     Star = 34, Div = 35, Mod = 36, And = 37, Or = 38, Caret = 39, Tilde = 40, 
-    Colon = 41, Semi = 42, Comma = 43, Ellipsis = 44, Identifier = 45, IntegerConstant = 46, 
-    MultiLineMacroDefine = 47, MultiLineMacro = 48, DirectiveDefine = 49, 
-    Directive = 50, Whitespace = 51, Newline = 52, LINE_CONTINUATION = 53, 
-    BlockComment = 54, LineComment = 55
+    Colon = 41, Semi = 42, Comma = 43, Identifier = 44, IntegerConstant = 45, 
+    MultiLineMacroDefine = 46, MultiLineMacro = 47, DirectiveDefine = 48, 
+    Directive = 49, Whitespace = 50, Newline = 51, LINE_CONTINUATION = 52, 
+    BlockComment = 53, LineComment = 54
   };
 
   explicit CStructLexer(antlr4::CharStream *input);

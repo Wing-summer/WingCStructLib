@@ -31,6 +31,7 @@
 #include "ctypeparser.h"
 
 #include <antlr4-runtime.h>
+#include <array>
 
 CTypeParser::~CTypeParser() {}
 
@@ -251,15 +252,20 @@ bool CTypeParser::parseSource(const QString &src) {
     CStructLexer lexer(&input);
     antlr4::CommonTokenStream tokens(&lexer);
 
-    // tokens.fill();
-    // for (auto token : tokens.getTokens()) {
-    //     qDebug().noquote() << token->toString() << Qt::endl;
-    // }
-
     CStructParser parser(&tokens);
+    parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
 
     CStructVisitorParser visitor(this);
-    visitor.visit(parser.compilationUnit());
+    try {
+        visitor.visit(parser.compilationUnit());
+    } catch (...) {
+        tokens.reset();
+        parser.reset();
+        parser.setErrorHandler(
+            std::make_shared<antlr4::DefaultErrorStrategy>());
+        parser.compilationUnit();
+        return false;
+    }
 
     return true;
 }
@@ -333,7 +339,11 @@ CTypeParser::structDefs() const {
 qsizetype CTypeParser::padAlignment() const { return kAlignment_; }
 
 void CTypeParser::setPadAlignment(qsizetype newKAlignment) {
-    kAlignment_ = newKAlignment;
+    static std::array<int, 4> allowList{1, 2, 4, 8};
+    if (std::find(allowList.begin(), allowList.end(), newKAlignment) !=
+        allowList.end()) {
+        kAlignment_ = newKAlignment;
+    }
 }
 
 /// Dump the extracted type definitions
@@ -341,6 +351,14 @@ void CTypeParser::dumpTypeDefs() const {
     VariableDeclaration var;
 
     static QTextStream qout(stdout);
+
+    // dump typedef definitions
+    qout << "\ntypedef definitions:"
+         << "\n--------------------" << Qt::endl;
+    for (auto it = type_defs_.constKeyValueBegin();
+         it != type_defs_.constKeyValueEnd(); ++it) {
+        qout << "\t" << it->first << "\t = " << it->second << Qt::endl;
+    }
 
     // dump numeric const variables or macros
     qout << "\nconstant values:"
@@ -368,10 +386,12 @@ void CTypeParser::dumpTypeDefs() const {
 
             qout << "\t" << var.var_name;
 
-            if (0 < var.array_size)
-                qout << "[" << var.array_size << "]";
+            for (auto &dim : var.array_dims) {
+                qout << "[" << dim << "]";
+            }
 
-            qout << "\t(" << var.var_size << ")" << Qt::endl;
+            qout << "\t(off: " << var.offset << ", size: " << var.var_size
+                 << ")" << Qt::endl;
 
             members.pop_front();
         }
@@ -399,8 +419,9 @@ void CTypeParser::dumpTypeDefs() const {
 
             qout << "\t" << var.var_name;
 
-            if (0 < var.array_size)
-                qout << "[" << var.array_size << "]";
+            for (auto &dim : var.array_dims) {
+                qout << "[" << dim << "]";
+            }
 
             qout << "\t(" << var.var_size << ")" << Qt::endl;
 
@@ -427,15 +448,10 @@ void CTypeParser::dumpTypeDefs() const {
     }
 }
 
-void CTypeParser::reset() {
+void CTypeParser::clear() {
     type_maps_.removeIf([this](decltype(type_maps_)::iterator p) {
         return !base_types_.contains(p.key());
     });
-}
-
-qsizetype CTypeParser::padStruct(QList<VariableDeclaration> &members) {
-    // TODO
-    return 0;
 }
 
 qsizetype
@@ -471,4 +487,74 @@ void CTypeParser::storeStructUnionDef(const bool is_struct,
     }
 
     type_maps_[type_name] = qMakePair(QMetaType::User, size);
+}
+
+qsizetype CTypeParser::padStruct(QList<VariableDeclaration> &members) {
+    // Helper: round up to next multiple of 'align'
+    auto align_up = [](qsizetype offset, qsizetype align) {
+        return ((offset + align - 1) / align) * align;
+    };
+
+    qsizetype total = 0;
+    qsizetype max_align = 1;
+
+    // Bitfield state
+    qsizetype bit_offset = 0; // bits used in current storage unit
+    qsizetype bit_base_offset =
+        0;                // starting byte offset of current bitfield block
+    QString current_type; // data_type of current bitfield block
+    qsizetype current_base_size = 0; // size in bytes of base storage unit
+
+    for (auto &member : members) {
+        if (member.bit_size > 0) {
+            // Bitfield handling: pack into base storage units
+            qsizetype base_size = member.var_size; // e.g. sizeof(int)
+            qsizetype base_bits = base_size * 8;
+            qsizetype bits_needed = member.bit_size;
+
+            bool start_new = (bit_offset == 0) ||
+                             (current_type != member.data_type) ||
+                             (bits_needed > (base_bits - bit_offset));
+            if (start_new) {
+                // Align to base storage unit
+                total = align_up(total, base_size);
+                bit_base_offset = total;
+                total += base_size;
+
+                bit_offset = 0;
+                current_type = member.data_type;
+                current_base_size = base_size;
+                max_align = std::max(max_align, base_size);
+            }
+
+            // Assign member offset into the bitfield block
+            member.offset = bit_base_offset;
+            // Optionally store bit offset: member.mask determines bit position
+
+            bit_offset += bits_needed;
+            // If filled, reset to force new block next time
+            if (bit_offset >= base_bits) {
+                bit_offset = 0;
+                current_type.clear();
+            }
+        } else {
+            // Non-bitfield: reset bitfield grouping
+            bit_offset = 0;
+            current_type.clear();
+
+            // Byte-aligned fields (including arrays)
+            qsizetype block_size = member.var_size;
+            qsizetype elem_size = block_size / member.element_count();
+            qsizetype align_req = elem_size > 0 ? elem_size : 1;
+            max_align = std::max(max_align, align_req);
+
+            total = align_up(total, align_req);
+            member.offset = total;
+            total += block_size;
+        }
+    }
+
+    // Final struct size aligned to largest alignment
+    total = align_up(total, max_align);
+    return total;
 }

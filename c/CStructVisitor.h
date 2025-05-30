@@ -53,12 +53,6 @@ public:
 
     virtual std::any visitDeclarationSpecifier(CStructParser::DeclarationSpecifierContext *context) = 0;
 
-    virtual std::any visitInitDeclaratorList(CStructParser::InitDeclaratorListContext *context) = 0;
-
-    virtual std::any visitInitDeclarator(CStructParser::InitDeclaratorContext *context) = 0;
-
-    virtual std::any visitStorageClassSpecifier(CStructParser::StorageClassSpecifierContext *context) = 0;
-
     virtual std::any visitTypeSpecifier(CStructParser::TypeSpecifierContext *context) = 0;
 
     virtual std::any visitStructOrUnionSpecifier(CStructParser::StructOrUnionSpecifierContext *context) = 0;
@@ -93,12 +87,6 @@ public:
 
     virtual std::any visitTypeQualifierList(CStructParser::TypeQualifierListContext *context) = 0;
 
-    virtual std::any visitParameterTypeList(CStructParser::ParameterTypeListContext *context) = 0;
-
-    virtual std::any visitParameterList(CStructParser::ParameterListContext *context) = 0;
-
-    virtual std::any visitParameterDeclaration(CStructParser::ParameterDeclarationContext *context) = 0;
-
     virtual std::any visitIdentifierList(CStructParser::IdentifierListContext *context) = 0;
 
     virtual std::any visitTypeName(CStructParser::TypeNameContext *context) = 0;
@@ -116,8 +104,6 @@ public:
     virtual std::any visitExternalDeclaration(CStructParser::ExternalDeclarationContext *context) = 0;
 
     virtual std::any visitDefineDecl(CStructParser::DefineDeclContext *context) = 0;
-
-    virtual std::any visitDeclarationList(CStructParser::DeclarationListContext *context) = 0;
 
 
 };

@@ -48,14 +48,36 @@ public:
 
 public:
     qsizetype padAlignment() const;
+
+    ///
+    /// \brief set the struct alignment
+    /// \param newKAlignment alignment value (only for 1, 2, 4, 8)
+    /// \warning it takes no effect for structs/union that
+    ///          already have been added
+    ///
     void setPadAlignment(qsizetype newKAlignment);
 
     PointerMode pointerMode() const;
+
+    ///
+    /// \brief set the pointer size mode
+    /// \param newPmode
+    /// \warning it takes no effect for structs/union that
+    ///          already have been added
+    ///
     void setPointerMode(PointerMode newPmode);
 
     LongMode longMode() const;
+
+    ///
+    /// \brief set the specification rule for long type
+    /// \param newLmode
+    /// \warning it takes no effect for structs/union that
+    ///          already have been added
+    ///
     void setLongmode(LongMode newLmode);
 
+public:
     const QHash<QString, QList<VariableDeclaration>> &structDefs() const;
 
     const QHash<QString, QHash<QString, qint64>> &enumDefs() const;
@@ -71,7 +93,7 @@ public:
 public:
     void dumpTypeDefs() const;
 
-    void reset();
+    void clear();
 
 private:
     qsizetype padStruct(QList<VariableDeclaration> &members);
@@ -120,6 +142,9 @@ private:
 
     /// union definitions
     QHash<QString, QList<VariableDeclaration>> union_defs_;
+
+    /// typedef definitions
+    QHash<QString, QString> type_defs_;
 
     /// enum definitions
     QHash<QString, QHash<QString, qint64>> enum_defs_;
