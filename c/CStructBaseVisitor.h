@@ -15,6 +15,14 @@
 class  CStructBaseVisitor : public CStructVisitor {
 public:
 
+  virtual std::any visitInternalBasicTypes(CStructParser::InternalBasicTypesContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitSignOrUnsigned(CStructParser::SignOrUnsignedContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitPrimaryExpression(CStructParser::PrimaryExpressionContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -71,14 +79,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitDeclarationSpecifiers(CStructParser::DeclarationSpecifiersContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitDeclarationSpecifiers2(CStructParser::DeclarationSpecifiers2Context *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitDeclarationSpecifier(CStructParser::DeclarationSpecifierContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -131,10 +131,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitTypeQualifier(CStructParser::TypeQualifierContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitDeclarator(CStructParser::DeclaratorContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -144,10 +140,6 @@ public:
   }
 
   virtual std::any visitPointer(CStructParser::PointerContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitTypeQualifierList(CStructParser::TypeQualifierListContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -164,10 +156,6 @@ public:
   }
 
   virtual std::any visitDirectAbstractDeclarator(CStructParser::DirectAbstractDeclaratorContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitTypedefName(CStructParser::TypedefNameContext *ctx) override {
     return visitChildren(ctx);
   }
 

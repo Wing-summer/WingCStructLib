@@ -1,42 +1,26 @@
-/*
- [The "BSD licence"]
- Copyright (c) 2013 Sam Harwell
- All rights reserved.
-
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
- are met:
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
- 3. The name of the author may not be used to endorse or promote products
-    derived from this software without specific prior written permission.
-
- THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-/** C 2011 grammar built from the C11 Spec */
-
-// $antlr-format alignTrailingComments true, columnLimit 150, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments false, useTab false
-// $antlr-format allowShortRulesOnASingleLine false, allowShortBlocksOnASingleLine true, alignSemicolons hanging, alignColons hanging
 
 grammar CStruct;
+
+// pure C types
+internalBasicTypes
+    : signOrUnsigned?  Const? ('char' | 'short' | 'int' | 'long')
+    | ('char' | 'short' | 'int' | 'long')  Const? signOrUnsigned? 
+    | signOrUnsigned?  Const? 'long' 'long'
+    | 'long' 'long' Const? signOrUnsigned?
+    | 'float'
+    | 'double'
+;
+
+signOrUnsigned
+    : Signed 
+    | Unsigned
+    ;
 
 primaryExpression
     : Identifier
     | IntegerConstant
     | '(' assignmentExpression ')'
+    | SizeOf '(' specifierQualifierList ')'
     ;
 
 postfixExpression
@@ -99,35 +83,21 @@ assignmentExpression
     ;
 
 declaration
-    : declarationSpecifiers ';'
-    ;
-
-declarationSpecifiers
-    : declarationSpecifier+
-    ;
-
-declarationSpecifiers2
-    : declarationSpecifier+
+    : declarationSpecifier ';'
+    | 'typedef' typeSpecifier Identifier ';'
     ;
 
 declarationSpecifier
-    : typeSpecifier
-    | typeQualifier
+    :  structOrUnionSpecifier
+    | enumSpecifier
     ;
 
 typeSpecifier
-    : 'void'
-    | 'char'
-    | 'short'
-    | 'int'
-    | 'long'
-    | 'float'
-    | 'double'
-    | 'signed'
-    | 'unsigned'
+    : 'void' 
+    | internalBasicTypes
     | structOrUnionSpecifier
     | enumSpecifier
-    | typedefName
+    | Identifier
     ;
 
 structOrUnionSpecifier
@@ -150,7 +120,7 @@ structDeclaration // The first two rules have priority order and cannot be simpl
     ;
 
 specifierQualifierList
-    : (typeSpecifier | typeQualifier) specifierQualifierList?
+    : Const? typeSpecifier Const?
     ;
 
 structDeclaratorList
@@ -159,7 +129,7 @@ structDeclaratorList
 
 structDeclarator
     : declarator
-    | declarator? ':' IntegerConstant
+    | declarator? ':' assignmentExpression
     ;
 
 enumSpecifier
@@ -179,12 +149,6 @@ enumerationConstant
     : Identifier
     ;
 
-typeQualifier
-    : 'const'
-    | 'restrict'
-    | 'volatile'
-    ;
-
 declarator
     : pointer? directDeclarator 
     ;
@@ -193,15 +157,10 @@ directDeclarator
     : Identifier
     | '(' declarator ')'
     | directDeclarator '[' assignmentExpression ']'
-    | Identifier ':' IntegerConstant         // bit field
     ;
 
 pointer
-    : ('*' typeQualifierList?)+ 
-    ;
-
-typeQualifierList
-    : typeQualifier+
+    : ('*' Const?)+ 
     ;
 
 identifierList
@@ -223,10 +182,6 @@ directAbstractDeclarator
     | directAbstractDeclarator '[' assignmentExpression ']'
     ;
 
-typedefName
-    : Identifier
-    ;
-
 compilationUnit
     : translationUnit? EOF
     ;
@@ -246,10 +201,6 @@ defineDecl
     | MultiLineMacroDefine
     ;
 
-Auto
-    : 'auto'
-    ;
-
 Char
     : 'char'
     ;
@@ -266,10 +217,6 @@ Enum
     : 'enum'
     ;
 
-Extern
-    : 'extern'
-    ;
-
 Float
     : 'float'
     ;
@@ -282,12 +229,12 @@ Long
     : 'long'
     ;
 
-Register
-    : 'register'
+TypeDef
+    : 'typedef'
     ;
 
-Restrict
-    : 'restrict'
+SizeOf
+    : 'sizeof'
     ;
 
 Short
@@ -298,16 +245,8 @@ Signed
     : 'signed'
     ;
 
-Static
-    : 'static'
-    ;
-
 Struct
     : 'struct'
-    ;
-
-Typedef
-    : 'typedef'
     ;
 
 Union
@@ -320,10 +259,6 @@ Unsigned
 
 Void
     : 'void'
-    ;
-
-Volatile
-    : 'volatile'
     ;
 
 LeftParen
@@ -420,8 +355,6 @@ Identifier
 
 fragment IdentifierNondigit
     : Nondigit
-    | UniversalCharacterName
-    //|   // other implementation-defined characters...
     ;
 
 fragment Nondigit
@@ -430,11 +363,6 @@ fragment Nondigit
 
 fragment Digit
     : [0-9]
-    ;
-
-fragment UniversalCharacterName
-    : '\\u' HexQuad
-    | '\\U' HexQuad HexQuad
     ;
 
 fragment HexQuad
@@ -535,7 +463,6 @@ fragment EscapeSequence
     : SimpleEscapeSequence
     | OctalEscapeSequence
     | HexadecimalEscapeSequence
-    | UniversalCharacterName
     ;
 
 fragment SimpleEscapeSequence

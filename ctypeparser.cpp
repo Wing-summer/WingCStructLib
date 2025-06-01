@@ -50,11 +50,12 @@ void CTypeParser::initialize() {
 
 #define ADD_TYPE(T, MT) type_maps_.insert(#T, qMakePair(MT, sizeof(T)))
 
-#define ADD_TYPE_U(T, MT)                                                      \
-    ADD_TYPE(T, MT);                                                           \
-    unsigned_types_.append(#T);
-
 #define ADD_TYPE_S(T, MT, S) type_maps_.insert(#T, qMakePair(MT, S))
+
+    ADD_TYPE(uchar, QMetaType::UChar);
+    ADD_TYPE(ushort, QMetaType::UShort);
+    ADD_TYPE(uint, QMetaType::UInt);
+    ADD_TYPE(ulong, QMetaType::ULong);
 
     using byte = unsigned char;
     using char8_t = unsigned char;
@@ -62,26 +63,17 @@ void CTypeParser::initialize() {
     using int16 = qint16;
     using int32 = qint32;
     using int64 = qint64;
-    using int16_le = qint16_le;
-    using int16_be = qint16_be;
-    using int32_le = qint32_le;
-    using int32_be = qint32_be;
-    using int64_le = qint64_le;
-    using int64_be = qint64_be;
     using uint8 = quint8;
     using uint16 = quint16;
     using uint32 = quint32;
     using uint64 = quint64;
-    using uint16_le = quint16_le;
-    using uint16_be = quint16_be;
-    using uint32_le = quint32_le;
-    using uint32_be = quint32_be;
-    using uint64_le = quint64_le;
-    using uint64_be = quint64_be;
     using longlong = qlonglong;
     using ulonglong = qulonglong;
 
-    ADD_TYPE_U(bool, QMetaType::Bool);
+    using intptr = qintptr;
+    using uintptr = quintptr;
+
+    ADD_TYPE(bool, QMetaType::Bool);
     ADD_TYPE(char, QMetaType::Char);
     ADD_TYPE(short, QMetaType::Short);
     ADD_TYPE(int, QMetaType::Int);
@@ -89,12 +81,13 @@ void CTypeParser::initialize() {
     // LLP64: sizeof(long) = 4
     // LP64: sizeof(long) = 8
     ADD_TYPE(long, QMetaType::Long);
+
     ADD_TYPE(float, QMetaType::Float);
     ADD_TYPE(double, QMetaType::Double);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    ADD_TYPE_U(wchar_t, QMetaType::Char16);
+    ADD_TYPE(wchar_t, QMetaType::Char16);
 #else
-    ADD_TYPE_U(wchar_t, QMetaType::QChar);
+    ADD_TYPE(wchar_t, QMetaType::QChar);
 #endif
 
     ADD_TYPE(char8_t, QMetaType::Char);
@@ -107,37 +100,27 @@ void CTypeParser::initialize() {
 #endif
     ADD_TYPE_S(void, QMetaType::Void, 0);
 
-    ADD_TYPE_U(byte, QMetaType::UChar);
+    ADD_TYPE(uchar, QMetaType::UChar);
+    ADD_TYPE(byte, QMetaType::UChar);
 
     ADD_TYPE(int8, QMetaType::SChar);
     ADD_TYPE(int16, QMetaType::Short);
-    ADD_TYPE(int16_le, QMetaType::Short);
-    ADD_TYPE(int16_be, QMetaType::Short);
     ADD_TYPE(int32, QMetaType::Int);
-    ADD_TYPE(int32_le, QMetaType::Int);
-    ADD_TYPE(int32_be, QMetaType::Int);
     ADD_TYPE(int64, QMetaType::LongLong);
-    ADD_TYPE(int64_le, QMetaType::LongLong);
-    ADD_TYPE(int64_be, QMetaType::LongLong);
 
-    ADD_TYPE_U(uint8, QMetaType::UChar);
-    ADD_TYPE_U(uint16, QMetaType::UShort);
-    ADD_TYPE_U(uint16_le, QMetaType::UShort);
-    ADD_TYPE_U(uint16_be, QMetaType::UShort);
-    ADD_TYPE_U(uint32, QMetaType::UInt);
-    ADD_TYPE_U(uint32_le, QMetaType::UInt);
-    ADD_TYPE_U(uint32_be, QMetaType::UInt);
-    ADD_TYPE_U(uint64, QMetaType::ULongLong);
-    ADD_TYPE_U(uint64_le, QMetaType::ULongLong);
-    ADD_TYPE_U(uint64_be, QMetaType::ULongLong);
+    ADD_TYPE(uint8, QMetaType::UChar);
+    ADD_TYPE(uint16, QMetaType::UShort);
+    ADD_TYPE(uint32, QMetaType::UInt);
+    ADD_TYPE(uint64, QMetaType::ULongLong);
 
     ADD_TYPE(longlong, QMetaType::LongLong);
-    ADD_TYPE_U(ulonglong, QMetaType::ULongLong);
+    ADD_TYPE(ulonglong, QMetaType::ULongLong);
 
-    using uint = unsigned int;
-    ADD_TYPE_U(uint, QMetaType::UInt);
+    ADD_TYPE(intptr_t, QMetaType::LongLong);
+    ADD_TYPE(uintptr_t, QMetaType::ULongLong);
 
     using BOOL = bool;
+    using UCHAR = uchar;
     using BYTE = byte;
     using WORD = uint16;
     using DWORD = uint32;
@@ -148,16 +131,17 @@ void CTypeParser::initialize() {
     using DWORD32 = uint32;
     using DWORD64 = uint64;
 
-    ADD_TYPE_U(BOOL, QMetaType::Bool);
-    ADD_TYPE_U(BYTE, QMetaType::UChar);
-    ADD_TYPE_U(WORD, QMetaType::UShort);
-    ADD_TYPE_U(DWORD, QMetaType::UInt);
-    ADD_TYPE_U(QWORD, QMetaType::ULongLong);
-    ADD_TYPE_U(DWORDLONG, QMetaType::ULongLong);
+    ADD_TYPE(BOOL, QMetaType::Bool);
+    ADD_TYPE(UCHAR, QMetaType::UChar);
+    ADD_TYPE(BYTE, QMetaType::UChar);
+    ADD_TYPE(WORD, QMetaType::UShort);
+    ADD_TYPE(DWORD, QMetaType::UInt);
+    ADD_TYPE(QWORD, QMetaType::ULongLong);
+    ADD_TYPE(DWORDLONG, QMetaType::ULongLong);
     ADD_TYPE(FLOAT, QMetaType::Float);
     ADD_TYPE(DOUBLE, QMetaType::Double);
-    ADD_TYPE_U(DWORD32, QMetaType::UInt);
-    ADD_TYPE_U(DWORD64, QMetaType::UInt);
+    ADD_TYPE(DWORD32, QMetaType::UInt);
+    ADD_TYPE(DWORD64, QMetaType::UInt);
 
     using INT8 = qint8;
     using INT16 = qint16;
@@ -174,10 +158,10 @@ void CTypeParser::initialize() {
     using UINT32 = quint32;
     using UINT64 = quint64;
 
-    ADD_TYPE_U(UINT8, QMetaType::UChar);
-    ADD_TYPE_U(UINT16, QMetaType::UShort);
-    ADD_TYPE_U(UINT32, QMetaType::UInt);
-    ADD_TYPE_U(UINT64, QMetaType::ULongLong);
+    ADD_TYPE(UINT8, QMetaType::UChar);
+    ADD_TYPE(UINT16, QMetaType::UShort);
+    ADD_TYPE(UINT32, QMetaType::UInt);
+    ADD_TYPE(UINT64, QMetaType::ULongLong);
 
     using SHORT = short;
     using INT = int;
@@ -190,16 +174,16 @@ void CTypeParser::initialize() {
     ADD_TYPE(LONG, QMetaType::Int);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    ADD_TYPE_U(WCHAR, QMetaType::Char16);
+    ADD_TYPE(WCHAR, QMetaType::Char16);
 #else
-    ADD_TYPE_U(WCHAR, QMetaType::QChar);
+    ADD_TYPE(WCHAR, QMetaType::QChar);
 #endif
 
     using LONGLONG = longlong;
     using ULONGLONG = ulonglong;
 
     ADD_TYPE(LONGLONG, QMetaType::LongLong);
-    ADD_TYPE_U(ULONGLONG, QMetaType::ULongLong);
+    ADD_TYPE(ULONGLONG, QMetaType::ULongLong);
 
     using LONG32 = qint32;
     using LONG64 = qint64;
@@ -209,11 +193,11 @@ void CTypeParser::initialize() {
 
     using SIZE_T = size_t;
     if (sizeof(size_t) == sizeof(quint64)) {
-        ADD_TYPE_U(size_t, QMetaType::ULongLong);
-        ADD_TYPE_U(SIZE_T, QMetaType::ULongLong);
+        ADD_TYPE(size_t, QMetaType::ULongLong);
+        ADD_TYPE(SIZE_T, QMetaType::ULongLong);
     } else {
-        ADD_TYPE_U(size_t, QMetaType::ULong);
-        ADD_TYPE_U(SIZE_T, QMetaType::ULong);
+        ADD_TYPE(size_t, QMetaType::ULong);
+        ADD_TYPE(SIZE_T, QMetaType::ULong);
     }
 
     ADD_TYPE(int8_t, QMetaType::SChar);
@@ -221,10 +205,12 @@ void CTypeParser::initialize() {
     ADD_TYPE(int32_t, QMetaType::Int);
     ADD_TYPE(int64_t, QMetaType::LongLong);
 
-    ADD_TYPE_U(uint8_t, QMetaType::UChar);
-    ADD_TYPE_U(uint16_t, QMetaType::UShort);
-    ADD_TYPE_U(uint32_t, QMetaType::UInt);
-    ADD_TYPE_U(uint64_t, QMetaType::ULongLong);
+    ADD_TYPE(uint8_t, QMetaType::UChar);
+    ADD_TYPE(uint16_t, QMetaType::UShort);
+    ADD_TYPE(uint32_t, QMetaType::UInt);
+    ADD_TYPE(uint64_t, QMetaType::ULongLong);
+    ADD_TYPE(intptr_t, QMetaType::LongLong);
+    ADD_TYPE(uintptr_t, QMetaType::ULongLong);
 
 #undef ADD_TYPE
 #undef ADD_TYPE_S
@@ -283,7 +269,7 @@ qsizetype CTypeParser::getTypeSize(const QString &data_type) const {
     if (type_maps_.contains(data_type)) {
         return type_maps_.value(data_type).second;
     } else if (enum_defs_.contains(data_type)) {
-        return sizeof(int);
+        return sizeof(qlonglong);
     } else {
         qCritical() << QStringLiteral("Unknown data type - ") + data_type;
         return -1;
@@ -296,10 +282,12 @@ void CTypeParser::setLongmode(LongMode newLmode) {
     // correct the size of long
     switch (newLmode) {
     case LongMode::LLP64:
-        type_maps_["long"] = qMakePair(QMetaType::Int, sizeof(int));
+        type_maps_["long"] = qMakePair(QMetaType::Long, sizeof(int));
+        type_maps_["ulong"] = qMakePair(QMetaType::ULong, sizeof(uint));
         break;
     case LongMode::LP64:
-        type_maps_["long"] = qMakePair(QMetaType::LongLong, sizeof(qlonglong));
+        type_maps_["long"] = qMakePair(QMetaType::Long, sizeof(qlonglong));
+        type_maps_["ulong"] = qMakePair(QMetaType::ULong, sizeof(qulonglong));
         break;
     }
     _lmode = newLmode;
@@ -339,7 +327,7 @@ CTypeParser::structDefs() const {
 qsizetype CTypeParser::padAlignment() const { return kAlignment_; }
 
 void CTypeParser::setPadAlignment(qsizetype newKAlignment) {
-    static std::array<int, 4> allowList{1, 2, 4, 8};
+    static std::array<int, 5> allowList{1, 2, 4, 8, 16};
     if (std::find(allowList.begin(), allowList.end(), newKAlignment) !=
         allowList.end()) {
         kAlignment_ = newKAlignment;
@@ -352,12 +340,15 @@ void CTypeParser::dumpTypeDefs() const {
 
     static QTextStream qout(stdout);
 
+    static QString padding(4, ' ');
+
     // dump typedef definitions
     qout << "\ntypedef definitions:"
          << "\n--------------------" << Qt::endl;
     for (auto it = type_defs_.constKeyValueBegin();
          it != type_defs_.constKeyValueEnd(); ++it) {
-        qout << "\t" << it->first << "\t = " << it->second << Qt::endl;
+        qout << padding << it->first << padding << " = " << it->second
+             << Qt::endl;
     }
 
     // dump numeric const variables or macros
@@ -365,7 +356,8 @@ void CTypeParser::dumpTypeDefs() const {
          << "\n--------------------" << Qt::endl;
     for (auto it = const_defs_.constKeyValueBegin();
          it != const_defs_.constKeyValueEnd(); ++it) {
-        qout << "\t" << it->first << "\t = " << it->second << Qt::endl;
+        qout << padding << it->first << padding << " = " << it->second
+             << Qt::endl;
     }
 
     // dump struct definitions
@@ -379,25 +371,29 @@ void CTypeParser::dumpTypeDefs() const {
         auto members = it->second;
         while (!members.empty()) {
             var = members.front();
-            qout << '\t' << var.data_type;
+            qout << padding << var.data_type;
 
             if (var.is_pointer)
                 qout << "* ";
 
-            qout << "\t" << var.var_name;
+            qout << padding << var.var_name;
 
             for (auto &dim : var.array_dims) {
                 qout << "[" << dim << "]";
             }
 
-            qout << "\t(off: " << var.offset << ", size: " << var.var_size
-                 << ")" << Qt::endl;
+            if (var.bit_size) {
+                qout << " : " << var.bit_size;
+            }
+
+            qout << padding << "(off: " << var.offset
+                 << ", size: " << var.var_size << ")" << Qt::endl;
 
             members.pop_front();
         }
 
         auto type = it->first;
-        qout << "\t(size = " << type_maps_.value(type).second << ")\n"
+        qout << padding << "(size = " << type_maps_.value(type).second << ")\n"
              << Qt::endl;
     }
 
@@ -412,22 +408,23 @@ void CTypeParser::dumpTypeDefs() const {
         auto members = itu->second;
         while (!members.isEmpty()) {
             var = members.front();
-            qout << '\t' << var.data_type;
+            qout << padding << var.data_type;
 
             if (var.is_pointer)
                 qout << "* ";
 
-            qout << "\t" << var.var_name;
+            qout << padding << var.var_name;
 
             for (auto &dim : var.array_dims) {
                 qout << "[" << dim << "]";
             }
 
-            qout << "\t(" << var.var_size << ")" << Qt::endl;
+            qout << padding << "(" << var.var_size << ")" << Qt::endl;
 
             members.pop_front();
         }
-        qout << "\t(size = " << type_maps_.value(itu->first).second << ")\n"
+        qout << padding << "(size = " << type_maps_.value(itu->first).second
+             << ")\n"
              << Qt::endl;
     }
 
@@ -441,7 +438,7 @@ void CTypeParser::dumpTypeDefs() const {
 
         auto members = itv->second;
         for (auto &&[key, value] : members.asKeyValueRange()) {
-            qout << '\t' << key << "(" << value << ")" << Qt::endl;
+            qout << padding << key << "(" << value << ")" << Qt::endl;
         }
 
         qout << '\n' << Qt::endl;
@@ -490,71 +487,96 @@ void CTypeParser::storeStructUnionDef(const bool is_struct,
 }
 
 qsizetype CTypeParser::padStruct(QList<VariableDeclaration> &members) {
-    // Helper: round up to next multiple of 'align'
+    // Helper to round up 'offset' to the next multiple of 'align'.
     auto align_up = [](qsizetype offset, qsizetype align) {
         return ((offset + align - 1) / align) * align;
     };
 
+    const qsizetype struct_align = kAlignment_; // can be 1, 2, 4, 8, 16
     qsizetype total = 0;
-    qsizetype max_align = 1;
 
-    // Bitfield state
-    qsizetype bit_offset = 0; // bits used in current storage unit
-    qsizetype bit_base_offset =
-        0;                // starting byte offset of current bitfield block
-    QString current_type; // data_type of current bitfield block
-    qsizetype current_base_size = 0; // size in bytes of base storage unit
+    // Track the “current” bitfield storage unit:
+    qsizetype bitfield_base_size = 0; // in bytes (e.g. 1 for char, 4 for int)
+    qsizetype bitfield_capacity = 0;  // in bits  (base_size * 8)
+    qsizetype bitfield_used = 0;      // bits already consumed
+    qsizetype bitfield_offset = 0;    // byte-offset where this block starts
+    QString bitfield_type;            // data_type of that block
 
     for (auto &member : members) {
         if (member.bit_size > 0) {
-            // Bitfield handling: pack into base storage units
-            qsizetype base_size = member.var_size; // e.g. sizeof(int)
-            qsizetype base_bits = base_size * 8;
-            qsizetype bits_needed = member.bit_size;
+            // “want_bits” is how many bits this field needs:
+            qsizetype want_bits = static_cast<qsizetype>(member.bit_size);
 
-            bool start_new = (bit_offset == 0) ||
-                             (current_type != member.data_type) ||
-                             (bits_needed > (base_bits - bit_offset));
-            if (start_new) {
-                // Align to base storage unit
-                total = align_up(total, base_size);
-                bit_base_offset = total;
-                total += base_size;
+            // Each bitfield declares its own var_size (e.g. 4 for int, 1 for
+            // char)
+            qsizetype this_base_size = member.var_size;
+            qsizetype this_capacity = this_base_size * 8;
 
-                bit_offset = 0;
-                current_type = member.data_type;
-                current_base_size = base_size;
-                max_align = std::max(max_align, base_size);
+            // If we haven’t started a block, OR
+            // if the incoming bitfield’s base‐size differs from the current
+            // block’s, OR if it won’t fit in the remaining bits of the current
+            // block, then start a brand‐new storage unit here:
+            bool needs_new_block =
+                (bitfield_used == 0) ||
+                (bitfield_base_size != this_base_size) ||
+                (bitfield_used + want_bits > bitfield_capacity);
+
+            if (needs_new_block) {
+                // Align “total” up to this_base_size (but never exceed
+                // struct_align)
+                qsizetype align_req = std::min(this_base_size, struct_align);
+                if (align_req < 1)
+                    align_req = 1;
+                total = align_up(total, align_req);
+
+                // Start a fresh block of exactly this_base_size bytes:
+                bitfield_offset = total;
+                total += this_base_size;
+
+                bitfield_base_size = this_base_size;
+                bitfield_capacity = this_capacity;
+                bitfield_used = 0;
+                bitfield_type = member.data_type;
             }
 
-            // Assign member offset into the bitfield block
-            member.offset = bit_base_offset;
-            // Optionally store bit offset: member.mask determines bit position
+            // Place this bitfield at bitfield_offset
+            member.offset = bitfield_offset;
+            bitfield_used += want_bits;
 
-            bit_offset += bits_needed;
-            // If filled, reset to force new block next time
-            if (bit_offset >= base_bits) {
-                bit_offset = 0;
-                current_type.clear();
+            // If we’ve exactly filled all bits, flush this block:
+            if (bitfield_used >= bitfield_capacity) {
+                bitfield_base_size = 0;
+                bitfield_capacity = 0;
+                bitfield_used = 0;
+                bitfield_type.clear();
             }
+
         } else {
-            // Non-bitfield: reset bitfield grouping
-            bit_offset = 0;
-            current_type.clear();
+            // Non‐bitfield: clear any ongoing bitfield block
+            bitfield_base_size = 0;
+            bitfield_capacity = 0;
+            bitfield_used = 0;
+            bitfield_type.clear();
 
-            // Byte-aligned fields (including arrays)
+            // Compute how many elements (for arrays) or 1 (for scalar):
+            size_t count = member.element_count();
             qsizetype block_size = member.var_size;
-            qsizetype elem_size = block_size / member.element_count();
-            qsizetype align_req = elem_size > 0 ? elem_size : 1;
-            max_align = std::max(max_align, align_req);
+            qsizetype elem_size =
+                (count > 0) ? (block_size / static_cast<qsizetype>(count))
+                            : block_size;
 
+            // Align “total” up to min(elem_size, struct_align)
+            qsizetype align_req = std::min(elem_size, struct_align);
+            if (align_req < 1)
+                align_req = 1;
             total = align_up(total, align_req);
+
             member.offset = total;
             total += block_size;
         }
     }
 
-    // Final struct size aligned to largest alignment
-    total = align_up(total, max_align);
+    // Finally, align the entire struct size up to kAlignment_
+    total = align_up(total, struct_align);
     return total;
 }

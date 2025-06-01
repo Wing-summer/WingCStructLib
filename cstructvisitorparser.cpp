@@ -438,6 +438,14 @@ std::any CStructVisitorParser::visitPrimaryExpression(
         }
     } else if (ctx->assignmentExpression()) {
         return visitAssignmentExpression(ctx->assignmentExpression());
+    } else if (ctx->SizeOf()) {
+        auto type = ctx->specifierQualifierList();
+        auto spec = getSpecifier(type);
+        if (spec) {
+            return parser->getTypeSize(spec->tname);
+        } else {
+            return 0;
+        }
     }
 
     return defaultResult();
@@ -547,11 +555,11 @@ CStructVisitorParser::getDeclarator(
     if (ctx->Identifier()) {
         // Identifier only
         dor.retName = QString::fromStdString(ctx->Identifier()->getText());
-        if (ctx->Colon()) {
-            // bit field
-            dor.bitField =
-                parseIntegerConstant(ctx->IntegerConstant()->getText()).value();
-        }
+        // if (ctx->Colon()) {
+        //     // bit field
+        //     dor.bitField =
+        //         parseIntegerConstant(ctx->IntegerConstant()->getText()).value();
+        // }
     } else if (ctx->declarator()) {
         auto d = ctx->declarator();
 
@@ -593,89 +601,103 @@ CStructVisitorParser::getSpecifier(
     }
 
     Specifier sq;
-    size_t longdecl = 0;
 
-    // I only focus on typeSpecifier
-    while (ctx && ctx->typeSpecifier()) {
-        auto s = ctx->typeSpecifier();
-        if (s->Signed()) {
-            if (sq.isUnsigned || sq.type != StructMemType::Normal) {
-                return std::nullopt;
-            }
-            sq.isSigned = true;
-        } else if (s->Unsigned()) {
-            if (sq.isSigned || sq.type != StructMemType::Normal) {
-                return std::nullopt;
-            }
-            sq.isUnsigned = true;
-        } else if (s->enumSpecifier()) {
-            if (sq.isSigned || sq.isUnsigned || !sq.tname.isEmpty() ||
-                sq.type != StructMemType::Normal) {
-                return std::nullopt;
-            }
-            auto es = s->enumSpecifier();
-            if (es->enumeratorList()) {
-                sq.type = StructMemType::Enum;
-                // I won't use enum type name declared
-                // TODO
-            } else {
-                return std::nullopt;
-            }
-        } else if (s->structOrUnionSpecifier()) {
-            if (sq.isSigned || sq.isUnsigned || !sq.tname.isEmpty() ||
-                sq.type != StructMemType::Normal) {
-                return std::nullopt;
-            }
-            auto sus = s->structOrUnionSpecifier();
-            if (sus->structDeclarationList()) {
-                sq.type = sus->structOrUnion()->Struct() ? StructMemType::Struct
-                                                         : StructMemType::Union;
+    auto spec = ctx->typeSpecifier();
+    if (spec->Void()) {
+        sq.type = StructMemType::Normal;
+        sq.tname = QStringLiteral("void");
+    } else if (spec->internalBasicTypes()) {
+        auto btype = spec->internalBasicTypes();
+        sq.type = StructMemType::Normal;
 
-                // sq.tname = "";
-                // I won't use struc or union type name declared
-                // in struct or union
-                // parse struct and get the internal name
-                // TODO
+        if (btype->Char()) {
+            sq.tname = QStringLiteral("char");
 
-            } else {
-                return std::nullopt;
+            auto sous = btype->signOrUnsigned();
+            if (sous) {
+                if (sous->Unsigned()) {
+                    sq.tname = QStringLiteral("uchar");
+                }
             }
+        } else if (btype->Short()) {
+            sq.tname = QStringLiteral("short");
+
+            auto sous = btype->signOrUnsigned();
+            if (sous) {
+                if (sous->Unsigned()) {
+                    sq.tname = QStringLiteral("ushort");
+                }
+            }
+        } else if (btype->Int()) {
+            sq.tname = QStringLiteral("int");
+
+            auto sous = btype->signOrUnsigned();
+            if (sous) {
+                if (sous->Unsigned()) {
+                    sq.tname = QStringLiteral("uint");
+                }
+            }
+        } else if (btype->Float()) {
+            sq.tname = QStringLiteral("float");
+        } else if (btype->Double()) {
+            sq.tname = QStringLiteral("double");
         } else {
-            if (sq.type != StructMemType::Normal) {
-                return std::nullopt;
-            }
-
-            if (s->Double() || s->Float()) {
-                if (sq.isSigned || sq.isUnsigned) {
-                    return std::nullopt;
-                }
-            }
-
-            if (s->Long()) {
-                longdecl++;
-                if (longdecl > 2) {
+            // for long or longlong
+            auto len = btype->Long().size();
+            auto sous = btype->signOrUnsigned();
+            if (sous) {
+                switch (len) {
+                case 1:
+                    sq.tname = QStringLiteral("long");
+                    break;
+                case 2:
+                    sq.tname = QStringLiteral("longlong");
+                    break;
+                default:
                     return std::nullopt;
                 }
             } else {
-                sq.tname = QString::fromStdString(s->getText());
+                switch (len) {
+                case 1:
+                    sq.tname = QStringLiteral("ulong");
+                    break;
+                case 2:
+                    sq.tname = QStringLiteral("ulonglong");
+                    break;
+                default:
+                    return std::nullopt;
+                }
             }
         }
-
-        ctx = ctx->specifierQualifierList();
-    }
-
-    if (longdecl > 0) {
-        if (sq.tname == QStringLiteral("int")) {
-            sq.tname.clear();
+    } else if (spec->Identifier()) {
+        sq.type = StructMemType::Normal;
+        sq.tname = QString::fromStdString(spec->Identifier()->getText());
+    } else if (spec->enumSpecifier()) {
+        auto es = spec->enumSpecifier();
+        if (es->enumeratorList()) {
+            sq.type = StructMemType::Enum;
+            // I won't use enum type name declared
+            // TODO
         } else {
             return std::nullopt;
         }
-    }
+    } else if (spec->structOrUnionSpecifier()) {
+        auto sus = spec->structOrUnionSpecifier();
+        if (sus->structDeclarationList()) {
+            sq.type = sus->structOrUnion()->Struct() ? StructMemType::Struct
+                                                     : StructMemType::Union;
 
-    if (sq.tname.isEmpty()) {
-        for (size_t i = 0; i < longdecl; ++i) {
-            sq.tname.append(QStringLiteral("long"));
+            // sq.tname = "";
+            // I won't use struc or union type name declared
+            // in struct or union
+            // parse struct and get the internal name
+            // TODO
+
+        } else {
+            return std::nullopt;
         }
+    } else {
+        return std::nullopt;
     }
 
     return sq;
@@ -709,8 +731,27 @@ CStructVisitorParser::parseStructOrUnion(
 
                 auto declor = sub->declarator();
                 if (declor) {
+                    // bit field
+                    if (sub->Colon()) {
+                        if (!isInteger(dl->tname)) {
+                            return std::nullopt;
+                        }
+
+                        auto bits = visitAssignmentExpression(
+                            sub->assignmentExpression());
+                        if (bits.type() == typeid(quint64)) {
+                            auto b = std::any_cast<quint64>(bits);
+                            var.bit_size = b;
+                        } else if (bits.type() == typeid(qint64)) {
+                            auto b = std::any_cast<qint64>(bits);
+                            var.bit_size = b;
+                        } else {
+                            return std::nullopt;
+                        }
+                    }
+
                     auto d = declor->directDeclarator();
-                    if (declor->pointer()) {
+                    if (declor->pointer() && !sub->Colon()) {
                         var.is_pointer = true;
                         var.var_name = getFinalDeclaratorName(d);
                         var.var_size = parser->pointerMode() == PointerMode::X64
@@ -761,6 +802,21 @@ CStructVisitorParser::parseStructOrUnion(
                         }
                     }
                 } else {
+                    // must be bit field
+                    var.var_name.clear();
+
+                    auto bits =
+                        visitAssignmentExpression(sub->assignmentExpression());
+                    if (bits.type() == typeid(quint64)) {
+                        auto b = std::any_cast<quint64>(bits);
+                        var.bit_size = b;
+                    } else if (bits.type() == typeid(qint64)) {
+                        auto b = std::any_cast<qint64>(bits);
+                        var.bit_size = b;
+                    }
+
+                    var.var_size = t.second;
+                    decl.members.append(var);
                 }
             }
         }

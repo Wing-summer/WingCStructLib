@@ -52,174 +52,175 @@ void cstructParserInitialize() {
 #endif
   auto staticData = std::make_unique<CStructParserStaticData>(
     std::vector<std::string>{
-      "primaryExpression", "postfixExpression", "unaryExpression", "unaryOperator", 
-      "castExpression", "multiplicativeExpression", "additiveExpression", 
-      "shiftExpression", "andExpression", "exclusiveOrExpression", "inclusiveOrExpression", 
-      "assignmentExpressionDef", "assignmentExpression", "declaration", 
-      "declarationSpecifiers", "declarationSpecifiers2", "declarationSpecifier", 
-      "typeSpecifier", "structOrUnionSpecifier", "structOrUnion", "structDeclarationList", 
-      "structDeclaration", "specifierQualifierList", "structDeclaratorList", 
-      "structDeclarator", "enumSpecifier", "enumeratorList", "enumerator", 
-      "enumerationConstant", "typeQualifier", "declarator", "directDeclarator", 
-      "pointer", "typeQualifierList", "identifierList", "typeName", "abstractDeclarator", 
-      "directAbstractDeclarator", "typedefName", "compilationUnit", "translationUnit", 
-      "externalDeclaration", "defineDecl"
+      "internalBasicTypes", "signOrUnsigned", "primaryExpression", "postfixExpression", 
+      "unaryExpression", "unaryOperator", "castExpression", "multiplicativeExpression", 
+      "additiveExpression", "shiftExpression", "andExpression", "exclusiveOrExpression", 
+      "inclusiveOrExpression", "assignmentExpressionDef", "assignmentExpression", 
+      "declaration", "declarationSpecifier", "typeSpecifier", "structOrUnionSpecifier", 
+      "structOrUnion", "structDeclarationList", "structDeclaration", "specifierQualifierList", 
+      "structDeclaratorList", "structDeclarator", "enumSpecifier", "enumeratorList", 
+      "enumerator", "enumerationConstant", "declarator", "directDeclarator", 
+      "pointer", "identifierList", "typeName", "abstractDeclarator", "directAbstractDeclarator", 
+      "compilationUnit", "translationUnit", "externalDeclaration", "defineDecl"
     },
     std::vector<std::string>{
-      "", "'='", "'auto'", "'char'", "'const'", "'double'", "'enum'", "'extern'", 
-      "'float'", "'int'", "'long'", "'register'", "'restrict'", "'short'", 
-      "'signed'", "'static'", "'struct'", "'typedef'", "'union'", "'unsigned'", 
-      "'void'", "'volatile'", "'('", "')'", "'['", "']'", "'{'", "'}'", 
-      "'<<'", "'>>'", "'+'", "'++'", "'-'", "'--'", "'*'", "'/'", "'%'", 
-      "'&'", "'|'", "'^'", "'~'", "':'", "';'", "','"
+      "", "'='", "'char'", "'const'", "'double'", "'enum'", "'float'", "'int'", 
+      "'long'", "'typedef'", "'sizeof'", "'short'", "'signed'", "'struct'", 
+      "'union'", "'unsigned'", "'void'", "'('", "')'", "'['", "']'", "'{'", 
+      "'}'", "'<<'", "'>>'", "'+'", "'++'", "'-'", "'--'", "'*'", "'/'", 
+      "'%'", "'&'", "'|'", "'^'", "'~'", "':'", "';'", "','"
     },
     std::vector<std::string>{
-      "", "", "Auto", "Char", "Const", "Double", "Enum", "Extern", "Float", 
-      "Int", "Long", "Register", "Restrict", "Short", "Signed", "Static", 
-      "Struct", "Typedef", "Union", "Unsigned", "Void", "Volatile", "LeftParen", 
-      "RightParen", "LeftBracket", "RightBracket", "LeftBrace", "RightBrace", 
-      "LeftShift", "RightShift", "Plus", "PlusPlus", "Minus", "MinusMinus", 
-      "Star", "Div", "Mod", "And", "Or", "Caret", "Tilde", "Colon", "Semi", 
-      "Comma", "Identifier", "IntegerConstant", "MultiLineMacroDefine", 
-      "MultiLineMacro", "DirectiveDefine", "Directive", "Whitespace", "Newline", 
-      "LINE_CONTINUATION", "BlockComment", "LineComment"
+      "", "", "Char", "Const", "Double", "Enum", "Float", "Int", "Long", 
+      "TypeDef", "SizeOf", "Short", "Signed", "Struct", "Union", "Unsigned", 
+      "Void", "LeftParen", "RightParen", "LeftBracket", "RightBracket", 
+      "LeftBrace", "RightBrace", "LeftShift", "RightShift", "Plus", "PlusPlus", 
+      "Minus", "MinusMinus", "Star", "Div", "Mod", "And", "Or", "Caret", 
+      "Tilde", "Colon", "Semi", "Comma", "Identifier", "IntegerConstant", 
+      "MultiLineMacroDefine", "MultiLineMacro", "DirectiveDefine", "Directive", 
+      "Whitespace", "Newline", "LINE_CONTINUATION", "BlockComment", "LineComment"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,54,399,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,49,412,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,
   	14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,
   	21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,2,28,7,
   	28,2,29,7,29,2,30,7,30,2,31,7,31,2,32,7,32,2,33,7,33,2,34,7,34,2,35,7,
-  	35,2,36,7,36,2,37,7,37,2,38,7,38,2,39,7,39,2,40,7,40,2,41,7,41,2,42,7,
-  	42,1,0,1,0,1,0,1,0,1,0,1,0,3,0,93,8,0,1,1,1,1,5,1,97,8,1,10,1,12,1,100,
-  	9,1,1,2,5,2,103,8,2,10,2,12,2,106,9,2,1,2,1,2,1,2,1,2,3,2,112,8,2,1,3,
-  	1,3,1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,4,123,8,4,1,5,1,5,1,5,5,5,128,8,5,10,
-  	5,12,5,131,9,5,1,6,1,6,1,6,5,6,136,8,6,10,6,12,6,139,9,6,1,7,1,7,1,7,
-  	5,7,144,8,7,10,7,12,7,147,9,7,1,8,1,8,1,8,5,8,152,8,8,10,8,12,8,155,9,
-  	8,1,9,1,9,1,9,5,9,160,8,9,10,9,12,9,163,9,9,1,10,1,10,1,10,5,10,168,8,
-  	10,10,10,12,10,171,9,10,1,11,1,11,5,11,175,8,11,10,11,12,11,178,9,11,
-  	1,11,1,11,1,12,1,12,3,12,184,8,12,1,13,1,13,1,13,1,14,4,14,190,8,14,11,
-  	14,12,14,191,1,15,4,15,195,8,15,11,15,12,15,196,1,16,1,16,3,16,201,8,
-  	16,1,17,1,17,1,17,1,17,1,17,1,17,1,17,1,17,1,17,1,17,1,17,1,17,3,17,215,
-  	8,17,1,18,1,18,3,18,219,8,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,3,18,
-  	228,8,18,1,19,1,19,1,20,4,20,233,8,20,11,20,12,20,234,1,21,1,21,1,21,
-  	1,21,1,21,1,21,1,21,3,21,244,8,21,1,22,1,22,3,22,248,8,22,1,22,3,22,251,
-  	8,22,1,23,1,23,1,23,5,23,256,8,23,10,23,12,23,259,9,23,1,24,1,24,3,24,
-  	263,8,24,1,24,1,24,3,24,267,8,24,1,25,1,25,3,25,271,8,25,1,25,1,25,1,
-  	25,3,25,276,8,25,1,25,1,25,1,25,1,25,3,25,282,8,25,1,26,1,26,1,26,5,26,
-  	287,8,26,10,26,12,26,290,9,26,1,27,1,27,1,27,3,27,295,8,27,1,28,1,28,
-  	1,29,1,29,1,30,3,30,302,8,30,1,30,1,30,1,31,1,31,1,31,1,31,1,31,1,31,
-  	1,31,1,31,1,31,3,31,315,8,31,1,31,1,31,1,31,1,31,1,31,5,31,322,8,31,10,
-  	31,12,31,325,9,31,1,32,1,32,3,32,329,8,32,4,32,331,8,32,11,32,12,32,332,
-  	1,33,4,33,336,8,33,11,33,12,33,337,1,34,1,34,1,34,5,34,343,8,34,10,34,
-  	12,34,346,9,34,1,35,1,35,3,35,350,8,35,1,36,1,36,3,36,354,8,36,1,36,3,
-  	36,357,8,36,1,37,1,37,1,37,1,37,1,37,1,37,1,37,1,37,1,37,3,37,368,8,37,
-  	1,37,1,37,1,37,1,37,1,37,5,37,375,8,37,10,37,12,37,378,9,37,1,38,1,38,
-  	1,39,3,39,383,8,39,1,39,1,39,1,40,4,40,388,8,40,11,40,12,40,389,1,41,
-  	1,41,1,41,3,41,395,8,41,1,42,1,42,1,42,0,2,62,74,43,0,2,4,6,8,10,12,14,
-  	16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,
-  	62,64,66,68,70,72,74,76,78,80,82,84,0,8,2,0,31,31,33,33,3,0,30,30,32,
-  	32,40,40,1,0,34,36,2,0,30,30,32,32,1,0,28,29,2,0,16,16,18,18,3,0,4,4,
-  	12,12,21,21,2,0,46,46,48,48,415,0,92,1,0,0,0,2,94,1,0,0,0,4,104,1,0,0,
-  	0,6,113,1,0,0,0,8,122,1,0,0,0,10,124,1,0,0,0,12,132,1,0,0,0,14,140,1,
-  	0,0,0,16,148,1,0,0,0,18,156,1,0,0,0,20,164,1,0,0,0,22,172,1,0,0,0,24,
-  	183,1,0,0,0,26,185,1,0,0,0,28,189,1,0,0,0,30,194,1,0,0,0,32,200,1,0,0,
-  	0,34,214,1,0,0,0,36,227,1,0,0,0,38,229,1,0,0,0,40,232,1,0,0,0,42,243,
-  	1,0,0,0,44,247,1,0,0,0,46,252,1,0,0,0,48,266,1,0,0,0,50,281,1,0,0,0,52,
-  	283,1,0,0,0,54,291,1,0,0,0,56,296,1,0,0,0,58,298,1,0,0,0,60,301,1,0,0,
-  	0,62,314,1,0,0,0,64,330,1,0,0,0,66,335,1,0,0,0,68,339,1,0,0,0,70,347,
-  	1,0,0,0,72,356,1,0,0,0,74,367,1,0,0,0,76,379,1,0,0,0,78,382,1,0,0,0,80,
-  	387,1,0,0,0,82,394,1,0,0,0,84,396,1,0,0,0,86,93,5,44,0,0,87,93,5,45,0,
-  	0,88,89,5,22,0,0,89,90,3,24,12,0,90,91,5,23,0,0,91,93,1,0,0,0,92,86,1,
-  	0,0,0,92,87,1,0,0,0,92,88,1,0,0,0,93,1,1,0,0,0,94,98,3,0,0,0,95,97,7,
-  	0,0,0,96,95,1,0,0,0,97,100,1,0,0,0,98,96,1,0,0,0,98,99,1,0,0,0,99,3,1,
-  	0,0,0,100,98,1,0,0,0,101,103,7,0,0,0,102,101,1,0,0,0,103,106,1,0,0,0,
-  	104,102,1,0,0,0,104,105,1,0,0,0,105,111,1,0,0,0,106,104,1,0,0,0,107,112,
-  	3,2,1,0,108,109,3,6,3,0,109,110,3,8,4,0,110,112,1,0,0,0,111,107,1,0,0,
-  	0,111,108,1,0,0,0,112,5,1,0,0,0,113,114,7,1,0,0,114,7,1,0,0,0,115,116,
-  	5,22,0,0,116,117,3,70,35,0,117,118,5,23,0,0,118,119,3,8,4,0,119,123,1,
-  	0,0,0,120,123,3,4,2,0,121,123,5,45,0,0,122,115,1,0,0,0,122,120,1,0,0,
-  	0,122,121,1,0,0,0,123,9,1,0,0,0,124,129,3,8,4,0,125,126,7,2,0,0,126,128,
-  	3,8,4,0,127,125,1,0,0,0,128,131,1,0,0,0,129,127,1,0,0,0,129,130,1,0,0,
-  	0,130,11,1,0,0,0,131,129,1,0,0,0,132,137,3,10,5,0,133,134,7,3,0,0,134,
-  	136,3,10,5,0,135,133,1,0,0,0,136,139,1,0,0,0,137,135,1,0,0,0,137,138,
-  	1,0,0,0,138,13,1,0,0,0,139,137,1,0,0,0,140,145,3,12,6,0,141,142,7,4,0,
-  	0,142,144,3,12,6,0,143,141,1,0,0,0,144,147,1,0,0,0,145,143,1,0,0,0,145,
-  	146,1,0,0,0,146,15,1,0,0,0,147,145,1,0,0,0,148,153,3,14,7,0,149,150,5,
-  	37,0,0,150,152,3,14,7,0,151,149,1,0,0,0,152,155,1,0,0,0,153,151,1,0,0,
-  	0,153,154,1,0,0,0,154,17,1,0,0,0,155,153,1,0,0,0,156,161,3,16,8,0,157,
-  	158,5,39,0,0,158,160,3,16,8,0,159,157,1,0,0,0,160,163,1,0,0,0,161,159,
-  	1,0,0,0,161,162,1,0,0,0,162,19,1,0,0,0,163,161,1,0,0,0,164,169,3,18,9,
-  	0,165,166,5,38,0,0,166,168,3,18,9,0,167,165,1,0,0,0,168,171,1,0,0,0,169,
-  	167,1,0,0,0,169,170,1,0,0,0,170,21,1,0,0,0,171,169,1,0,0,0,172,176,3,
-  	24,12,0,173,175,5,42,0,0,174,173,1,0,0,0,175,178,1,0,0,0,176,174,1,0,
-  	0,0,176,177,1,0,0,0,177,179,1,0,0,0,178,176,1,0,0,0,179,180,5,0,0,1,180,
-  	23,1,0,0,0,181,184,5,45,0,0,182,184,3,20,10,0,183,181,1,0,0,0,183,182,
-  	1,0,0,0,184,25,1,0,0,0,185,186,3,28,14,0,186,187,5,42,0,0,187,27,1,0,
-  	0,0,188,190,3,32,16,0,189,188,1,0,0,0,190,191,1,0,0,0,191,189,1,0,0,0,
-  	191,192,1,0,0,0,192,29,1,0,0,0,193,195,3,32,16,0,194,193,1,0,0,0,195,
-  	196,1,0,0,0,196,194,1,0,0,0,196,197,1,0,0,0,197,31,1,0,0,0,198,201,3,
-  	34,17,0,199,201,3,58,29,0,200,198,1,0,0,0,200,199,1,0,0,0,201,33,1,0,
-  	0,0,202,215,5,20,0,0,203,215,5,3,0,0,204,215,5,13,0,0,205,215,5,9,0,0,
-  	206,215,5,10,0,0,207,215,5,8,0,0,208,215,5,5,0,0,209,215,5,14,0,0,210,
-  	215,5,19,0,0,211,215,3,36,18,0,212,215,3,50,25,0,213,215,3,76,38,0,214,
-  	202,1,0,0,0,214,203,1,0,0,0,214,204,1,0,0,0,214,205,1,0,0,0,214,206,1,
-  	0,0,0,214,207,1,0,0,0,214,208,1,0,0,0,214,209,1,0,0,0,214,210,1,0,0,0,
-  	214,211,1,0,0,0,214,212,1,0,0,0,214,213,1,0,0,0,215,35,1,0,0,0,216,218,
-  	3,38,19,0,217,219,5,44,0,0,218,217,1,0,0,0,218,219,1,0,0,0,219,220,1,
-  	0,0,0,220,221,5,26,0,0,221,222,3,40,20,0,222,223,5,27,0,0,223,228,1,0,
-  	0,0,224,225,3,38,19,0,225,226,5,44,0,0,226,228,1,0,0,0,227,216,1,0,0,
-  	0,227,224,1,0,0,0,228,37,1,0,0,0,229,230,7,5,0,0,230,39,1,0,0,0,231,233,
-  	3,42,21,0,232,231,1,0,0,0,233,234,1,0,0,0,234,232,1,0,0,0,234,235,1,0,
-  	0,0,235,41,1,0,0,0,236,237,3,44,22,0,237,238,3,46,23,0,238,239,5,42,0,
-  	0,239,244,1,0,0,0,240,241,3,44,22,0,241,242,5,42,0,0,242,244,1,0,0,0,
-  	243,236,1,0,0,0,243,240,1,0,0,0,244,43,1,0,0,0,245,248,3,34,17,0,246,
-  	248,3,58,29,0,247,245,1,0,0,0,247,246,1,0,0,0,248,250,1,0,0,0,249,251,
-  	3,44,22,0,250,249,1,0,0,0,250,251,1,0,0,0,251,45,1,0,0,0,252,257,3,48,
-  	24,0,253,254,5,43,0,0,254,256,3,48,24,0,255,253,1,0,0,0,256,259,1,0,0,
-  	0,257,255,1,0,0,0,257,258,1,0,0,0,258,47,1,0,0,0,259,257,1,0,0,0,260,
-  	267,3,60,30,0,261,263,3,60,30,0,262,261,1,0,0,0,262,263,1,0,0,0,263,264,
-  	1,0,0,0,264,265,5,41,0,0,265,267,5,45,0,0,266,260,1,0,0,0,266,262,1,0,
-  	0,0,267,49,1,0,0,0,268,270,5,6,0,0,269,271,5,44,0,0,270,269,1,0,0,0,270,
-  	271,1,0,0,0,271,272,1,0,0,0,272,273,5,26,0,0,273,275,3,52,26,0,274,276,
-  	5,43,0,0,275,274,1,0,0,0,275,276,1,0,0,0,276,277,1,0,0,0,277,278,5,27,
-  	0,0,278,282,1,0,0,0,279,280,5,6,0,0,280,282,5,44,0,0,281,268,1,0,0,0,
-  	281,279,1,0,0,0,282,51,1,0,0,0,283,288,3,54,27,0,284,285,5,43,0,0,285,
-  	287,3,54,27,0,286,284,1,0,0,0,287,290,1,0,0,0,288,286,1,0,0,0,288,289,
-  	1,0,0,0,289,53,1,0,0,0,290,288,1,0,0,0,291,294,3,56,28,0,292,293,5,1,
-  	0,0,293,295,3,24,12,0,294,292,1,0,0,0,294,295,1,0,0,0,295,55,1,0,0,0,
-  	296,297,5,44,0,0,297,57,1,0,0,0,298,299,7,6,0,0,299,59,1,0,0,0,300,302,
-  	3,64,32,0,301,300,1,0,0,0,301,302,1,0,0,0,302,303,1,0,0,0,303,304,3,62,
-  	31,0,304,61,1,0,0,0,305,306,6,31,-1,0,306,315,5,44,0,0,307,308,5,22,0,
-  	0,308,309,3,60,30,0,309,310,5,23,0,0,310,315,1,0,0,0,311,312,5,44,0,0,
-  	312,313,5,41,0,0,313,315,5,45,0,0,314,305,1,0,0,0,314,307,1,0,0,0,314,
-  	311,1,0,0,0,315,323,1,0,0,0,316,317,10,2,0,0,317,318,5,24,0,0,318,319,
-  	3,24,12,0,319,320,5,25,0,0,320,322,1,0,0,0,321,316,1,0,0,0,322,325,1,
-  	0,0,0,323,321,1,0,0,0,323,324,1,0,0,0,324,63,1,0,0,0,325,323,1,0,0,0,
-  	326,328,5,34,0,0,327,329,3,66,33,0,328,327,1,0,0,0,328,329,1,0,0,0,329,
-  	331,1,0,0,0,330,326,1,0,0,0,331,332,1,0,0,0,332,330,1,0,0,0,332,333,1,
-  	0,0,0,333,65,1,0,0,0,334,336,3,58,29,0,335,334,1,0,0,0,336,337,1,0,0,
-  	0,337,335,1,0,0,0,337,338,1,0,0,0,338,67,1,0,0,0,339,344,5,44,0,0,340,
-  	341,5,43,0,0,341,343,5,44,0,0,342,340,1,0,0,0,343,346,1,0,0,0,344,342,
-  	1,0,0,0,344,345,1,0,0,0,345,69,1,0,0,0,346,344,1,0,0,0,347,349,3,44,22,
-  	0,348,350,3,72,36,0,349,348,1,0,0,0,349,350,1,0,0,0,350,71,1,0,0,0,351,
-  	357,3,64,32,0,352,354,3,64,32,0,353,352,1,0,0,0,353,354,1,0,0,0,354,355,
-  	1,0,0,0,355,357,3,74,37,0,356,351,1,0,0,0,356,353,1,0,0,0,357,73,1,0,
-  	0,0,358,359,6,37,-1,0,359,360,5,22,0,0,360,361,3,72,36,0,361,362,5,23,
-  	0,0,362,368,1,0,0,0,363,364,5,24,0,0,364,365,3,24,12,0,365,366,5,25,0,
-  	0,366,368,1,0,0,0,367,358,1,0,0,0,367,363,1,0,0,0,368,376,1,0,0,0,369,
-  	370,10,1,0,0,370,371,5,24,0,0,371,372,3,24,12,0,372,373,5,25,0,0,373,
-  	375,1,0,0,0,374,369,1,0,0,0,375,378,1,0,0,0,376,374,1,0,0,0,376,377,1,
-  	0,0,0,377,75,1,0,0,0,378,376,1,0,0,0,379,380,5,44,0,0,380,77,1,0,0,0,
-  	381,383,3,80,40,0,382,381,1,0,0,0,382,383,1,0,0,0,383,384,1,0,0,0,384,
-  	385,5,0,0,1,385,79,1,0,0,0,386,388,3,82,41,0,387,386,1,0,0,0,388,389,
-  	1,0,0,0,389,387,1,0,0,0,389,390,1,0,0,0,390,81,1,0,0,0,391,395,3,26,13,
-  	0,392,395,3,84,42,0,393,395,5,42,0,0,394,391,1,0,0,0,394,392,1,0,0,0,
-  	394,393,1,0,0,0,395,83,1,0,0,0,396,397,7,7,0,0,397,85,1,0,0,0,46,92,98,
-  	104,111,122,129,137,145,153,161,169,176,183,191,196,200,214,218,227,234,
-  	243,247,250,257,262,266,270,275,281,288,294,301,314,323,328,332,337,344,
-  	349,353,356,367,376,382,389,394
+  	35,2,36,7,36,2,37,7,37,2,38,7,38,2,39,7,39,1,0,3,0,82,8,0,1,0,3,0,85,
+  	8,0,1,0,1,0,1,0,3,0,90,8,0,1,0,3,0,93,8,0,1,0,3,0,96,8,0,1,0,3,0,99,8,
+  	0,1,0,1,0,1,0,1,0,1,0,3,0,106,8,0,1,0,3,0,109,8,0,1,0,1,0,3,0,113,8,0,
+  	1,1,1,1,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,3,2,128,8,2,1,3,1,
+  	3,5,3,132,8,3,10,3,12,3,135,9,3,1,4,5,4,138,8,4,10,4,12,4,141,9,4,1,4,
+  	1,4,1,4,1,4,3,4,147,8,4,1,5,1,5,1,6,1,6,1,6,1,6,1,6,1,6,1,6,3,6,158,8,
+  	6,1,7,1,7,1,7,5,7,163,8,7,10,7,12,7,166,9,7,1,8,1,8,1,8,5,8,171,8,8,10,
+  	8,12,8,174,9,8,1,9,1,9,1,9,5,9,179,8,9,10,9,12,9,182,9,9,1,10,1,10,1,
+  	10,5,10,187,8,10,10,10,12,10,190,9,10,1,11,1,11,1,11,5,11,195,8,11,10,
+  	11,12,11,198,9,11,1,12,1,12,1,12,5,12,203,8,12,10,12,12,12,206,9,12,1,
+  	13,1,13,5,13,210,8,13,10,13,12,13,213,9,13,1,13,1,13,1,14,1,14,3,14,219,
+  	8,14,1,15,1,15,1,15,1,15,1,15,1,15,1,15,1,15,3,15,229,8,15,1,16,1,16,
+  	3,16,233,8,16,1,17,1,17,1,17,1,17,1,17,3,17,240,8,17,1,18,1,18,3,18,244,
+  	8,18,1,18,1,18,1,18,1,18,1,18,1,18,1,18,3,18,253,8,18,1,19,1,19,1,20,
+  	4,20,258,8,20,11,20,12,20,259,1,21,1,21,1,21,1,21,1,21,1,21,1,21,3,21,
+  	269,8,21,1,22,3,22,272,8,22,1,22,1,22,3,22,276,8,22,1,23,1,23,1,23,5,
+  	23,281,8,23,10,23,12,23,284,9,23,1,24,1,24,3,24,288,8,24,1,24,1,24,3,
+  	24,292,8,24,1,25,1,25,3,25,296,8,25,1,25,1,25,1,25,3,25,301,8,25,1,25,
+  	1,25,1,25,1,25,3,25,307,8,25,1,26,1,26,1,26,5,26,312,8,26,10,26,12,26,
+  	315,9,26,1,27,1,27,1,27,3,27,320,8,27,1,28,1,28,1,29,3,29,325,8,29,1,
+  	29,1,29,1,30,1,30,1,30,1,30,1,30,1,30,3,30,335,8,30,1,30,1,30,1,30,1,
+  	30,1,30,5,30,342,8,30,10,30,12,30,345,9,30,1,31,1,31,3,31,349,8,31,4,
+  	31,351,8,31,11,31,12,31,352,1,32,1,32,1,32,5,32,358,8,32,10,32,12,32,
+  	361,9,32,1,33,1,33,3,33,365,8,33,1,34,1,34,3,34,369,8,34,1,34,3,34,372,
+  	8,34,1,35,1,35,1,35,1,35,1,35,1,35,1,35,1,35,1,35,3,35,383,8,35,1,35,
+  	1,35,1,35,1,35,1,35,5,35,390,8,35,10,35,12,35,393,9,35,1,36,3,36,396,
+  	8,36,1,36,1,36,1,37,4,37,401,8,37,11,37,12,37,402,1,38,1,38,1,38,3,38,
+  	408,8,38,1,39,1,39,1,39,0,2,60,70,40,0,2,4,6,8,10,12,14,16,18,20,22,24,
+  	26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,
+  	72,74,76,78,0,9,3,0,2,2,7,8,11,11,2,0,12,12,15,15,2,0,26,26,28,28,3,0,
+  	25,25,27,27,35,35,1,0,29,31,2,0,25,25,27,27,1,0,23,24,1,0,13,14,2,0,41,
+  	41,43,43,435,0,112,1,0,0,0,2,114,1,0,0,0,4,127,1,0,0,0,6,129,1,0,0,0,
+  	8,139,1,0,0,0,10,148,1,0,0,0,12,157,1,0,0,0,14,159,1,0,0,0,16,167,1,0,
+  	0,0,18,175,1,0,0,0,20,183,1,0,0,0,22,191,1,0,0,0,24,199,1,0,0,0,26,207,
+  	1,0,0,0,28,218,1,0,0,0,30,228,1,0,0,0,32,232,1,0,0,0,34,239,1,0,0,0,36,
+  	252,1,0,0,0,38,254,1,0,0,0,40,257,1,0,0,0,42,268,1,0,0,0,44,271,1,0,0,
+  	0,46,277,1,0,0,0,48,291,1,0,0,0,50,306,1,0,0,0,52,308,1,0,0,0,54,316,
+  	1,0,0,0,56,321,1,0,0,0,58,324,1,0,0,0,60,334,1,0,0,0,62,350,1,0,0,0,64,
+  	354,1,0,0,0,66,362,1,0,0,0,68,371,1,0,0,0,70,382,1,0,0,0,72,395,1,0,0,
+  	0,74,400,1,0,0,0,76,407,1,0,0,0,78,409,1,0,0,0,80,82,3,2,1,0,81,80,1,
+  	0,0,0,81,82,1,0,0,0,82,84,1,0,0,0,83,85,5,3,0,0,84,83,1,0,0,0,84,85,1,
+  	0,0,0,85,86,1,0,0,0,86,113,7,0,0,0,87,89,7,0,0,0,88,90,5,3,0,0,89,88,
+  	1,0,0,0,89,90,1,0,0,0,90,92,1,0,0,0,91,93,3,2,1,0,92,91,1,0,0,0,92,93,
+  	1,0,0,0,93,113,1,0,0,0,94,96,3,2,1,0,95,94,1,0,0,0,95,96,1,0,0,0,96,98,
+  	1,0,0,0,97,99,5,3,0,0,98,97,1,0,0,0,98,99,1,0,0,0,99,100,1,0,0,0,100,
+  	101,5,8,0,0,101,113,5,8,0,0,102,103,5,8,0,0,103,105,5,8,0,0,104,106,5,
+  	3,0,0,105,104,1,0,0,0,105,106,1,0,0,0,106,108,1,0,0,0,107,109,3,2,1,0,
+  	108,107,1,0,0,0,108,109,1,0,0,0,109,113,1,0,0,0,110,113,5,6,0,0,111,113,
+  	5,4,0,0,112,81,1,0,0,0,112,87,1,0,0,0,112,95,1,0,0,0,112,102,1,0,0,0,
+  	112,110,1,0,0,0,112,111,1,0,0,0,113,1,1,0,0,0,114,115,7,1,0,0,115,3,1,
+  	0,0,0,116,128,5,39,0,0,117,128,5,40,0,0,118,119,5,17,0,0,119,120,3,28,
+  	14,0,120,121,5,18,0,0,121,128,1,0,0,0,122,123,5,10,0,0,123,124,5,17,0,
+  	0,124,125,3,44,22,0,125,126,5,18,0,0,126,128,1,0,0,0,127,116,1,0,0,0,
+  	127,117,1,0,0,0,127,118,1,0,0,0,127,122,1,0,0,0,128,5,1,0,0,0,129,133,
+  	3,4,2,0,130,132,7,2,0,0,131,130,1,0,0,0,132,135,1,0,0,0,133,131,1,0,0,
+  	0,133,134,1,0,0,0,134,7,1,0,0,0,135,133,1,0,0,0,136,138,7,2,0,0,137,136,
+  	1,0,0,0,138,141,1,0,0,0,139,137,1,0,0,0,139,140,1,0,0,0,140,146,1,0,0,
+  	0,141,139,1,0,0,0,142,147,3,6,3,0,143,144,3,10,5,0,144,145,3,12,6,0,145,
+  	147,1,0,0,0,146,142,1,0,0,0,146,143,1,0,0,0,147,9,1,0,0,0,148,149,7,3,
+  	0,0,149,11,1,0,0,0,150,151,5,17,0,0,151,152,3,66,33,0,152,153,5,18,0,
+  	0,153,154,3,12,6,0,154,158,1,0,0,0,155,158,3,8,4,0,156,158,5,40,0,0,157,
+  	150,1,0,0,0,157,155,1,0,0,0,157,156,1,0,0,0,158,13,1,0,0,0,159,164,3,
+  	12,6,0,160,161,7,4,0,0,161,163,3,12,6,0,162,160,1,0,0,0,163,166,1,0,0,
+  	0,164,162,1,0,0,0,164,165,1,0,0,0,165,15,1,0,0,0,166,164,1,0,0,0,167,
+  	172,3,14,7,0,168,169,7,5,0,0,169,171,3,14,7,0,170,168,1,0,0,0,171,174,
+  	1,0,0,0,172,170,1,0,0,0,172,173,1,0,0,0,173,17,1,0,0,0,174,172,1,0,0,
+  	0,175,180,3,16,8,0,176,177,7,6,0,0,177,179,3,16,8,0,178,176,1,0,0,0,179,
+  	182,1,0,0,0,180,178,1,0,0,0,180,181,1,0,0,0,181,19,1,0,0,0,182,180,1,
+  	0,0,0,183,188,3,18,9,0,184,185,5,32,0,0,185,187,3,18,9,0,186,184,1,0,
+  	0,0,187,190,1,0,0,0,188,186,1,0,0,0,188,189,1,0,0,0,189,21,1,0,0,0,190,
+  	188,1,0,0,0,191,196,3,20,10,0,192,193,5,34,0,0,193,195,3,20,10,0,194,
+  	192,1,0,0,0,195,198,1,0,0,0,196,194,1,0,0,0,196,197,1,0,0,0,197,23,1,
+  	0,0,0,198,196,1,0,0,0,199,204,3,22,11,0,200,201,5,33,0,0,201,203,3,22,
+  	11,0,202,200,1,0,0,0,203,206,1,0,0,0,204,202,1,0,0,0,204,205,1,0,0,0,
+  	205,25,1,0,0,0,206,204,1,0,0,0,207,211,3,28,14,0,208,210,5,37,0,0,209,
+  	208,1,0,0,0,210,213,1,0,0,0,211,209,1,0,0,0,211,212,1,0,0,0,212,214,1,
+  	0,0,0,213,211,1,0,0,0,214,215,5,0,0,1,215,27,1,0,0,0,216,219,5,40,0,0,
+  	217,219,3,24,12,0,218,216,1,0,0,0,218,217,1,0,0,0,219,29,1,0,0,0,220,
+  	221,3,32,16,0,221,222,5,37,0,0,222,229,1,0,0,0,223,224,5,9,0,0,224,225,
+  	3,34,17,0,225,226,5,39,0,0,226,227,5,37,0,0,227,229,1,0,0,0,228,220,1,
+  	0,0,0,228,223,1,0,0,0,229,31,1,0,0,0,230,233,3,36,18,0,231,233,3,50,25,
+  	0,232,230,1,0,0,0,232,231,1,0,0,0,233,33,1,0,0,0,234,240,5,16,0,0,235,
+  	240,3,0,0,0,236,240,3,36,18,0,237,240,3,50,25,0,238,240,5,39,0,0,239,
+  	234,1,0,0,0,239,235,1,0,0,0,239,236,1,0,0,0,239,237,1,0,0,0,239,238,1,
+  	0,0,0,240,35,1,0,0,0,241,243,3,38,19,0,242,244,5,39,0,0,243,242,1,0,0,
+  	0,243,244,1,0,0,0,244,245,1,0,0,0,245,246,5,21,0,0,246,247,3,40,20,0,
+  	247,248,5,22,0,0,248,253,1,0,0,0,249,250,3,38,19,0,250,251,5,39,0,0,251,
+  	253,1,0,0,0,252,241,1,0,0,0,252,249,1,0,0,0,253,37,1,0,0,0,254,255,7,
+  	7,0,0,255,39,1,0,0,0,256,258,3,42,21,0,257,256,1,0,0,0,258,259,1,0,0,
+  	0,259,257,1,0,0,0,259,260,1,0,0,0,260,41,1,0,0,0,261,262,3,44,22,0,262,
+  	263,3,46,23,0,263,264,5,37,0,0,264,269,1,0,0,0,265,266,3,44,22,0,266,
+  	267,5,37,0,0,267,269,1,0,0,0,268,261,1,0,0,0,268,265,1,0,0,0,269,43,1,
+  	0,0,0,270,272,5,3,0,0,271,270,1,0,0,0,271,272,1,0,0,0,272,273,1,0,0,0,
+  	273,275,3,34,17,0,274,276,5,3,0,0,275,274,1,0,0,0,275,276,1,0,0,0,276,
+  	45,1,0,0,0,277,282,3,48,24,0,278,279,5,38,0,0,279,281,3,48,24,0,280,278,
+  	1,0,0,0,281,284,1,0,0,0,282,280,1,0,0,0,282,283,1,0,0,0,283,47,1,0,0,
+  	0,284,282,1,0,0,0,285,292,3,58,29,0,286,288,3,58,29,0,287,286,1,0,0,0,
+  	287,288,1,0,0,0,288,289,1,0,0,0,289,290,5,36,0,0,290,292,3,28,14,0,291,
+  	285,1,0,0,0,291,287,1,0,0,0,292,49,1,0,0,0,293,295,5,5,0,0,294,296,5,
+  	39,0,0,295,294,1,0,0,0,295,296,1,0,0,0,296,297,1,0,0,0,297,298,5,21,0,
+  	0,298,300,3,52,26,0,299,301,5,38,0,0,300,299,1,0,0,0,300,301,1,0,0,0,
+  	301,302,1,0,0,0,302,303,5,22,0,0,303,307,1,0,0,0,304,305,5,5,0,0,305,
+  	307,5,39,0,0,306,293,1,0,0,0,306,304,1,0,0,0,307,51,1,0,0,0,308,313,3,
+  	54,27,0,309,310,5,38,0,0,310,312,3,54,27,0,311,309,1,0,0,0,312,315,1,
+  	0,0,0,313,311,1,0,0,0,313,314,1,0,0,0,314,53,1,0,0,0,315,313,1,0,0,0,
+  	316,319,3,56,28,0,317,318,5,1,0,0,318,320,3,28,14,0,319,317,1,0,0,0,319,
+  	320,1,0,0,0,320,55,1,0,0,0,321,322,5,39,0,0,322,57,1,0,0,0,323,325,3,
+  	62,31,0,324,323,1,0,0,0,324,325,1,0,0,0,325,326,1,0,0,0,326,327,3,60,
+  	30,0,327,59,1,0,0,0,328,329,6,30,-1,0,329,335,5,39,0,0,330,331,5,17,0,
+  	0,331,332,3,58,29,0,332,333,5,18,0,0,333,335,1,0,0,0,334,328,1,0,0,0,
+  	334,330,1,0,0,0,335,343,1,0,0,0,336,337,10,1,0,0,337,338,5,19,0,0,338,
+  	339,3,28,14,0,339,340,5,20,0,0,340,342,1,0,0,0,341,336,1,0,0,0,342,345,
+  	1,0,0,0,343,341,1,0,0,0,343,344,1,0,0,0,344,61,1,0,0,0,345,343,1,0,0,
+  	0,346,348,5,29,0,0,347,349,5,3,0,0,348,347,1,0,0,0,348,349,1,0,0,0,349,
+  	351,1,0,0,0,350,346,1,0,0,0,351,352,1,0,0,0,352,350,1,0,0,0,352,353,1,
+  	0,0,0,353,63,1,0,0,0,354,359,5,39,0,0,355,356,5,38,0,0,356,358,5,39,0,
+  	0,357,355,1,0,0,0,358,361,1,0,0,0,359,357,1,0,0,0,359,360,1,0,0,0,360,
+  	65,1,0,0,0,361,359,1,0,0,0,362,364,3,44,22,0,363,365,3,68,34,0,364,363,
+  	1,0,0,0,364,365,1,0,0,0,365,67,1,0,0,0,366,372,3,62,31,0,367,369,3,62,
+  	31,0,368,367,1,0,0,0,368,369,1,0,0,0,369,370,1,0,0,0,370,372,3,70,35,
+  	0,371,366,1,0,0,0,371,368,1,0,0,0,372,69,1,0,0,0,373,374,6,35,-1,0,374,
+  	375,5,17,0,0,375,376,3,68,34,0,376,377,5,18,0,0,377,383,1,0,0,0,378,379,
+  	5,19,0,0,379,380,3,28,14,0,380,381,5,20,0,0,381,383,1,0,0,0,382,373,1,
+  	0,0,0,382,378,1,0,0,0,383,391,1,0,0,0,384,385,10,1,0,0,385,386,5,19,0,
+  	0,386,387,3,28,14,0,387,388,5,20,0,0,388,390,1,0,0,0,389,384,1,0,0,0,
+  	390,393,1,0,0,0,391,389,1,0,0,0,391,392,1,0,0,0,392,71,1,0,0,0,393,391,
+  	1,0,0,0,394,396,3,74,37,0,395,394,1,0,0,0,395,396,1,0,0,0,396,397,1,0,
+  	0,0,397,398,5,0,0,1,398,73,1,0,0,0,399,401,3,76,38,0,400,399,1,0,0,0,
+  	401,402,1,0,0,0,402,400,1,0,0,0,402,403,1,0,0,0,403,75,1,0,0,0,404,408,
+  	3,30,15,0,405,408,3,78,39,0,406,408,5,37,0,0,407,404,1,0,0,0,407,405,
+  	1,0,0,0,407,406,1,0,0,0,408,77,1,0,0,0,409,410,7,8,0,0,410,79,1,0,0,0,
+  	53,81,84,89,92,95,98,105,108,112,127,133,139,146,157,164,172,180,188,
+  	196,204,211,218,228,232,239,243,252,259,268,271,275,282,287,291,295,300,
+  	306,313,319,324,334,343,348,352,359,364,368,371,382,391,395,402,407
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -268,6 +269,298 @@ antlr4::atn::SerializedATNView CStructParser::getSerializedATN() const {
 }
 
 
+//----------------- InternalBasicTypesContext ------------------------------------------------------------------
+
+CStructParser::InternalBasicTypesContext::InternalBasicTypesContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Char() {
+  return getToken(CStructParser::Char, 0);
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Short() {
+  return getToken(CStructParser::Short, 0);
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Int() {
+  return getToken(CStructParser::Int, 0);
+}
+
+std::vector<tree::TerminalNode *> CStructParser::InternalBasicTypesContext::Long() {
+  return getTokens(CStructParser::Long);
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Long(size_t i) {
+  return getToken(CStructParser::Long, i);
+}
+
+CStructParser::SignOrUnsignedContext* CStructParser::InternalBasicTypesContext::signOrUnsigned() {
+  return getRuleContext<CStructParser::SignOrUnsignedContext>(0);
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Const() {
+  return getToken(CStructParser::Const, 0);
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Float() {
+  return getToken(CStructParser::Float, 0);
+}
+
+tree::TerminalNode* CStructParser::InternalBasicTypesContext::Double() {
+  return getToken(CStructParser::Double, 0);
+}
+
+
+size_t CStructParser::InternalBasicTypesContext::getRuleIndex() const {
+  return CStructParser::RuleInternalBasicTypes;
+}
+
+
+std::any CStructParser::InternalBasicTypesContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
+    return parserVisitor->visitInternalBasicTypes(this);
+  else
+    return visitor->visitChildren(this);
+}
+
+CStructParser::InternalBasicTypesContext* CStructParser::internalBasicTypes() {
+  InternalBasicTypesContext *_localctx = _tracker.createInstance<InternalBasicTypesContext>(_ctx, getState());
+  enterRule(_localctx, 0, CStructParser::RuleInternalBasicTypes);
+  size_t _la = 0;
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    setState(112);
+    _errHandler->sync(this);
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 8, _ctx)) {
+    case 1: {
+      enterOuterAlt(_localctx, 1);
+      setState(81);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if (_la == CStructParser::Signed
+
+      || _la == CStructParser::Unsigned) {
+        setState(80);
+        signOrUnsigned();
+      }
+      setState(84);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if (_la == CStructParser::Const) {
+        setState(83);
+        match(CStructParser::Const);
+      }
+      setState(86);
+      _la = _input->LA(1);
+      if (!((((_la & ~ 0x3fULL) == 0) &&
+        ((1ULL << _la) & 2436) != 0))) {
+      _errHandler->recoverInline(this);
+      }
+      else {
+        _errHandler->reportMatch(this);
+        consume();
+      }
+      break;
+    }
+
+    case 2: {
+      enterOuterAlt(_localctx, 2);
+      setState(87);
+      _la = _input->LA(1);
+      if (!((((_la & ~ 0x3fULL) == 0) &&
+        ((1ULL << _la) & 2436) != 0))) {
+      _errHandler->recoverInline(this);
+      }
+      else {
+        _errHandler->reportMatch(this);
+        consume();
+      }
+      setState(89);
+      _errHandler->sync(this);
+
+      switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx)) {
+      case 1: {
+        setState(88);
+        match(CStructParser::Const);
+        break;
+      }
+
+      default:
+        break;
+      }
+      setState(92);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if (_la == CStructParser::Signed
+
+      || _la == CStructParser::Unsigned) {
+        setState(91);
+        signOrUnsigned();
+      }
+      break;
+    }
+
+    case 3: {
+      enterOuterAlt(_localctx, 3);
+      setState(95);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if (_la == CStructParser::Signed
+
+      || _la == CStructParser::Unsigned) {
+        setState(94);
+        signOrUnsigned();
+      }
+      setState(98);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if (_la == CStructParser::Const) {
+        setState(97);
+        match(CStructParser::Const);
+      }
+      setState(100);
+      match(CStructParser::Long);
+      setState(101);
+      match(CStructParser::Long);
+      break;
+    }
+
+    case 4: {
+      enterOuterAlt(_localctx, 4);
+      setState(102);
+      match(CStructParser::Long);
+      setState(103);
+      match(CStructParser::Long);
+      setState(105);
+      _errHandler->sync(this);
+
+      switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx)) {
+      case 1: {
+        setState(104);
+        match(CStructParser::Const);
+        break;
+      }
+
+      default:
+        break;
+      }
+      setState(108);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if (_la == CStructParser::Signed
+
+      || _la == CStructParser::Unsigned) {
+        setState(107);
+        signOrUnsigned();
+      }
+      break;
+    }
+
+    case 5: {
+      enterOuterAlt(_localctx, 5);
+      setState(110);
+      match(CStructParser::Float);
+      break;
+    }
+
+    case 6: {
+      enterOuterAlt(_localctx, 6);
+      setState(111);
+      match(CStructParser::Double);
+      break;
+    }
+
+    default:
+      break;
+    }
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+//----------------- SignOrUnsignedContext ------------------------------------------------------------------
+
+CStructParser::SignOrUnsignedContext::SignOrUnsignedContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* CStructParser::SignOrUnsignedContext::Signed() {
+  return getToken(CStructParser::Signed, 0);
+}
+
+tree::TerminalNode* CStructParser::SignOrUnsignedContext::Unsigned() {
+  return getToken(CStructParser::Unsigned, 0);
+}
+
+
+size_t CStructParser::SignOrUnsignedContext::getRuleIndex() const {
+  return CStructParser::RuleSignOrUnsigned;
+}
+
+
+std::any CStructParser::SignOrUnsignedContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
+    return parserVisitor->visitSignOrUnsigned(this);
+  else
+    return visitor->visitChildren(this);
+}
+
+CStructParser::SignOrUnsignedContext* CStructParser::signOrUnsigned() {
+  SignOrUnsignedContext *_localctx = _tracker.createInstance<SignOrUnsignedContext>(_ctx, getState());
+  enterRule(_localctx, 2, CStructParser::RuleSignOrUnsigned);
+  size_t _la = 0;
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(114);
+    _la = _input->LA(1);
+    if (!(_la == CStructParser::Signed
+
+    || _la == CStructParser::Unsigned)) {
+    _errHandler->recoverInline(this);
+    }
+    else {
+      _errHandler->reportMatch(this);
+      consume();
+    }
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
 //----------------- PrimaryExpressionContext ------------------------------------------------------------------
 
 CStructParser::PrimaryExpressionContext::PrimaryExpressionContext(ParserRuleContext *parent, size_t invokingState)
@@ -294,6 +587,14 @@ tree::TerminalNode* CStructParser::PrimaryExpressionContext::RightParen() {
   return getToken(CStructParser::RightParen, 0);
 }
 
+tree::TerminalNode* CStructParser::PrimaryExpressionContext::SizeOf() {
+  return getToken(CStructParser::SizeOf, 0);
+}
+
+CStructParser::SpecifierQualifierListContext* CStructParser::PrimaryExpressionContext::specifierQualifierList() {
+  return getRuleContext<CStructParser::SpecifierQualifierListContext>(0);
+}
+
 
 size_t CStructParser::PrimaryExpressionContext::getRuleIndex() const {
   return CStructParser::RulePrimaryExpression;
@@ -309,7 +610,7 @@ std::any CStructParser::PrimaryExpressionContext::accept(tree::ParseTreeVisitor 
 
 CStructParser::PrimaryExpressionContext* CStructParser::primaryExpression() {
   PrimaryExpressionContext *_localctx = _tracker.createInstance<PrimaryExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 0, CStructParser::RulePrimaryExpression);
+  enterRule(_localctx, 4, CStructParser::RulePrimaryExpression);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -319,30 +620,43 @@ CStructParser::PrimaryExpressionContext* CStructParser::primaryExpression() {
     exitRule();
   });
   try {
-    setState(92);
+    setState(127);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case CStructParser::Identifier: {
         enterOuterAlt(_localctx, 1);
-        setState(86);
+        setState(116);
         match(CStructParser::Identifier);
         break;
       }
 
       case CStructParser::IntegerConstant: {
         enterOuterAlt(_localctx, 2);
-        setState(87);
+        setState(117);
         match(CStructParser::IntegerConstant);
         break;
       }
 
       case CStructParser::LeftParen: {
         enterOuterAlt(_localctx, 3);
-        setState(88);
+        setState(118);
         match(CStructParser::LeftParen);
-        setState(89);
+        setState(119);
         assignmentExpression();
-        setState(90);
+        setState(120);
+        match(CStructParser::RightParen);
+        break;
+      }
+
+      case CStructParser::SizeOf: {
+        enterOuterAlt(_localctx, 4);
+        setState(122);
+        match(CStructParser::SizeOf);
+        setState(123);
+        match(CStructParser::LeftParen);
+        setState(124);
+        specifierQualifierList();
+        setState(125);
         match(CStructParser::RightParen);
         break;
       }
@@ -402,7 +716,7 @@ std::any CStructParser::PostfixExpressionContext::accept(tree::ParseTreeVisitor 
 
 CStructParser::PostfixExpressionContext* CStructParser::postfixExpression() {
   PostfixExpressionContext *_localctx = _tracker.createInstance<PostfixExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 2, CStructParser::RulePostfixExpression);
+  enterRule(_localctx, 6, CStructParser::RulePostfixExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -414,15 +728,15 @@ CStructParser::PostfixExpressionContext* CStructParser::postfixExpression() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(94);
+    setState(129);
     primaryExpression();
-    setState(98);
+    setState(133);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::PlusPlus
 
     || _la == CStructParser::MinusMinus) {
-      setState(95);
+      setState(130);
       _la = _input->LA(1);
       if (!(_la == CStructParser::PlusPlus
 
@@ -433,7 +747,7 @@ CStructParser::PostfixExpressionContext* CStructParser::postfixExpression() {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(100);
+      setState(135);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -497,7 +811,7 @@ std::any CStructParser::UnaryExpressionContext::accept(tree::ParseTreeVisitor *v
 
 CStructParser::UnaryExpressionContext* CStructParser::unaryExpression() {
   UnaryExpressionContext *_localctx = _tracker.createInstance<UnaryExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 4, CStructParser::RuleUnaryExpression);
+  enterRule(_localctx, 8, CStructParser::RuleUnaryExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -509,13 +823,13 @@ CStructParser::UnaryExpressionContext* CStructParser::unaryExpression() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(104);
+    setState(139);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::PlusPlus
 
     || _la == CStructParser::MinusMinus) {
-      setState(101);
+      setState(136);
       _la = _input->LA(1);
       if (!(_la == CStructParser::PlusPlus
 
@@ -526,17 +840,18 @@ CStructParser::UnaryExpressionContext* CStructParser::unaryExpression() {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(106);
+      setState(141);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(111);
+    setState(146);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
+      case CStructParser::SizeOf:
       case CStructParser::LeftParen:
       case CStructParser::Identifier:
       case CStructParser::IntegerConstant: {
-        setState(107);
+        setState(142);
         postfixExpression();
         break;
       }
@@ -544,9 +859,9 @@ CStructParser::UnaryExpressionContext* CStructParser::unaryExpression() {
       case CStructParser::Plus:
       case CStructParser::Minus:
       case CStructParser::Tilde: {
-        setState(108);
+        setState(143);
         unaryOperator();
-        setState(109);
+        setState(144);
         castExpression();
         break;
       }
@@ -598,7 +913,7 @@ std::any CStructParser::UnaryOperatorContext::accept(tree::ParseTreeVisitor *vis
 
 CStructParser::UnaryOperatorContext* CStructParser::unaryOperator() {
   UnaryOperatorContext *_localctx = _tracker.createInstance<UnaryOperatorContext>(_ctx, getState());
-  enterRule(_localctx, 6, CStructParser::RuleUnaryOperator);
+  enterRule(_localctx, 10, CStructParser::RuleUnaryOperator);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -610,10 +925,10 @@ CStructParser::UnaryOperatorContext* CStructParser::unaryOperator() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(113);
+    setState(148);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 1104880336896) != 0))) {
+      ((1ULL << _la) & 34527510528) != 0))) {
     _errHandler->recoverInline(this);
     }
     else {
@@ -676,7 +991,7 @@ std::any CStructParser::CastExpressionContext::accept(tree::ParseTreeVisitor *vi
 
 CStructParser::CastExpressionContext* CStructParser::castExpression() {
   CastExpressionContext *_localctx = _tracker.createInstance<CastExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 8, CStructParser::RuleCastExpression);
+  enterRule(_localctx, 12, CStructParser::RuleCastExpression);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -686,32 +1001,32 @@ CStructParser::CastExpressionContext* CStructParser::castExpression() {
     exitRule();
   });
   try {
-    setState(122);
+    setState(157);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 4, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(115);
+      setState(150);
       match(CStructParser::LeftParen);
-      setState(116);
+      setState(151);
       typeName();
-      setState(117);
+      setState(152);
       match(CStructParser::RightParen);
-      setState(118);
+      setState(153);
       castExpression();
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(120);
+      setState(155);
       unaryExpression();
       break;
     }
 
     case 3: {
       enterOuterAlt(_localctx, 3);
-      setState(121);
+      setState(156);
       match(CStructParser::IntegerConstant);
       break;
     }
@@ -783,7 +1098,7 @@ std::any CStructParser::MultiplicativeExpressionContext::accept(tree::ParseTreeV
 
 CStructParser::MultiplicativeExpressionContext* CStructParser::multiplicativeExpression() {
   MultiplicativeExpressionContext *_localctx = _tracker.createInstance<MultiplicativeExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 10, CStructParser::RuleMultiplicativeExpression);
+  enterRule(_localctx, 14, CStructParser::RuleMultiplicativeExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -795,26 +1110,26 @@ CStructParser::MultiplicativeExpressionContext* CStructParser::multiplicativeExp
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(124);
+    setState(159);
     castExpression();
-    setState(129);
+    setState(164);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 120259084288) != 0)) {
-      setState(125);
+      ((1ULL << _la) & 3758096384) != 0)) {
+      setState(160);
       _la = _input->LA(1);
       if (!((((_la & ~ 0x3fULL) == 0) &&
-        ((1ULL << _la) & 120259084288) != 0))) {
+        ((1ULL << _la) & 3758096384) != 0))) {
       _errHandler->recoverInline(this);
       }
       else {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(126);
+      setState(161);
       castExpression();
-      setState(131);
+      setState(166);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -874,7 +1189,7 @@ std::any CStructParser::AdditiveExpressionContext::accept(tree::ParseTreeVisitor
 
 CStructParser::AdditiveExpressionContext* CStructParser::additiveExpression() {
   AdditiveExpressionContext *_localctx = _tracker.createInstance<AdditiveExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 12, CStructParser::RuleAdditiveExpression);
+  enterRule(_localctx, 16, CStructParser::RuleAdditiveExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -886,15 +1201,15 @@ CStructParser::AdditiveExpressionContext* CStructParser::additiveExpression() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(132);
+    setState(167);
     multiplicativeExpression();
-    setState(137);
+    setState(172);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Plus
 
     || _la == CStructParser::Minus) {
-      setState(133);
+      setState(168);
       _la = _input->LA(1);
       if (!(_la == CStructParser::Plus
 
@@ -905,9 +1220,9 @@ CStructParser::AdditiveExpressionContext* CStructParser::additiveExpression() {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(134);
+      setState(169);
       multiplicativeExpression();
-      setState(139);
+      setState(174);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -967,7 +1282,7 @@ std::any CStructParser::ShiftExpressionContext::accept(tree::ParseTreeVisitor *v
 
 CStructParser::ShiftExpressionContext* CStructParser::shiftExpression() {
   ShiftExpressionContext *_localctx = _tracker.createInstance<ShiftExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 14, CStructParser::RuleShiftExpression);
+  enterRule(_localctx, 18, CStructParser::RuleShiftExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -979,15 +1294,15 @@ CStructParser::ShiftExpressionContext* CStructParser::shiftExpression() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(140);
+    setState(175);
     additiveExpression();
-    setState(145);
+    setState(180);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::LeftShift
 
     || _la == CStructParser::RightShift) {
-      setState(141);
+      setState(176);
       _la = _input->LA(1);
       if (!(_la == CStructParser::LeftShift
 
@@ -998,9 +1313,9 @@ CStructParser::ShiftExpressionContext* CStructParser::shiftExpression() {
         _errHandler->reportMatch(this);
         consume();
       }
-      setState(142);
+      setState(177);
       additiveExpression();
-      setState(147);
+      setState(182);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1052,7 +1367,7 @@ std::any CStructParser::AndExpressionContext::accept(tree::ParseTreeVisitor *vis
 
 CStructParser::AndExpressionContext* CStructParser::andExpression() {
   AndExpressionContext *_localctx = _tracker.createInstance<AndExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 16, CStructParser::RuleAndExpression);
+  enterRule(_localctx, 20, CStructParser::RuleAndExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1064,17 +1379,17 @@ CStructParser::AndExpressionContext* CStructParser::andExpression() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(148);
+    setState(183);
     shiftExpression();
-    setState(153);
+    setState(188);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::And) {
-      setState(149);
+      setState(184);
       match(CStructParser::And);
-      setState(150);
+      setState(185);
       shiftExpression();
-      setState(155);
+      setState(190);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1126,7 +1441,7 @@ std::any CStructParser::ExclusiveOrExpressionContext::accept(tree::ParseTreeVisi
 
 CStructParser::ExclusiveOrExpressionContext* CStructParser::exclusiveOrExpression() {
   ExclusiveOrExpressionContext *_localctx = _tracker.createInstance<ExclusiveOrExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 18, CStructParser::RuleExclusiveOrExpression);
+  enterRule(_localctx, 22, CStructParser::RuleExclusiveOrExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1138,17 +1453,17 @@ CStructParser::ExclusiveOrExpressionContext* CStructParser::exclusiveOrExpressio
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(156);
+    setState(191);
     andExpression();
-    setState(161);
+    setState(196);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Caret) {
-      setState(157);
+      setState(192);
       match(CStructParser::Caret);
-      setState(158);
+      setState(193);
       andExpression();
-      setState(163);
+      setState(198);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1200,7 +1515,7 @@ std::any CStructParser::InclusiveOrExpressionContext::accept(tree::ParseTreeVisi
 
 CStructParser::InclusiveOrExpressionContext* CStructParser::inclusiveOrExpression() {
   InclusiveOrExpressionContext *_localctx = _tracker.createInstance<InclusiveOrExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 20, CStructParser::RuleInclusiveOrExpression);
+  enterRule(_localctx, 24, CStructParser::RuleInclusiveOrExpression);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1212,17 +1527,17 @@ CStructParser::InclusiveOrExpressionContext* CStructParser::inclusiveOrExpressio
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(164);
+    setState(199);
     exclusiveOrExpression();
-    setState(169);
+    setState(204);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Or) {
-      setState(165);
+      setState(200);
       match(CStructParser::Or);
-      setState(166);
+      setState(201);
       exclusiveOrExpression();
-      setState(171);
+      setState(206);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1274,7 +1589,7 @@ std::any CStructParser::AssignmentExpressionDefContext::accept(tree::ParseTreeVi
 
 CStructParser::AssignmentExpressionDefContext* CStructParser::assignmentExpressionDef() {
   AssignmentExpressionDefContext *_localctx = _tracker.createInstance<AssignmentExpressionDefContext>(_ctx, getState());
-  enterRule(_localctx, 22, CStructParser::RuleAssignmentExpressionDef);
+  enterRule(_localctx, 26, CStructParser::RuleAssignmentExpressionDef);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1286,19 +1601,19 @@ CStructParser::AssignmentExpressionDefContext* CStructParser::assignmentExpressi
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(172);
+    setState(207);
     assignmentExpression();
-    setState(176);
+    setState(211);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Semi) {
-      setState(173);
+      setState(208);
       match(CStructParser::Semi);
-      setState(178);
+      setState(213);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(179);
+    setState(214);
     match(CStructParser::EOF);
    
   }
@@ -1340,7 +1655,7 @@ std::any CStructParser::AssignmentExpressionContext::accept(tree::ParseTreeVisit
 
 CStructParser::AssignmentExpressionContext* CStructParser::assignmentExpression() {
   AssignmentExpressionContext *_localctx = _tracker.createInstance<AssignmentExpressionContext>(_ctx, getState());
-  enterRule(_localctx, 24, CStructParser::RuleAssignmentExpression);
+  enterRule(_localctx, 28, CStructParser::RuleAssignmentExpression);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1350,19 +1665,19 @@ CStructParser::AssignmentExpressionContext* CStructParser::assignmentExpression(
     exitRule();
   });
   try {
-    setState(183);
+    setState(218);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 12, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 21, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(181);
+      setState(216);
       match(CStructParser::IntegerConstant);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(182);
+      setState(217);
       inclusiveOrExpression();
       break;
     }
@@ -1387,12 +1702,24 @@ CStructParser::DeclarationContext::DeclarationContext(ParserRuleContext *parent,
   : ParserRuleContext(parent, invokingState) {
 }
 
-CStructParser::DeclarationSpecifiersContext* CStructParser::DeclarationContext::declarationSpecifiers() {
-  return getRuleContext<CStructParser::DeclarationSpecifiersContext>(0);
+CStructParser::DeclarationSpecifierContext* CStructParser::DeclarationContext::declarationSpecifier() {
+  return getRuleContext<CStructParser::DeclarationSpecifierContext>(0);
 }
 
 tree::TerminalNode* CStructParser::DeclarationContext::Semi() {
   return getToken(CStructParser::Semi, 0);
+}
+
+tree::TerminalNode* CStructParser::DeclarationContext::TypeDef() {
+  return getToken(CStructParser::TypeDef, 0);
+}
+
+CStructParser::TypeSpecifierContext* CStructParser::DeclarationContext::typeSpecifier() {
+  return getRuleContext<CStructParser::TypeSpecifierContext>(0);
+}
+
+tree::TerminalNode* CStructParser::DeclarationContext::Identifier() {
+  return getToken(CStructParser::Identifier, 0);
 }
 
 
@@ -1410,7 +1737,7 @@ std::any CStructParser::DeclarationContext::accept(tree::ParseTreeVisitor *visit
 
 CStructParser::DeclarationContext* CStructParser::declaration() {
   DeclarationContext *_localctx = _tracker.createInstance<DeclarationContext>(_ctx, getState());
-  enterRule(_localctx, 26, CStructParser::RuleDeclaration);
+  enterRule(_localctx, 30, CStructParser::RuleDeclaration);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1420,137 +1747,36 @@ CStructParser::DeclarationContext* CStructParser::declaration() {
     exitRule();
   });
   try {
-    enterOuterAlt(_localctx, 1);
-    setState(185);
-    declarationSpecifiers();
-    setState(186);
-    match(CStructParser::Semi);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
-//----------------- DeclarationSpecifiersContext ------------------------------------------------------------------
-
-CStructParser::DeclarationSpecifiersContext::DeclarationSpecifiersContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-std::vector<CStructParser::DeclarationSpecifierContext *> CStructParser::DeclarationSpecifiersContext::declarationSpecifier() {
-  return getRuleContexts<CStructParser::DeclarationSpecifierContext>();
-}
-
-CStructParser::DeclarationSpecifierContext* CStructParser::DeclarationSpecifiersContext::declarationSpecifier(size_t i) {
-  return getRuleContext<CStructParser::DeclarationSpecifierContext>(i);
-}
-
-
-size_t CStructParser::DeclarationSpecifiersContext::getRuleIndex() const {
-  return CStructParser::RuleDeclarationSpecifiers;
-}
-
-
-std::any CStructParser::DeclarationSpecifiersContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
-    return parserVisitor->visitDeclarationSpecifiers(this);
-  else
-    return visitor->visitChildren(this);
-}
-
-CStructParser::DeclarationSpecifiersContext* CStructParser::declarationSpecifiers() {
-  DeclarationSpecifiersContext *_localctx = _tracker.createInstance<DeclarationSpecifiersContext>(_ctx, getState());
-  enterRule(_localctx, 28, CStructParser::RuleDeclarationSpecifiers);
-  size_t _la = 0;
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(189); 
+    setState(228);
     _errHandler->sync(this);
-    _la = _input->LA(1);
-    do {
-      setState(188);
-      declarationSpecifier();
-      setState(191); 
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-    } while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 17592190072696) != 0));
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    switch (_input->LA(1)) {
+      case CStructParser::Enum:
+      case CStructParser::Struct:
+      case CStructParser::Union: {
+        enterOuterAlt(_localctx, 1);
+        setState(220);
+        declarationSpecifier();
+        setState(221);
+        match(CStructParser::Semi);
+        break;
+      }
 
-  return _localctx;
-}
+      case CStructParser::TypeDef: {
+        enterOuterAlt(_localctx, 2);
+        setState(223);
+        match(CStructParser::TypeDef);
+        setState(224);
+        typeSpecifier();
+        setState(225);
+        match(CStructParser::Identifier);
+        setState(226);
+        match(CStructParser::Semi);
+        break;
+      }
 
-//----------------- DeclarationSpecifiers2Context ------------------------------------------------------------------
-
-CStructParser::DeclarationSpecifiers2Context::DeclarationSpecifiers2Context(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-std::vector<CStructParser::DeclarationSpecifierContext *> CStructParser::DeclarationSpecifiers2Context::declarationSpecifier() {
-  return getRuleContexts<CStructParser::DeclarationSpecifierContext>();
-}
-
-CStructParser::DeclarationSpecifierContext* CStructParser::DeclarationSpecifiers2Context::declarationSpecifier(size_t i) {
-  return getRuleContext<CStructParser::DeclarationSpecifierContext>(i);
-}
-
-
-size_t CStructParser::DeclarationSpecifiers2Context::getRuleIndex() const {
-  return CStructParser::RuleDeclarationSpecifiers2;
-}
-
-
-std::any CStructParser::DeclarationSpecifiers2Context::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
-    return parserVisitor->visitDeclarationSpecifiers2(this);
-  else
-    return visitor->visitChildren(this);
-}
-
-CStructParser::DeclarationSpecifiers2Context* CStructParser::declarationSpecifiers2() {
-  DeclarationSpecifiers2Context *_localctx = _tracker.createInstance<DeclarationSpecifiers2Context>(_ctx, getState());
-  enterRule(_localctx, 30, CStructParser::RuleDeclarationSpecifiers2);
-  size_t _la = 0;
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(194); 
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    do {
-      setState(193);
-      declarationSpecifier();
-      setState(196); 
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-    } while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 17592190072696) != 0));
+    default:
+      throw NoViableAltException(this);
+    }
    
   }
   catch (RecognitionException &e) {
@@ -1568,12 +1794,12 @@ CStructParser::DeclarationSpecifierContext::DeclarationSpecifierContext(ParserRu
   : ParserRuleContext(parent, invokingState) {
 }
 
-CStructParser::TypeSpecifierContext* CStructParser::DeclarationSpecifierContext::typeSpecifier() {
-  return getRuleContext<CStructParser::TypeSpecifierContext>(0);
+CStructParser::StructOrUnionSpecifierContext* CStructParser::DeclarationSpecifierContext::structOrUnionSpecifier() {
+  return getRuleContext<CStructParser::StructOrUnionSpecifierContext>(0);
 }
 
-CStructParser::TypeQualifierContext* CStructParser::DeclarationSpecifierContext::typeQualifier() {
-  return getRuleContext<CStructParser::TypeQualifierContext>(0);
+CStructParser::EnumSpecifierContext* CStructParser::DeclarationSpecifierContext::enumSpecifier() {
+  return getRuleContext<CStructParser::EnumSpecifierContext>(0);
 }
 
 
@@ -1601,34 +1827,21 @@ CStructParser::DeclarationSpecifierContext* CStructParser::declarationSpecifier(
     exitRule();
   });
   try {
-    setState(200);
+    setState(232);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
-      case CStructParser::Char:
-      case CStructParser::Double:
-      case CStructParser::Enum:
-      case CStructParser::Float:
-      case CStructParser::Int:
-      case CStructParser::Long:
-      case CStructParser::Short:
-      case CStructParser::Signed:
       case CStructParser::Struct:
-      case CStructParser::Union:
-      case CStructParser::Unsigned:
-      case CStructParser::Void:
-      case CStructParser::Identifier: {
+      case CStructParser::Union: {
         enterOuterAlt(_localctx, 1);
-        setState(198);
-        typeSpecifier();
+        setState(230);
+        structOrUnionSpecifier();
         break;
       }
 
-      case CStructParser::Const:
-      case CStructParser::Restrict:
-      case CStructParser::Volatile: {
+      case CStructParser::Enum: {
         enterOuterAlt(_localctx, 2);
-        setState(199);
-        typeQualifier();
+        setState(231);
+        enumSpecifier();
         break;
       }
 
@@ -1656,36 +1869,8 @@ tree::TerminalNode* CStructParser::TypeSpecifierContext::Void() {
   return getToken(CStructParser::Void, 0);
 }
 
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Char() {
-  return getToken(CStructParser::Char, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Short() {
-  return getToken(CStructParser::Short, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Int() {
-  return getToken(CStructParser::Int, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Long() {
-  return getToken(CStructParser::Long, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Float() {
-  return getToken(CStructParser::Float, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Double() {
-  return getToken(CStructParser::Double, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Signed() {
-  return getToken(CStructParser::Signed, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeSpecifierContext::Unsigned() {
-  return getToken(CStructParser::Unsigned, 0);
+CStructParser::InternalBasicTypesContext* CStructParser::TypeSpecifierContext::internalBasicTypes() {
+  return getRuleContext<CStructParser::InternalBasicTypesContext>(0);
 }
 
 CStructParser::StructOrUnionSpecifierContext* CStructParser::TypeSpecifierContext::structOrUnionSpecifier() {
@@ -1696,8 +1881,8 @@ CStructParser::EnumSpecifierContext* CStructParser::TypeSpecifierContext::enumSp
   return getRuleContext<CStructParser::EnumSpecifierContext>(0);
 }
 
-CStructParser::TypedefNameContext* CStructParser::TypeSpecifierContext::typedefName() {
-  return getRuleContext<CStructParser::TypedefNameContext>(0);
+tree::TerminalNode* CStructParser::TypeSpecifierContext::Identifier() {
+  return getToken(CStructParser::Identifier, 0);
 }
 
 
@@ -1725,91 +1910,50 @@ CStructParser::TypeSpecifierContext* CStructParser::typeSpecifier() {
     exitRule();
   });
   try {
-    setState(214);
+    setState(239);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case CStructParser::Void: {
         enterOuterAlt(_localctx, 1);
-        setState(202);
+        setState(234);
         match(CStructParser::Void);
         break;
       }
 
-      case CStructParser::Char: {
-        enterOuterAlt(_localctx, 2);
-        setState(203);
-        match(CStructParser::Char);
-        break;
-      }
-
-      case CStructParser::Short: {
-        enterOuterAlt(_localctx, 3);
-        setState(204);
-        match(CStructParser::Short);
-        break;
-      }
-
-      case CStructParser::Int: {
-        enterOuterAlt(_localctx, 4);
-        setState(205);
-        match(CStructParser::Int);
-        break;
-      }
-
-      case CStructParser::Long: {
-        enterOuterAlt(_localctx, 5);
-        setState(206);
-        match(CStructParser::Long);
-        break;
-      }
-
-      case CStructParser::Float: {
-        enterOuterAlt(_localctx, 6);
-        setState(207);
-        match(CStructParser::Float);
-        break;
-      }
-
-      case CStructParser::Double: {
-        enterOuterAlt(_localctx, 7);
-        setState(208);
-        match(CStructParser::Double);
-        break;
-      }
-
-      case CStructParser::Signed: {
-        enterOuterAlt(_localctx, 8);
-        setState(209);
-        match(CStructParser::Signed);
-        break;
-      }
-
+      case CStructParser::Char:
+      case CStructParser::Const:
+      case CStructParser::Double:
+      case CStructParser::Float:
+      case CStructParser::Int:
+      case CStructParser::Long:
+      case CStructParser::Short:
+      case CStructParser::Signed:
       case CStructParser::Unsigned: {
-        enterOuterAlt(_localctx, 9);
-        setState(210);
-        match(CStructParser::Unsigned);
+        enterOuterAlt(_localctx, 2);
+        setState(235);
+        internalBasicTypes();
         break;
       }
 
       case CStructParser::Struct:
       case CStructParser::Union: {
-        enterOuterAlt(_localctx, 10);
-        setState(211);
+        enterOuterAlt(_localctx, 3);
+        setState(236);
         structOrUnionSpecifier();
         break;
       }
 
       case CStructParser::Enum: {
-        enterOuterAlt(_localctx, 11);
-        setState(212);
+        enterOuterAlt(_localctx, 4);
+        setState(237);
         enumSpecifier();
         break;
       }
 
       case CStructParser::Identifier: {
-        enterOuterAlt(_localctx, 12);
-        setState(213);
-        typedefName();
+        enterOuterAlt(_localctx, 5);
+        setState(238);
+        match(CStructParser::Identifier);
         break;
       }
 
@@ -1879,35 +2023,35 @@ CStructParser::StructOrUnionSpecifierContext* CStructParser::structOrUnionSpecif
     exitRule();
   });
   try {
-    setState(227);
+    setState(252);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 18, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 26, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(216);
+      setState(241);
       structOrUnion();
-      setState(218);
+      setState(243);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Identifier) {
-        setState(217);
+        setState(242);
         match(CStructParser::Identifier);
       }
-      setState(220);
+      setState(245);
       match(CStructParser::LeftBrace);
-      setState(221);
+      setState(246);
       structDeclarationList();
-      setState(222);
+      setState(247);
       match(CStructParser::RightBrace);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(224);
+      setState(249);
       structOrUnion();
-      setState(225);
+      setState(250);
       match(CStructParser::Identifier);
       break;
     }
@@ -1967,7 +2111,7 @@ CStructParser::StructOrUnionContext* CStructParser::structOrUnion() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(229);
+    setState(254);
     _la = _input->LA(1);
     if (!(_la == CStructParser::Struct
 
@@ -2030,17 +2174,17 @@ CStructParser::StructDeclarationListContext* CStructParser::structDeclarationLis
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(232); 
+    setState(257); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(231);
+      setState(256);
       structDeclaration();
-      setState(234); 
+      setState(259); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 17592190072696) != 0));
+      ((1ULL << _la) & 549755943420) != 0));
    
   }
   catch (RecognitionException &e) {
@@ -2095,25 +2239,25 @@ CStructParser::StructDeclarationContext* CStructParser::structDeclaration() {
     exitRule();
   });
   try {
-    setState(243);
+    setState(268);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 20, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 28, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(236);
+      setState(261);
       specifierQualifierList();
-      setState(237);
+      setState(262);
       structDeclaratorList();
-      setState(238);
+      setState(263);
       match(CStructParser::Semi);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(240);
+      setState(265);
       specifierQualifierList();
-      setState(241);
+      setState(266);
       match(CStructParser::Semi);
       break;
     }
@@ -2142,12 +2286,12 @@ CStructParser::TypeSpecifierContext* CStructParser::SpecifierQualifierListContex
   return getRuleContext<CStructParser::TypeSpecifierContext>(0);
 }
 
-CStructParser::TypeQualifierContext* CStructParser::SpecifierQualifierListContext::typeQualifier() {
-  return getRuleContext<CStructParser::TypeQualifierContext>(0);
+std::vector<tree::TerminalNode *> CStructParser::SpecifierQualifierListContext::Const() {
+  return getTokens(CStructParser::Const);
 }
 
-CStructParser::SpecifierQualifierListContext* CStructParser::SpecifierQualifierListContext::specifierQualifierList() {
-  return getRuleContext<CStructParser::SpecifierQualifierListContext>(0);
+tree::TerminalNode* CStructParser::SpecifierQualifierListContext::Const(size_t i) {
+  return getToken(CStructParser::Const, i);
 }
 
 
@@ -2166,6 +2310,7 @@ std::any CStructParser::SpecifierQualifierListContext::accept(tree::ParseTreeVis
 CStructParser::SpecifierQualifierListContext* CStructParser::specifierQualifierList() {
   SpecifierQualifierListContext *_localctx = _tracker.createInstance<SpecifierQualifierListContext>(_ctx, getState());
   enterRule(_localctx, 44, CStructParser::RuleSpecifierQualifierList);
+  size_t _la = 0;
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -2176,50 +2321,28 @@ CStructParser::SpecifierQualifierListContext* CStructParser::specifierQualifierL
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(247);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case CStructParser::Char:
-      case CStructParser::Double:
-      case CStructParser::Enum:
-      case CStructParser::Float:
-      case CStructParser::Int:
-      case CStructParser::Long:
-      case CStructParser::Short:
-      case CStructParser::Signed:
-      case CStructParser::Struct:
-      case CStructParser::Union:
-      case CStructParser::Unsigned:
-      case CStructParser::Void:
-      case CStructParser::Identifier: {
-        setState(245);
-        typeSpecifier();
-        break;
-      }
-
-      case CStructParser::Const:
-      case CStructParser::Restrict:
-      case CStructParser::Volatile: {
-        setState(246);
-        typeQualifier();
-        break;
-      }
-
-    default:
-      throw NoViableAltException(this);
-    }
-    setState(250);
+    setState(271);
     _errHandler->sync(this);
 
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 22, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 29, _ctx)) {
     case 1: {
-      setState(249);
-      specifierQualifierList();
+      setState(270);
+      match(CStructParser::Const);
       break;
     }
 
     default:
       break;
+    }
+    setState(273);
+    typeSpecifier();
+    setState(275);
+    _errHandler->sync(this);
+
+    _la = _input->LA(1);
+    if (_la == CStructParser::Const) {
+      setState(274);
+      match(CStructParser::Const);
     }
    
   }
@@ -2281,17 +2404,17 @@ CStructParser::StructDeclaratorListContext* CStructParser::structDeclaratorList(
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(252);
+    setState(277);
     structDeclarator();
-    setState(257);
+    setState(282);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Comma) {
-      setState(253);
+      setState(278);
       match(CStructParser::Comma);
-      setState(254);
+      setState(279);
       structDeclarator();
-      setState(259);
+      setState(284);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -2320,8 +2443,8 @@ tree::TerminalNode* CStructParser::StructDeclaratorContext::Colon() {
   return getToken(CStructParser::Colon, 0);
 }
 
-tree::TerminalNode* CStructParser::StructDeclaratorContext::IntegerConstant() {
-  return getToken(CStructParser::IntegerConstant, 0);
+CStructParser::AssignmentExpressionContext* CStructParser::StructDeclaratorContext::assignmentExpression() {
+  return getRuleContext<CStructParser::AssignmentExpressionContext>(0);
 }
 
 
@@ -2350,31 +2473,31 @@ CStructParser::StructDeclaratorContext* CStructParser::structDeclarator() {
     exitRule();
   });
   try {
-    setState(266);
+    setState(291);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 25, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 33, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(260);
+      setState(285);
       declarator();
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(262);
+      setState(287);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
-        ((1ULL << _la) & 17609370107904) != 0)) {
-        setState(261);
+        ((1ULL << _la) & 550292815872) != 0)) {
+        setState(286);
         declarator();
       }
-      setState(264);
+      setState(289);
       match(CStructParser::Colon);
-      setState(265);
-      match(CStructParser::IntegerConstant);
+      setState(290);
+      assignmentExpression();
       break;
     }
 
@@ -2448,43 +2571,43 @@ CStructParser::EnumSpecifierContext* CStructParser::enumSpecifier() {
     exitRule();
   });
   try {
-    setState(281);
+    setState(306);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 28, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 36, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(268);
+      setState(293);
       match(CStructParser::Enum);
-      setState(270);
+      setState(295);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Identifier) {
-        setState(269);
+        setState(294);
         match(CStructParser::Identifier);
       }
-      setState(272);
+      setState(297);
       match(CStructParser::LeftBrace);
-      setState(273);
+      setState(298);
       enumeratorList();
-      setState(275);
+      setState(300);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Comma) {
-        setState(274);
+        setState(299);
         match(CStructParser::Comma);
       }
-      setState(277);
+      setState(302);
       match(CStructParser::RightBrace);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(279);
+      setState(304);
       match(CStructParser::Enum);
-      setState(280);
+      setState(305);
       match(CStructParser::Identifier);
       break;
     }
@@ -2552,21 +2675,21 @@ CStructParser::EnumeratorListContext* CStructParser::enumeratorList() {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(283);
+    setState(308);
     enumerator();
-    setState(288);
+    setState(313);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 29, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 37, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
-        setState(284);
+        setState(309);
         match(CStructParser::Comma);
-        setState(285);
+        setState(310);
         enumerator(); 
       }
-      setState(290);
+      setState(315);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 29, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 37, _ctx);
     }
    
   }
@@ -2620,16 +2743,16 @@ CStructParser::EnumeratorContext* CStructParser::enumerator() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(291);
+    setState(316);
     enumerationConstant();
-    setState(294);
+    setState(319);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == CStructParser::T__0) {
-      setState(292);
+      setState(317);
       match(CStructParser::T__0);
-      setState(293);
+      setState(318);
       assignmentExpression();
     }
    
@@ -2679,74 +2802,8 @@ CStructParser::EnumerationConstantContext* CStructParser::enumerationConstant() 
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(296);
+    setState(321);
     match(CStructParser::Identifier);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
-//----------------- TypeQualifierContext ------------------------------------------------------------------
-
-CStructParser::TypeQualifierContext::TypeQualifierContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-tree::TerminalNode* CStructParser::TypeQualifierContext::Const() {
-  return getToken(CStructParser::Const, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeQualifierContext::Restrict() {
-  return getToken(CStructParser::Restrict, 0);
-}
-
-tree::TerminalNode* CStructParser::TypeQualifierContext::Volatile() {
-  return getToken(CStructParser::Volatile, 0);
-}
-
-
-size_t CStructParser::TypeQualifierContext::getRuleIndex() const {
-  return CStructParser::RuleTypeQualifier;
-}
-
-
-std::any CStructParser::TypeQualifierContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
-    return parserVisitor->visitTypeQualifier(this);
-  else
-    return visitor->visitChildren(this);
-}
-
-CStructParser::TypeQualifierContext* CStructParser::typeQualifier() {
-  TypeQualifierContext *_localctx = _tracker.createInstance<TypeQualifierContext>(_ctx, getState());
-  enterRule(_localctx, 58, CStructParser::RuleTypeQualifier);
-  size_t _la = 0;
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(298);
-    _la = _input->LA(1);
-    if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 2101264) != 0))) {
-    _errHandler->recoverInline(this);
-    }
-    else {
-      _errHandler->reportMatch(this);
-      consume();
-    }
    
   }
   catch (RecognitionException &e) {
@@ -2787,7 +2844,7 @@ std::any CStructParser::DeclaratorContext::accept(tree::ParseTreeVisitor *visito
 
 CStructParser::DeclaratorContext* CStructParser::declarator() {
   DeclaratorContext *_localctx = _tracker.createInstance<DeclaratorContext>(_ctx, getState());
-  enterRule(_localctx, 60, CStructParser::RuleDeclarator);
+  enterRule(_localctx, 58, CStructParser::RuleDeclarator);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2799,15 +2856,15 @@ CStructParser::DeclaratorContext* CStructParser::declarator() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(301);
+    setState(324);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == CStructParser::Star) {
-      setState(300);
+      setState(323);
       pointer();
     }
-    setState(303);
+    setState(326);
     directDeclarator(0);
    
   }
@@ -2840,14 +2897,6 @@ CStructParser::DeclaratorContext* CStructParser::DirectDeclaratorContext::declar
 
 tree::TerminalNode* CStructParser::DirectDeclaratorContext::RightParen() {
   return getToken(CStructParser::RightParen, 0);
-}
-
-tree::TerminalNode* CStructParser::DirectDeclaratorContext::Colon() {
-  return getToken(CStructParser::Colon, 0);
-}
-
-tree::TerminalNode* CStructParser::DirectDeclaratorContext::IntegerConstant() {
-  return getToken(CStructParser::IntegerConstant, 0);
 }
 
 CStructParser::DirectDeclaratorContext* CStructParser::DirectDeclaratorContext::directDeclarator() {
@@ -2890,8 +2939,8 @@ CStructParser::DirectDeclaratorContext* CStructParser::directDeclarator(int prec
   CStructParser::DirectDeclaratorContext *_localctx = _tracker.createInstance<DirectDeclaratorContext>(_ctx, parentState);
   CStructParser::DirectDeclaratorContext *previousContext = _localctx;
   (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 62;
-  enterRecursionRule(_localctx, 62, CStructParser::RuleDirectDeclarator, precedence);
+  size_t startState = 60;
+  enterRecursionRule(_localctx, 60, CStructParser::RuleDirectDeclarator, precedence);
 
     
 
@@ -2905,42 +2954,32 @@ CStructParser::DirectDeclaratorContext* CStructParser::directDeclarator(int prec
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(314);
+    setState(334);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 32, _ctx)) {
-    case 1: {
-      setState(306);
-      match(CStructParser::Identifier);
-      break;
-    }
+    switch (_input->LA(1)) {
+      case CStructParser::Identifier: {
+        setState(329);
+        match(CStructParser::Identifier);
+        break;
+      }
 
-    case 2: {
-      setState(307);
-      match(CStructParser::LeftParen);
-      setState(308);
-      declarator();
-      setState(309);
-      match(CStructParser::RightParen);
-      break;
-    }
-
-    case 3: {
-      setState(311);
-      match(CStructParser::Identifier);
-      setState(312);
-      match(CStructParser::Colon);
-      setState(313);
-      match(CStructParser::IntegerConstant);
-      break;
-    }
+      case CStructParser::LeftParen: {
+        setState(330);
+        match(CStructParser::LeftParen);
+        setState(331);
+        declarator();
+        setState(332);
+        match(CStructParser::RightParen);
+        break;
+      }
 
     default:
-      break;
+      throw NoViableAltException(this);
     }
     _ctx->stop = _input->LT(-1);
-    setState(323);
+    setState(343);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 33, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 41, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
@@ -2948,19 +2987,19 @@ CStructParser::DirectDeclaratorContext* CStructParser::directDeclarator(int prec
         previousContext = _localctx;
         _localctx = _tracker.createInstance<DirectDeclaratorContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleDirectDeclarator);
-        setState(316);
+        setState(336);
 
-        if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-        setState(317);
+        if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+        setState(337);
         match(CStructParser::LeftBracket);
-        setState(318);
+        setState(338);
         assignmentExpression();
-        setState(319);
+        setState(339);
         match(CStructParser::RightBracket); 
       }
-      setState(325);
+      setState(345);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 33, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 41, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -2985,12 +3024,12 @@ tree::TerminalNode* CStructParser::PointerContext::Star(size_t i) {
   return getToken(CStructParser::Star, i);
 }
 
-std::vector<CStructParser::TypeQualifierListContext *> CStructParser::PointerContext::typeQualifierList() {
-  return getRuleContexts<CStructParser::TypeQualifierListContext>();
+std::vector<tree::TerminalNode *> CStructParser::PointerContext::Const() {
+  return getTokens(CStructParser::Const);
 }
 
-CStructParser::TypeQualifierListContext* CStructParser::PointerContext::typeQualifierList(size_t i) {
-  return getRuleContext<CStructParser::TypeQualifierListContext>(i);
+tree::TerminalNode* CStructParser::PointerContext::Const(size_t i) {
+  return getToken(CStructParser::Const, i);
 }
 
 
@@ -3008,7 +3047,7 @@ std::any CStructParser::PointerContext::accept(tree::ParseTreeVisitor *visitor) 
 
 CStructParser::PointerContext* CStructParser::pointer() {
   PointerContext *_localctx = _tracker.createInstance<PointerContext>(_ctx, getState());
-  enterRule(_localctx, 64, CStructParser::RulePointer);
+  enterRule(_localctx, 62, CStructParser::RulePointer);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3020,88 +3059,24 @@ CStructParser::PointerContext* CStructParser::pointer() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(330); 
+    setState(350); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(326);
+      setState(346);
       match(CStructParser::Star);
-      setState(328);
+      setState(348);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
-      if ((((_la & ~ 0x3fULL) == 0) &&
-        ((1ULL << _la) & 2101264) != 0)) {
-        setState(327);
-        typeQualifierList();
+      if (_la == CStructParser::Const) {
+        setState(347);
+        match(CStructParser::Const);
       }
-      setState(332); 
+      setState(352); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while (_la == CStructParser::Star);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
-//----------------- TypeQualifierListContext ------------------------------------------------------------------
-
-CStructParser::TypeQualifierListContext::TypeQualifierListContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-std::vector<CStructParser::TypeQualifierContext *> CStructParser::TypeQualifierListContext::typeQualifier() {
-  return getRuleContexts<CStructParser::TypeQualifierContext>();
-}
-
-CStructParser::TypeQualifierContext* CStructParser::TypeQualifierListContext::typeQualifier(size_t i) {
-  return getRuleContext<CStructParser::TypeQualifierContext>(i);
-}
-
-
-size_t CStructParser::TypeQualifierListContext::getRuleIndex() const {
-  return CStructParser::RuleTypeQualifierList;
-}
-
-
-std::any CStructParser::TypeQualifierListContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
-    return parserVisitor->visitTypeQualifierList(this);
-  else
-    return visitor->visitChildren(this);
-}
-
-CStructParser::TypeQualifierListContext* CStructParser::typeQualifierList() {
-  TypeQualifierListContext *_localctx = _tracker.createInstance<TypeQualifierListContext>(_ctx, getState());
-  enterRule(_localctx, 66, CStructParser::RuleTypeQualifierList);
-  size_t _la = 0;
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(335); 
-    _errHandler->sync(this);
-    _la = _input->LA(1);
-    do {
-      setState(334);
-      typeQualifier();
-      setState(337); 
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-    } while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 2101264) != 0));
    
   }
   catch (RecognitionException &e) {
@@ -3150,7 +3125,7 @@ std::any CStructParser::IdentifierListContext::accept(tree::ParseTreeVisitor *vi
 
 CStructParser::IdentifierListContext* CStructParser::identifierList() {
   IdentifierListContext *_localctx = _tracker.createInstance<IdentifierListContext>(_ctx, getState());
-  enterRule(_localctx, 68, CStructParser::RuleIdentifierList);
+  enterRule(_localctx, 64, CStructParser::RuleIdentifierList);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3162,17 +3137,17 @@ CStructParser::IdentifierListContext* CStructParser::identifierList() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(339);
+    setState(354);
     match(CStructParser::Identifier);
-    setState(344);
+    setState(359);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Comma) {
-      setState(340);
+      setState(355);
       match(CStructParser::Comma);
-      setState(341);
+      setState(356);
       match(CStructParser::Identifier);
-      setState(346);
+      setState(361);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -3216,7 +3191,7 @@ std::any CStructParser::TypeNameContext::accept(tree::ParseTreeVisitor *visitor)
 
 CStructParser::TypeNameContext* CStructParser::typeName() {
   TypeNameContext *_localctx = _tracker.createInstance<TypeNameContext>(_ctx, getState());
-  enterRule(_localctx, 70, CStructParser::RuleTypeName);
+  enterRule(_localctx, 66, CStructParser::RuleTypeName);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3228,15 +3203,15 @@ CStructParser::TypeNameContext* CStructParser::typeName() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(347);
+    setState(362);
     specifierQualifierList();
-    setState(349);
+    setState(364);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 17200840704) != 0)) {
-      setState(348);
+      ((1ULL << _la) & 537526272) != 0)) {
+      setState(363);
       abstractDeclarator();
     }
    
@@ -3279,7 +3254,7 @@ std::any CStructParser::AbstractDeclaratorContext::accept(tree::ParseTreeVisitor
 
 CStructParser::AbstractDeclaratorContext* CStructParser::abstractDeclarator() {
   AbstractDeclaratorContext *_localctx = _tracker.createInstance<AbstractDeclaratorContext>(_ctx, getState());
-  enterRule(_localctx, 72, CStructParser::RuleAbstractDeclarator);
+  enterRule(_localctx, 68, CStructParser::RuleAbstractDeclarator);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3290,27 +3265,27 @@ CStructParser::AbstractDeclaratorContext* CStructParser::abstractDeclarator() {
     exitRule();
   });
   try {
-    setState(356);
+    setState(371);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 40, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 47, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(351);
+      setState(366);
       pointer();
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(353);
+      setState(368);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Star) {
-        setState(352);
+        setState(367);
         pointer();
       }
-      setState(355);
+      setState(370);
       directAbstractDeclarator(0);
       break;
     }
@@ -3387,8 +3362,8 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
   CStructParser::DirectAbstractDeclaratorContext *_localctx = _tracker.createInstance<DirectAbstractDeclaratorContext>(_ctx, parentState);
   CStructParser::DirectAbstractDeclaratorContext *previousContext = _localctx;
   (void)previousContext; // Silence compiler, in case the context is not used by generated code.
-  size_t startState = 74;
-  enterRecursionRule(_localctx, 74, CStructParser::RuleDirectAbstractDeclarator, precedence);
+  size_t startState = 70;
+  enterRecursionRule(_localctx, 70, CStructParser::RuleDirectAbstractDeclarator, precedence);
 
     
 
@@ -3402,25 +3377,25 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(367);
+    setState(382);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case CStructParser::LeftParen: {
-        setState(359);
+        setState(374);
         match(CStructParser::LeftParen);
-        setState(360);
+        setState(375);
         abstractDeclarator();
-        setState(361);
+        setState(376);
         match(CStructParser::RightParen);
         break;
       }
 
       case CStructParser::LeftBracket: {
-        setState(363);
+        setState(378);
         match(CStructParser::LeftBracket);
-        setState(364);
+        setState(379);
         assignmentExpression();
-        setState(365);
+        setState(380);
         match(CStructParser::RightBracket);
         break;
       }
@@ -3429,9 +3404,9 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
       throw NoViableAltException(this);
     }
     _ctx->stop = _input->LT(-1);
-    setState(376);
+    setState(391);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 42, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 49, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
@@ -3439,19 +3414,19 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
         previousContext = _localctx;
         _localctx = _tracker.createInstance<DirectAbstractDeclaratorContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleDirectAbstractDeclarator);
-        setState(369);
+        setState(384);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(370);
+        setState(385);
         match(CStructParser::LeftBracket);
-        setState(371);
+        setState(386);
         assignmentExpression();
-        setState(372);
+        setState(387);
         match(CStructParser::RightBracket); 
       }
-      setState(378);
+      setState(393);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 42, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 49, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -3459,55 +3434,6 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
     _localctx->exception = std::current_exception();
     _errHandler->recover(this, _localctx->exception);
   }
-  return _localctx;
-}
-
-//----------------- TypedefNameContext ------------------------------------------------------------------
-
-CStructParser::TypedefNameContext::TypedefNameContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-tree::TerminalNode* CStructParser::TypedefNameContext::Identifier() {
-  return getToken(CStructParser::Identifier, 0);
-}
-
-
-size_t CStructParser::TypedefNameContext::getRuleIndex() const {
-  return CStructParser::RuleTypedefName;
-}
-
-
-std::any CStructParser::TypedefNameContext::accept(tree::ParseTreeVisitor *visitor) {
-  if (auto parserVisitor = dynamic_cast<CStructVisitor*>(visitor))
-    return parserVisitor->visitTypedefName(this);
-  else
-    return visitor->visitChildren(this);
-}
-
-CStructParser::TypedefNameContext* CStructParser::typedefName() {
-  TypedefNameContext *_localctx = _tracker.createInstance<TypedefNameContext>(_ctx, getState());
-  enterRule(_localctx, 76, CStructParser::RuleTypedefName);
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(379);
-    match(CStructParser::Identifier);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
   return _localctx;
 }
 
@@ -3540,7 +3466,7 @@ std::any CStructParser::CompilationUnitContext::accept(tree::ParseTreeVisitor *v
 
 CStructParser::CompilationUnitContext* CStructParser::compilationUnit() {
   CompilationUnitContext *_localctx = _tracker.createInstance<CompilationUnitContext>(_ctx, getState());
-  enterRule(_localctx, 78, CStructParser::RuleCompilationUnit);
+  enterRule(_localctx, 72, CStructParser::RuleCompilationUnit);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3552,16 +3478,16 @@ CStructParser::CompilationUnitContext* CStructParser::compilationUnit() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(382);
+    setState(395);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 373833957472120) != 0)) {
-      setState(381);
+      ((1ULL << _la) & 11132555256352) != 0)) {
+      setState(394);
       translationUnit();
     }
-    setState(384);
+    setState(397);
     match(CStructParser::EOF);
    
   }
@@ -3603,7 +3529,7 @@ std::any CStructParser::TranslationUnitContext::accept(tree::ParseTreeVisitor *v
 
 CStructParser::TranslationUnitContext* CStructParser::translationUnit() {
   TranslationUnitContext *_localctx = _tracker.createInstance<TranslationUnitContext>(_ctx, getState());
-  enterRule(_localctx, 80, CStructParser::RuleTranslationUnit);
+  enterRule(_localctx, 74, CStructParser::RuleTranslationUnit);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3615,17 +3541,17 @@ CStructParser::TranslationUnitContext* CStructParser::translationUnit() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(387); 
+    setState(400); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(386);
+      setState(399);
       externalDeclaration();
-      setState(389); 
+      setState(402); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 373833957472120) != 0));
+      ((1ULL << _la) & 11132555256352) != 0));
    
   }
   catch (RecognitionException &e) {
@@ -3670,7 +3596,7 @@ std::any CStructParser::ExternalDeclarationContext::accept(tree::ParseTreeVisito
 
 CStructParser::ExternalDeclarationContext* CStructParser::externalDeclaration() {
   ExternalDeclarationContext *_localctx = _tracker.createInstance<ExternalDeclarationContext>(_ctx, getState());
-  enterRule(_localctx, 82, CStructParser::RuleExternalDeclaration);
+  enterRule(_localctx, 76, CStructParser::RuleExternalDeclaration);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -3680,27 +3606,15 @@ CStructParser::ExternalDeclarationContext* CStructParser::externalDeclaration() 
     exitRule();
   });
   try {
-    setState(394);
+    setState(407);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
-      case CStructParser::Char:
-      case CStructParser::Const:
-      case CStructParser::Double:
       case CStructParser::Enum:
-      case CStructParser::Float:
-      case CStructParser::Int:
-      case CStructParser::Long:
-      case CStructParser::Restrict:
-      case CStructParser::Short:
-      case CStructParser::Signed:
+      case CStructParser::TypeDef:
       case CStructParser::Struct:
-      case CStructParser::Union:
-      case CStructParser::Unsigned:
-      case CStructParser::Void:
-      case CStructParser::Volatile:
-      case CStructParser::Identifier: {
+      case CStructParser::Union: {
         enterOuterAlt(_localctx, 1);
-        setState(391);
+        setState(404);
         declaration();
         break;
       }
@@ -3708,14 +3622,14 @@ CStructParser::ExternalDeclarationContext* CStructParser::externalDeclaration() 
       case CStructParser::MultiLineMacroDefine:
       case CStructParser::DirectiveDefine: {
         enterOuterAlt(_localctx, 2);
-        setState(392);
+        setState(405);
         defineDecl();
         break;
       }
 
       case CStructParser::Semi: {
         enterOuterAlt(_localctx, 3);
-        setState(393);
+        setState(406);
         match(CStructParser::Semi);
         break;
       }
@@ -3763,7 +3677,7 @@ std::any CStructParser::DefineDeclContext::accept(tree::ParseTreeVisitor *visito
 
 CStructParser::DefineDeclContext* CStructParser::defineDecl() {
   DefineDeclContext *_localctx = _tracker.createInstance<DefineDeclContext>(_ctx, getState());
-  enterRule(_localctx, 84, CStructParser::RuleDefineDecl);
+  enterRule(_localctx, 78, CStructParser::RuleDefineDecl);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -3775,7 +3689,7 @@ CStructParser::DefineDeclContext* CStructParser::defineDecl() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(396);
+    setState(409);
     _la = _input->LA(1);
     if (!(_la == CStructParser::MultiLineMacroDefine
 
@@ -3799,8 +3713,8 @@ CStructParser::DefineDeclContext* CStructParser::defineDecl() {
 
 bool CStructParser::sempred(RuleContext *context, size_t ruleIndex, size_t predicateIndex) {
   switch (ruleIndex) {
-    case 31: return directDeclaratorSempred(antlrcpp::downCast<DirectDeclaratorContext *>(context), predicateIndex);
-    case 37: return directAbstractDeclaratorSempred(antlrcpp::downCast<DirectAbstractDeclaratorContext *>(context), predicateIndex);
+    case 30: return directDeclaratorSempred(antlrcpp::downCast<DirectDeclaratorContext *>(context), predicateIndex);
+    case 35: return directAbstractDeclaratorSempred(antlrcpp::downCast<DirectAbstractDeclaratorContext *>(context), predicateIndex);
 
   default:
     break;
@@ -3810,7 +3724,7 @@ bool CStructParser::sempred(RuleContext *context, size_t ruleIndex, size_t predi
 
 bool CStructParser::directDeclaratorSempred(DirectDeclaratorContext *_localctx, size_t predicateIndex) {
   switch (predicateIndex) {
-    case 0: return precpred(_ctx, 2);
+    case 0: return precpred(_ctx, 1);
 
   default:
     break;

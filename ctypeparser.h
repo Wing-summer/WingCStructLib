@@ -129,9 +129,6 @@ private:
     /// basic types
     QStringList base_types_;
 
-    /// unsigned types
-    QStringList unsigned_types_;
-
     /// Parsing result - extracted type definitions
     /// for below 3 maps:
     /// key     - type name

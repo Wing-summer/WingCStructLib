@@ -10,8 +10,14 @@ int main(int argc, char *argv[]) {
 
     CTypeParser parser;
 
+    // only take effects before parsing
+    parser.setPointerMode(PointerMode::X64);
+    parser.setPadAlignment(1);
+
+    // parsing the file
     parser.parseFile(CODE_PATH "/Test.h");
 
+    // dump message to check
     parser.dumpTypeDefs();
 
     return 0;

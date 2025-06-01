@@ -19,6 +19,10 @@ public:
   /**
    * Visit parse trees produced by CStructParser.
    */
+    virtual std::any visitInternalBasicTypes(CStructParser::InternalBasicTypesContext *context) = 0;
+
+    virtual std::any visitSignOrUnsigned(CStructParser::SignOrUnsignedContext *context) = 0;
+
     virtual std::any visitPrimaryExpression(CStructParser::PrimaryExpressionContext *context) = 0;
 
     virtual std::any visitPostfixExpression(CStructParser::PostfixExpressionContext *context) = 0;
@@ -47,10 +51,6 @@ public:
 
     virtual std::any visitDeclaration(CStructParser::DeclarationContext *context) = 0;
 
-    virtual std::any visitDeclarationSpecifiers(CStructParser::DeclarationSpecifiersContext *context) = 0;
-
-    virtual std::any visitDeclarationSpecifiers2(CStructParser::DeclarationSpecifiers2Context *context) = 0;
-
     virtual std::any visitDeclarationSpecifier(CStructParser::DeclarationSpecifierContext *context) = 0;
 
     virtual std::any visitTypeSpecifier(CStructParser::TypeSpecifierContext *context) = 0;
@@ -77,15 +77,11 @@ public:
 
     virtual std::any visitEnumerationConstant(CStructParser::EnumerationConstantContext *context) = 0;
 
-    virtual std::any visitTypeQualifier(CStructParser::TypeQualifierContext *context) = 0;
-
     virtual std::any visitDeclarator(CStructParser::DeclaratorContext *context) = 0;
 
     virtual std::any visitDirectDeclarator(CStructParser::DirectDeclaratorContext *context) = 0;
 
     virtual std::any visitPointer(CStructParser::PointerContext *context) = 0;
-
-    virtual std::any visitTypeQualifierList(CStructParser::TypeQualifierListContext *context) = 0;
 
     virtual std::any visitIdentifierList(CStructParser::IdentifierListContext *context) = 0;
 
@@ -94,8 +90,6 @@ public:
     virtual std::any visitAbstractDeclarator(CStructParser::AbstractDeclaratorContext *context) = 0;
 
     virtual std::any visitDirectAbstractDeclarator(CStructParser::DirectAbstractDeclaratorContext *context) = 0;
-
-    virtual std::any visitTypedefName(CStructParser::TypedefNameContext *context) = 0;
 
     virtual std::any visitCompilationUnit(CStructParser::CompilationUnitContext *context) = 0;
 

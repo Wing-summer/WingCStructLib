@@ -6,20 +6,25 @@
 #define DEFAULT_VALUE  42
 #define DVALUE \
                     ((2 << 1) + 1)
-// typedef unsigned char  Byte;
+
+typedef unsigned char Byte;
 
 // Enum for testing
 enum TestEnum { Test1, Test2, Test3 };
 enum Status { OK = (8u), ERROR = 1 << 0 << 1 << 1, WARN = 1 << 4 };
 
 struct Cont {
-    int id[8][4],sub;
-    char c;    
+    int bf : 3;
+    char bff : 6;
+    char : 2;
+    char : 3;
+    int vb[sizeof(Status)];
+    uint id[8][4],sub;
+    char c;
     char tc[3];
-    int v;
-    int op;
+    const int unsigned op;
     int* h;
-    const char *name;  
+    const char ch;
 };
 
 union UCont{
@@ -70,6 +75,7 @@ union Variant {
 struct Mix {
     enum key_t { Host, Cookie, Agent };
     union Variant v;         // union inside struct
+    key_t key;
 };
 
 union Mirror;  // forword declaration

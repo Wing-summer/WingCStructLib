@@ -50,10 +50,8 @@ private:
     parseStructOrUnion(CStructParser::StructOrUnionSpecifierContext *ctx);
 
     struct Specifier {
-        bool isUnsigned = false;
-        bool isSigned = false;
-        QString tname;
         StructMemType type = StructMemType::Normal;
+        QString tname;
     };
 
     std::optional<Specifier>
