@@ -95,6 +95,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitAlignAsAttr(CStructParser::AlignAsAttrContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitStructDeclarationList(CStructParser::StructDeclarationListContext *ctx) override {
     return visitChildren(ctx);
   }

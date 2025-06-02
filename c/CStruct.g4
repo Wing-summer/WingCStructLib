@@ -1,3 +1,19 @@
+/*==============================================================================
+** Copyright (C) 2025-2028 WingSummer
+**
+** This program is free software: you can redistribute it and/or modify it under
+** the terms of the GNU Affero General Public License as published by the Free
+** Software Foundation, version 3.
+**
+** This program is distributed in the hope that it will be useful, but WITHOUT
+** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+** FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+** details.
+**
+** You should have received a copy of the GNU Affero General Public License
+** along with this program. If not, see <https://www.gnu.org/licenses/>.
+** =============================================================================
+*/
 
 grammar CStruct;
 
@@ -84,7 +100,7 @@ assignmentExpression
 
 declaration
     : declarationSpecifier ';'
-    | 'typedef' typeSpecifier Identifier ';'
+    | 'typedef' typeSpecifier pointer? Identifier ';'
     ;
 
 declarationSpecifier
@@ -101,13 +117,17 @@ typeSpecifier
     ;
 
 structOrUnionSpecifier
-    : structOrUnion Identifier? '{' structDeclarationList '}'
-    | structOrUnion Identifier
+    : structOrUnion alignAsAttr? Identifier? '{' structDeclarationList '}'
+    | structOrUnion alignAsAttr? Identifier
     ;
 
 structOrUnion
     : 'struct'
     | 'union'
+    ;
+
+alignAsAttr
+    : 'alignas' '(' IntegerConstant ')'
     ;
 
 structDeclarationList
@@ -199,6 +219,7 @@ externalDeclaration
 defineDecl
     : DirectiveDefine
     | MultiLineMacroDefine
+    | DirectiveInclude
     ;
 
 Char
@@ -231,6 +252,10 @@ Long
 
 TypeDef
     : 'typedef'
+    ;
+
+AlignAs
+    :'alignas'
     ;
 
 SizeOf
@@ -454,6 +479,14 @@ fragment HexadecimalDigitSequence
     : HexadecimalDigit+
     ;
 
+StringLiteral
+    : '"' SCharSequence? '"'
+    ;
+
+fragment SCharSequence
+    : CChar+
+    ;
+
 fragment CChar
     : ~['\\\r\n]
     | EscapeSequence
@@ -484,6 +517,11 @@ MultiLineMacroDefine
 MultiLineMacro
     : '#' Identifier (~[\n]*? '\\' '\r'? '\n')+ ~ [\n]+ -> skip
     ;
+
+DirectiveInclude
+    : '#' 'include' ~ [\n]* 
+    ;
+
 
 DirectiveDefine
     : '#' 'define' ~ [\n]* 

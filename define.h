@@ -21,7 +21,10 @@ struct VariableDeclaration {
     QString var_name;   ///< variable name
     qsizetype offset = -1;   ///< member offset in struct: -1 for non-struct
     size_t bit_size = 0;     // int v : bit_size , 0 for no bit_size exists
-    size_t mask = std::numeric_limits<size_t>::max(); // mask for bit_field
+    struct {
+        size_t shift = 0;
+        size_t mask = std::numeric_limits<size_t>::max(); // mask for bit_field
+    } op;
     QVector<size_t> array_dims; ///< array size: empty for non-array
     bool is_pointer = false; ///< true when it's a pointer
     qsizetype var_size = -1; ///< total size in bytes

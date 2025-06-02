@@ -13,15 +13,15 @@ class  CStructLexer : public antlr4::Lexer {
 public:
   enum {
     T__0 = 1, Char = 2, Const = 3, Double = 4, Enum = 5, Float = 6, Int = 7, 
-    Long = 8, TypeDef = 9, SizeOf = 10, Short = 11, Signed = 12, Struct = 13, 
-    Union = 14, Unsigned = 15, Void = 16, LeftParen = 17, RightParen = 18, 
-    LeftBracket = 19, RightBracket = 20, LeftBrace = 21, RightBrace = 22, 
-    LeftShift = 23, RightShift = 24, Plus = 25, PlusPlus = 26, Minus = 27, 
-    MinusMinus = 28, Star = 29, Div = 30, Mod = 31, And = 32, Or = 33, Caret = 34, 
-    Tilde = 35, Colon = 36, Semi = 37, Comma = 38, Identifier = 39, IntegerConstant = 40, 
-    MultiLineMacroDefine = 41, MultiLineMacro = 42, DirectiveDefine = 43, 
-    Directive = 44, Whitespace = 45, Newline = 46, LINE_CONTINUATION = 47, 
-    BlockComment = 48, LineComment = 49
+    Long = 8, TypeDef = 9, AlignAs = 10, SizeOf = 11, Short = 12, Signed = 13, 
+    Struct = 14, Union = 15, Unsigned = 16, Void = 17, LeftParen = 18, RightParen = 19, 
+    LeftBracket = 20, RightBracket = 21, LeftBrace = 22, RightBrace = 23, 
+    LeftShift = 24, RightShift = 25, Plus = 26, PlusPlus = 27, Minus = 28, 
+    MinusMinus = 29, Star = 30, Div = 31, Mod = 32, And = 33, Or = 34, Caret = 35, 
+    Tilde = 36, Colon = 37, Semi = 38, Comma = 39, Identifier = 40, IntegerConstant = 41, 
+    StringLiteral = 42, MultiLineMacroDefine = 43, MultiLineMacro = 44, 
+    DirectiveInclude = 45, DirectiveDefine = 46, Directive = 47, Whitespace = 48, 
+    Newline = 49, LINE_CONTINUATION = 50, BlockComment = 51, LineComment = 52
   };
 
   explicit CStructLexer(antlr4::CharStream *input);

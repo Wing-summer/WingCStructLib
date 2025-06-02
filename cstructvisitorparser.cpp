@@ -1,7 +1,26 @@
+/*==============================================================================
+** Copyright (C) 2025-2028 WingSummer
+**
+** This program is free software: you can redistribute it and/or modify it under
+** the terms of the GNU Affero General Public License as published by the Free
+** Software Foundation, version 3.
+**
+** This program is distributed in the hope that it will be useful, but WITHOUT
+** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+** FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+** details.
+**
+** You should have received a copy of the GNU Affero General Public License
+** along with this program. If not, see <https://www.gnu.org/licenses/>.
+** =============================================================================
+*/
+
 #include "cstructvisitorparser.h"
 
 #include "c/CStructLexer.h"
 #include "ctypeparser.h"
+
+#include <QCoreApplication>
 
 CStructVisitorParser::CStructVisitorParser(CTypeParser *container)
     : parser(container) {
@@ -12,7 +31,21 @@ std::any CStructVisitorParser::visitEnumSpecifier(
     CStructParser::EnumSpecifierContext *ctx) {
     auto e = parseEnum(ctx);
     if (e) {
-        parser->enum_defs_.insert(e->first, e->second);
+        if (parser->type_maps_.contains(e->first)) {
+            // report error
+            return defaultResult();
+        }
+        for (auto pkey = e->second.keyBegin(); pkey != e->second.keyEnd();
+             pkey++) {
+            auto key = *pkey;
+            if (parser->type_maps_.contains(key)) {
+                // report error
+                return defaultResult();
+            } else {
+                ;
+            }
+        }
+        storeEnum(e.value());
     }
     return defaultResult();
 }
@@ -22,8 +55,11 @@ std::any CStructVisitorParser::visitInclusiveOrExpression(
     qulonglong ret = 0;
     for (auto &v : ctx->exclusiveOrExpression()) {
         auto r = visitExclusiveOrExpression(v);
-        if (r.type() == typeid(qulonglong)) {
-            auto rr = std::any_cast<qulonglong>(r);
+        if (r.type() == typeid(quint64)) {
+            auto rr = std::any_cast<quint64>(r);
+            ret |= rr;
+        } else if (r.type() == typeid(qint64)) {
+            auto rr = std::any_cast<qint64>(r);
             ret |= rr;
         } else {
             // error
@@ -434,7 +470,13 @@ std::any CStructVisitorParser::visitPrimaryExpression(
     } else if (ctx->Identifier()) {
         auto vname = QString::fromStdString(ctx->Identifier()->getText());
         if (parser->const_defs_.contains(vname)) {
-            return parser->const_defs_.value(vname);
+            auto v = parser->const_defs_.value(vname);
+            if (std::holds_alternative<qint64>(v)) {
+                return std::get<qint64>(v);
+            } else if (std::holds_alternative<quint64>(v)) {
+                return std::get<quint64>(v);
+            }
+            return defaultResult();
         }
     } else if (ctx->assignmentExpression()) {
         return visitAssignmentExpression(ctx->assignmentExpression());
@@ -457,7 +499,7 @@ std::any CStructVisitorParser::visitStructOrUnionSpecifier(
     if (decl) {
         if (!decl->name.isEmpty()) {
             parser->storeStructUnionDef(decl->isStruct, decl->name,
-                                        decl->members);
+                                        decl->members, decl->alignment);
         }
     }
     return defaultResult();
@@ -467,44 +509,94 @@ std::any
 CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
     std::string def;
 
-    if (ctx->DirectiveDefine()) {
-        def = ctx->DirectiveDefine()->getText();
-    } else if (ctx->MultiLineMacroDefine()) {
-        def = ctx->MultiLineMacroDefine()->getText();
+    if (ctx->DirectiveInclude()) {
+        auto tdinc = ctx->DirectiveInclude();
+        def = tdinc->getText();
 
-        size_t pos = 0;
-        constexpr auto es = "\\\n";
-        constexpr auto esLen = std::char_traits<char>::length(es);
-        auto strp = def.find(es);
-        while (strp != std::string::npos) {
-            def.replace(strp, esLen, es);
-            strp += esLen;
-            strp = def.find(es, strp);
+        constexpr auto prefixLen = std::char_traits<char>::length("#include");
+        antlr4::ANTLRInputStream input(def.data() + prefixLen,
+                                       def.length() - prefixLen);
+        CStructLexer lexer(&input);
+        antlr4::CommonTokenStream tokens(&lexer);
+
+        tokens.fill();
+
+        if (tokens.size() == 2) {
+            if (tokens.get(1)->getType() != CStructLexer::EOF) {
+                return defaultResult();
+            }
+
+            auto t = tokens.get(0);
+            if (t->getType() == CStructLexer::StringLiteral) {
+                auto path = QString::fromStdString(t->getText())
+                                .removeFirst()
+                                .removeLast();
+
+                auto p = tdinc->getSymbol()->getTokenSource()->getSourceName();
+
+                QDir dir;
+                if (p.empty()) {
+                    dir.setPath(qApp->applicationDirPath());
+                } else {
+                    QFileInfo pinfo(QString::fromStdString(p));
+                    dir = pinfo.absoluteDir();
+                }
+
+                auto header = dir.absoluteFilePath(path);
+                if (QFile::exists(header)) {
+                    parser->parseFile(header);
+                    return defaultResult();
+                }
+            }
         }
-    }
 
-    constexpr auto prefixLen = std::char_traits<char>::length("#define");
-    antlr4::ANTLRInputStream input(def.data() + prefixLen,
-                                   def.length() - prefixLen);
-    CStructLexer lexer(&input);
-    antlr4::CommonTokenStream tokens(&lexer);
+        // report warning and ignored
 
-    tokens.fill();
-    auto ts = tokens.getTokens();
-    auto identifer = ts.front()->getText();
+    } else {
+        if (ctx->DirectiveDefine()) {
+            def = ctx->DirectiveDefine()->getText();
+        } else if (ctx->MultiLineMacroDefine()) {
+            def = ctx->MultiLineMacroDefine()->getText();
 
-    tokens.consume(); // remove the first token
+            size_t pos = 0;
+            constexpr auto es = "\\\n";
+            constexpr auto esLen = std::char_traits<char>::length(es);
+            auto strp = def.find(es);
+            while (strp != std::string::npos) {
+                def.replace(strp, esLen, es);
+                strp += esLen;
+                strp = def.find(es, strp);
+            }
+        }
 
-    CStructVisitorParser visitor(parser);
-    CStructParser parser(&tokens);
+        constexpr auto prefixLen = std::char_traits<char>::length("#define");
+        antlr4::ANTLRInputStream input(def.data() + prefixLen,
+                                       def.length() - prefixLen);
+        CStructLexer lexer(&input);
+        antlr4::CommonTokenStream tokens(&lexer);
 
-    auto ret = visitor.visit(parser.assignmentExpressionDef());
-    if (ret.type() == typeid(quint64)) {
-        this->parser->const_defs_.insert(QString::fromStdString(identifer),
-                                         std::any_cast<quint64>(ret));
-    } else if (ret.type() == typeid(qint64)) {
-        this->parser->const_defs_.insert(QString::fromStdString(identifer),
-                                         std::any_cast<qint64>(ret));
+        tokens.fill();
+        auto ts = tokens.getTokens();
+        auto identifer = ts.front()->getText();
+
+        auto dname = QString::fromStdString(identifer);
+        if (parser->type_maps_.contains(dname)) {
+            // report error
+            return defaultResult();
+        }
+
+        tokens.consume(); // remove the first token
+
+        CStructVisitorParser visitor(parser);
+        CStructParser parser(&tokens);
+
+        auto ret = visitor.visit(parser.assignmentExpressionDef());
+        if (ret.type() == typeid(quint64)) {
+            this->parser->const_defs_.insert(dname,
+                                             std::any_cast<quint64>(ret));
+        } else if (ret.type() == typeid(qint64)) {
+            this->parser->const_defs_.insert(dname, std::any_cast<qint64>(ret));
+        }
     }
 
     return defaultResult();
@@ -519,95 +611,46 @@ std::any CStructVisitorParser::visitAssignmentExpressionDef(
     return defaultResult();
 }
 
-std::any CStructVisitorParser::visitExternalDeclaration(
-    CStructParser::ExternalDeclarationContext *ctx) {
-    // if (ctx->Typedef()) {
-    //     // TODO
-    //     return defaultResult();
-    // } else {
-    return visitChildren(ctx);
-    // }
-}
+std::any
+CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
+    if (ctx->TypeDef()) {
+        auto iden = QString::fromStdString(ctx->Identifier()->getText());
 
-QString CStructVisitorParser::getFinalDeclaratorName(
-    CStructParser::DirectDeclaratorContext *ctx) {
-    while (ctx) {
-        if (ctx->Identifier()) {
-            return QString::fromStdString(ctx->Identifier()->getText());
-        } else if (ctx->declarator()) {
-            ctx = ctx->declarator()->directDeclarator();
-            continue;
+        if (parser->type_maps_.contains(iden)) {
+            // error report
+            return defaultResult();
         }
-        ctx = ctx->directDeclarator();
-    }
-    return {};
-}
 
-std::optional<CStructVisitorParser::Declarator>
-CStructVisitorParser::getDeclarator(
-    CStructParser::DirectDeclaratorContext *ctx) {
-    if (!ctx) {
-        return std::nullopt;
-    }
-
-    Declarator dor;
-
-    if (ctx->Identifier()) {
-        // Identifier only
-        dor.retName = QString::fromStdString(ctx->Identifier()->getText());
-        // if (ctx->Colon()) {
-        //     // bit field
-        //     dor.bitField =
-        //         parseIntegerConstant(ctx->IntegerConstant()->getText()).value();
-        // }
-    } else if (ctx->declarator()) {
-        auto d = ctx->declarator();
-
-        // only pointer in the first level is valid member in struct
-        if (d->pointer()) {
-            dor.retName = getFinalDeclaratorName(d->directDeclarator());
-            dor.isPointer = true;
-        } else {
-            return std::nullopt;
+        auto spec = getSpecifier(ctx->typeSpecifier());
+        if (spec) {
+            parser->type_defs_.insert(
+                iden, qMakePair(spec->tname, ctx->pointer() != nullptr));
         }
-    } else if (ctx->assignmentExpression()) {
-        // array
-        auto r = visitAssignmentExpression(ctx->assignmentExpression());
-        if (r.type() == typeid(quint64)) {
-            auto v = std::any_cast<quint64>(r);
-            dor.arrayCount = v;
-        } else if (r.type() == typeid(qint64)) {
-            auto v = std::any_cast<qint64>(r);
-            dor.arrayCount = v;
-        } else {
-            return std::nullopt;
-        }
-        dor.next = ctx->directDeclarator();
+
+        return defaultResult();
     } else {
-        // function pointer
-        dor.isPointer = true;
-        dor.isFunctionPtr = true;
-        dor.retName = getFinalDeclaratorName(ctx);
+        return visitChildren(ctx);
     }
+}
 
-    return dor;
+void CStructVisitorParser::storeEnum(const EnumDecl &e) {
+    parser->type_maps_.insert(e.first, qMakePair(QMetaType::Int, sizeof(int)));
+    parser->enum_defs_.insert(e.first, e.second);
 }
 
 std::optional<CStructVisitorParser::Specifier>
-CStructVisitorParser::getSpecifier(
-    CStructParser::SpecifierQualifierListContext *ctx) {
-    if (!ctx) {
+CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
+    if (ctx == nullptr) {
         return std::nullopt;
     }
 
     Specifier sq;
 
-    auto spec = ctx->typeSpecifier();
-    if (spec->Void()) {
+    if (ctx->Void()) {
         sq.type = StructMemType::Normal;
         sq.tname = QStringLiteral("void");
-    } else if (spec->internalBasicTypes()) {
-        auto btype = spec->internalBasicTypes();
+    } else if (ctx->internalBasicTypes()) {
+        auto btype = ctx->internalBasicTypes();
         sq.type = StructMemType::Normal;
 
         if (btype->Char()) {
@@ -669,38 +712,148 @@ CStructVisitorParser::getSpecifier(
                 }
             }
         }
-    } else if (spec->Identifier()) {
+    } else if (ctx->Identifier()) {
         sq.type = StructMemType::Normal;
-        sq.tname = QString::fromStdString(spec->Identifier()->getText());
-    } else if (spec->enumSpecifier()) {
-        auto es = spec->enumSpecifier();
+        sq.tname = QString::fromStdString(ctx->Identifier()->getText());
+    } else if (ctx->enumSpecifier()) {
+        sq.type = StructMemType::Enum;
+
+        auto es = ctx->enumSpecifier();
+        auto iden = es->Identifier();
         if (es->enumeratorList()) {
-            sq.type = StructMemType::Enum;
-            // I won't use enum type name declared
-            // TODO
+            auto en = parseEnum(es);
+            if (en) {
+                if (en->first.isEmpty()) {
+                    // anonymous? I will give you a name!
+                    en->first =
+                        QString::number(parser->_anomyIndex).prepend('?');
+                    Q_ASSERT(!parser->type_maps_.contains(en->first));
+                    parser->_anomyIndex++;
+                }
+                sq.tname = en->first;
+
+                // store it
+                storeEnum(en.value());
+            } else {
+                // error occurred
+                return std::nullopt;
+            }
         } else {
-            return std::nullopt;
+            // iden can not be nullptr
+            auto name = QString::fromStdString(iden->getText());
+            if (!parser->enum_defs_.contains(name)) {
+                return std::nullopt;
+            }
+            sq.tname = name;
         }
-    } else if (spec->structOrUnionSpecifier()) {
-        auto sus = spec->structOrUnionSpecifier();
+    } else if (ctx->structOrUnionSpecifier()) {
+        sq.type = StructMemType::Struct;
+
+        auto sus = ctx->structOrUnionSpecifier();
+        auto iden = sus->Identifier();
         if (sus->structDeclarationList()) {
-            sq.type = sus->structOrUnion()->Struct() ? StructMemType::Struct
-                                                     : StructMemType::Union;
+            auto st = parseStructOrUnion(sus);
+            if (st) {
+                if (st->name.isEmpty()) {
+                    st->name =
+                        QString::number(parser->_anomyIndex).prepend('?');
+                    Q_ASSERT(!parser->type_maps_.contains(st->name));
+                    parser->_anomyIndex++;
+                }
 
-            // sq.tname = "";
-            // I won't use struc or union type name declared
-            // in struct or union
-            // parse struct and get the internal name
-            // TODO
-
+                sq.tname = st->name;
+                // store it
+                parser->storeStructUnionDef(st->isStruct, st->name, st->members,
+                                            st->alignment);
+            } else {
+                // error occurred
+                return std::nullopt;
+            }
         } else {
-            return std::nullopt;
+            // iden can not be nullptr
+            auto name = QString::fromStdString(iden->getText());
+            if (sus->structOrUnion()->Struct()) {
+                if (!parser->struct_defs_.contains(name)) {
+                    return std::nullopt;
+                }
+            } else {
+                if (!parser->union_defs_.contains(name)) {
+                    return std::nullopt;
+                }
+            }
+            sq.tname = name;
         }
     } else {
         return std::nullopt;
     }
 
     return sq;
+}
+
+QString CStructVisitorParser::getFinalDeclaratorName(
+    CStructParser::DirectDeclaratorContext *ctx) {
+    while (ctx) {
+        if (ctx->Identifier()) {
+            return QString::fromStdString(ctx->Identifier()->getText());
+        } else if (ctx->declarator()) {
+            ctx = ctx->declarator()->directDeclarator();
+            continue;
+        }
+        ctx = ctx->directDeclarator();
+    }
+    return {};
+}
+
+std::optional<CStructVisitorParser::Declarator>
+CStructVisitorParser::getDeclarator(
+    CStructParser::DirectDeclaratorContext *ctx) {
+    if (!ctx) {
+        return std::nullopt;
+    }
+
+    Declarator dor;
+
+    if (ctx->Identifier()) {
+        // Identifier only
+        dor.retName = QString::fromStdString(ctx->Identifier()->getText());
+    } else if (ctx->declarator()) {
+        auto d = ctx->declarator();
+
+        // only pointer in the first level is valid member in struct
+        if (d->pointer()) {
+            dor.retName = getFinalDeclaratorName(d->directDeclarator());
+            dor.isPointer = true;
+        } else {
+            return std::nullopt;
+        }
+    } else if (ctx->assignmentExpression()) {
+        // array
+        auto r = visitAssignmentExpression(ctx->assignmentExpression());
+        if (r.type() == typeid(quint64)) {
+            auto v = std::any_cast<quint64>(r);
+            dor.arrayCount = v;
+        } else if (r.type() == typeid(qint64)) {
+            auto v = std::any_cast<qint64>(r);
+            dor.arrayCount = v;
+        } else {
+            return std::nullopt;
+        }
+        dor.next = ctx->directDeclarator();
+    } else {
+        return std::nullopt;
+    }
+
+    return dor;
+}
+
+std::optional<CStructVisitorParser::Specifier>
+CStructVisitorParser::getSpecifier(
+    CStructParser::SpecifierQualifierListContext *ctx) {
+    if (!ctx) {
+        return std::nullopt;
+    }
+    auto spec = ctx->typeSpecifier();
+    return getSpecifier(spec);
 }
 
 std::optional<CStructVisitorParser::StructUnionDecl>
@@ -719,8 +872,34 @@ CStructVisitorParser::parseStructOrUnion(
         decl.name = QString::fromStdString(ctx->Identifier()->getText());
     }
 
+    if (ctx->alignAsAttr()) {
+        auto num = parseIntegerConstant(
+            ctx->alignAsAttr()->IntegerConstant()->getText());
+
+        if (num) {
+            auto v = num.value();
+            static std::array<int, 5> allowList{1, 2, 4, 8, 16};
+            if (std::find(allowList.begin(), allowList.end(), v) !=
+                allowList.end()) {
+                decl.alignment = v;
+            }
+        } else {
+            // report warning and ignored
+            decl.alignment = parser->kAlignment_;
+        }
+
+    } else {
+        decl.alignment = parser->kAlignment_;
+    }
+
+    QStringList used_names;
+
     for (auto &m : mems->structDeclaration()) {
         auto dl = getSpecifier(m->specifierQualifierList());
+        if (!dl) {
+            return std::nullopt;
+        }
+
         auto t = parser->type(dl->tname);
 
         auto dclist = m->structDeclaratorList();
@@ -748,24 +927,32 @@ CStructVisitorParser::parseStructOrUnion(
                         } else {
                             return std::nullopt;
                         }
+
+                        if (var.bit_size > t.second * 8) {
+                            return std::nullopt;
+                        }
                     }
 
                     auto d = declor->directDeclarator();
                     if (declor->pointer() && !sub->Colon()) {
                         var.is_pointer = true;
                         var.var_name = getFinalDeclaratorName(d);
+                        if (used_names.contains(var.var_name)) {
+                            return std::nullopt;
+                        }
                         var.var_size = parser->pointerMode() == PointerMode::X64
                                            ? sizeof(quint64)
                                            : sizeof(quint32);
                         decl.members.append(var);
+                        used_names.append(var.var_name);
                     } else {
                         if (t.first == QMetaType::UnknownType) {
                             return std::nullopt;
                         }
 
                         auto info = getDeclarator(d);
-                        var.is_pointer = info->isPointer;
                         if (info) {
+                            var.is_pointer = info->isPointer;
                             if (info->arrayCount == 0) {
                                 var.array_dims.clear();
 
@@ -785,6 +972,9 @@ CStructVisitorParser::parseStructOrUnion(
                                         getDeclarator(nestedInfo->next);
                                 }
                                 var.var_name = getFinalDeclaratorName(d);
+                                if (used_names.contains(var.var_name)) {
+                                    return std::nullopt;
+                                }
                                 var.array_dims = dims;
                                 var.var_size =
                                     t.second *
@@ -792,10 +982,15 @@ CStructVisitorParser::parseStructOrUnion(
                                                     size_t(1),
                                                     std::multiplies<size_t>());
                                 decl.members.append(var);
+                                used_names.append(var.var_name);
                             } else {
                                 var.var_name = info->retName;
+                                if (used_names.contains(var.var_name)) {
+                                    return std::nullopt;
+                                }
                                 var.var_size = t.second;
                                 decl.members.append(var);
+                                used_names.append(var.var_name);
                             }
                         } else {
                             return std::nullopt;
@@ -815,6 +1010,10 @@ CStructVisitorParser::parseStructOrUnion(
                         var.bit_size = b;
                     }
 
+                    if (var.bit_size > t.second * 8) {
+                        return std::nullopt;
+                    }
+
                     var.var_size = t.second;
                     decl.members.append(var);
                 }
@@ -831,26 +1030,27 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
     auto enums = ctx->enumeratorList();
 
     QString decl_name;
-    QHash<QString, qint64> decl_enums;
+    QHash<QString, int> decl_enums;
 
     if (name) {
         decl_name = QString::fromStdString(name->getText());
-    } else {
-        // report warn
-
-        return std::nullopt;
     }
 
-    qint64 i = 0;
+    int i = 0;
 
     if (enums) {
         auto es = enums->enumerator();
+
         for (auto &e : es) {
             QString name;
 
             auto en = e->enumerationConstant();
             if (en) {
                 name = QString::fromStdString(en->getText());
+                if (decl_enums.contains(name)) {
+                    // report
+                    return std::nullopt;
+                }
             } else {
                 // report error
                 return std::nullopt;
@@ -863,6 +1063,9 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
                     i = std::any_cast<qint64>(v);
                 } else if (v.type() == typeid(quint64)) {
                     i = qint64(std::any_cast<quint64>(v));
+                } else {
+                    // report error
+                    return std::nullopt;
                 }
             }
 
@@ -873,6 +1076,7 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
         return qMakePair(decl_name, decl_enums);
     } else {
         // report warn
+
         return std::nullopt;
     }
 }

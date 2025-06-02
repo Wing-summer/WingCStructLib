@@ -13,15 +13,15 @@ class  CStructParser : public antlr4::Parser {
 public:
   enum {
     T__0 = 1, Char = 2, Const = 3, Double = 4, Enum = 5, Float = 6, Int = 7, 
-    Long = 8, TypeDef = 9, SizeOf = 10, Short = 11, Signed = 12, Struct = 13, 
-    Union = 14, Unsigned = 15, Void = 16, LeftParen = 17, RightParen = 18, 
-    LeftBracket = 19, RightBracket = 20, LeftBrace = 21, RightBrace = 22, 
-    LeftShift = 23, RightShift = 24, Plus = 25, PlusPlus = 26, Minus = 27, 
-    MinusMinus = 28, Star = 29, Div = 30, Mod = 31, And = 32, Or = 33, Caret = 34, 
-    Tilde = 35, Colon = 36, Semi = 37, Comma = 38, Identifier = 39, IntegerConstant = 40, 
-    MultiLineMacroDefine = 41, MultiLineMacro = 42, DirectiveDefine = 43, 
-    Directive = 44, Whitespace = 45, Newline = 46, LINE_CONTINUATION = 47, 
-    BlockComment = 48, LineComment = 49
+    Long = 8, TypeDef = 9, AlignAs = 10, SizeOf = 11, Short = 12, Signed = 13, 
+    Struct = 14, Union = 15, Unsigned = 16, Void = 17, LeftParen = 18, RightParen = 19, 
+    LeftBracket = 20, RightBracket = 21, LeftBrace = 22, RightBrace = 23, 
+    LeftShift = 24, RightShift = 25, Plus = 26, PlusPlus = 27, Minus = 28, 
+    MinusMinus = 29, Star = 30, Div = 31, Mod = 32, And = 33, Or = 34, Caret = 35, 
+    Tilde = 36, Colon = 37, Semi = 38, Comma = 39, Identifier = 40, IntegerConstant = 41, 
+    StringLiteral = 42, MultiLineMacroDefine = 43, MultiLineMacro = 44, 
+    DirectiveInclude = 45, DirectiveDefine = 46, Directive = 47, Whitespace = 48, 
+    Newline = 49, LINE_CONTINUATION = 50, BlockComment = 51, LineComment = 52
   };
 
   enum {
@@ -31,14 +31,14 @@ public:
     RuleShiftExpression = 9, RuleAndExpression = 10, RuleExclusiveOrExpression = 11, 
     RuleInclusiveOrExpression = 12, RuleAssignmentExpressionDef = 13, RuleAssignmentExpression = 14, 
     RuleDeclaration = 15, RuleDeclarationSpecifier = 16, RuleTypeSpecifier = 17, 
-    RuleStructOrUnionSpecifier = 18, RuleStructOrUnion = 19, RuleStructDeclarationList = 20, 
-    RuleStructDeclaration = 21, RuleSpecifierQualifierList = 22, RuleStructDeclaratorList = 23, 
-    RuleStructDeclarator = 24, RuleEnumSpecifier = 25, RuleEnumeratorList = 26, 
-    RuleEnumerator = 27, RuleEnumerationConstant = 28, RuleDeclarator = 29, 
-    RuleDirectDeclarator = 30, RulePointer = 31, RuleIdentifierList = 32, 
-    RuleTypeName = 33, RuleAbstractDeclarator = 34, RuleDirectAbstractDeclarator = 35, 
-    RuleCompilationUnit = 36, RuleTranslationUnit = 37, RuleExternalDeclaration = 38, 
-    RuleDefineDecl = 39
+    RuleStructOrUnionSpecifier = 18, RuleStructOrUnion = 19, RuleAlignAsAttr = 20, 
+    RuleStructDeclarationList = 21, RuleStructDeclaration = 22, RuleSpecifierQualifierList = 23, 
+    RuleStructDeclaratorList = 24, RuleStructDeclarator = 25, RuleEnumSpecifier = 26, 
+    RuleEnumeratorList = 27, RuleEnumerator = 28, RuleEnumerationConstant = 29, 
+    RuleDeclarator = 30, RuleDirectDeclarator = 31, RulePointer = 32, RuleIdentifierList = 33, 
+    RuleTypeName = 34, RuleAbstractDeclarator = 35, RuleDirectAbstractDeclarator = 36, 
+    RuleCompilationUnit = 37, RuleTranslationUnit = 38, RuleExternalDeclaration = 39, 
+    RuleDefineDecl = 40
   };
 
   explicit CStructParser(antlr4::TokenStream *input);
@@ -78,6 +78,7 @@ public:
   class TypeSpecifierContext;
   class StructOrUnionSpecifierContext;
   class StructOrUnionContext;
+  class AlignAsAttrContext;
   class StructDeclarationListContext;
   class StructDeclarationContext;
   class SpecifierQualifierListContext;
@@ -365,6 +366,7 @@ public:
     antlr4::tree::TerminalNode *TypeDef();
     TypeSpecifierContext *typeSpecifier();
     antlr4::tree::TerminalNode *Identifier();
+    PointerContext *pointer();
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
@@ -412,6 +414,7 @@ public:
     antlr4::tree::TerminalNode *LeftBrace();
     StructDeclarationListContext *structDeclarationList();
     antlr4::tree::TerminalNode *RightBrace();
+    AlignAsAttrContext *alignAsAttr();
     antlr4::tree::TerminalNode *Identifier();
 
 
@@ -434,6 +437,22 @@ public:
   };
 
   StructOrUnionContext* structOrUnion();
+
+  class  AlignAsAttrContext : public antlr4::ParserRuleContext {
+  public:
+    AlignAsAttrContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *AlignAs();
+    antlr4::tree::TerminalNode *LeftParen();
+    antlr4::tree::TerminalNode *IntegerConstant();
+    antlr4::tree::TerminalNode *RightParen();
+
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  AlignAsAttrContext* alignAsAttr();
 
   class  StructDeclarationListContext : public antlr4::ParserRuleContext {
   public:
@@ -733,6 +752,7 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *DirectiveDefine();
     antlr4::tree::TerminalNode *MultiLineMacroDefine();
+    antlr4::tree::TerminalNode *DirectiveInclude();
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;

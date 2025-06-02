@@ -1,5 +1,5 @@
 /*==============================================================================
-** Copyright (C) 2024-2027 WingSummer
+** Copyright (C) 2025-2028 WingSummer
 **
 ** This program is free software: you can redistribute it and/or modify it under
 ** the terms of the GNU Affero General Public License as published by the Free
@@ -44,7 +44,6 @@ public:
 
 public:
     bool parseFile(const QString &file);
-    bool parseSource(const QString &src);
 
 public:
     qsizetype padAlignment() const;
@@ -80,13 +79,13 @@ public:
 public:
     const QHash<QString, QList<VariableDeclaration>> &structDefs() const;
 
-    const QHash<QString, QHash<QString, qint64>> &enumDefs() const;
+    const QHash<QString, QHash<QString, int>> &enumDefs() const;
 
     const QHash<QString, QPair<QMetaType::Type, qsizetype>> &types() const;
 
     QPair<QMetaType::Type, qsizetype> type(const QString &t) const;
 
-    const QHash<QString, qulonglong> &constDefs() const;
+    const QHash<QString, std::variant<qint64, quint64>> &constDefs() const;
 
     const QHash<QString, QList<VariableDeclaration>> &unionDefs() const;
 
@@ -96,11 +95,14 @@ public:
     void clear();
 
 private:
-    qsizetype padStruct(QList<VariableDeclaration> &members);
-    qsizetype calcUnionSize(const QList<VariableDeclaration> &members) const;
+    qsizetype padStruct(QList<VariableDeclaration> &members,
+                        qsizetype alignment);
+    qsizetype calcUnionSize(const QList<VariableDeclaration> &members,
+                            qsizetype alignment) const;
 
     void storeStructUnionDef(const bool is_struct, const QString &type_name,
-                             QList<VariableDeclaration> &members);
+                             QList<VariableDeclaration> &members,
+                             qsizetype alignment);
 
 private:
     /// read in basic data such as keywords/qualifiers, and basic data type
@@ -141,16 +143,20 @@ private:
     QHash<QString, QList<VariableDeclaration>> union_defs_;
 
     /// typedef definitions
-    QHash<QString, QString> type_defs_;
+    /// <typedefName, <originalName, isPointer>>
+    QHash<QString, QPair<QString, bool>> type_defs_;
 
     /// enum definitions
-    QHash<QString, QHash<QString, qint64>> enum_defs_;
+    QHash<QString, QHash<QString, int>> enum_defs_;
 
     /// constants and macros that have integer values
     /// key     - constant/macro name
     /// value   - an integer (all types of number are cast to long type for
     /// convenience)
-    QHash<QString, qulonglong> const_defs_;
+    QHash<QString, std::variant<qint64, quint64>> const_defs_;
+
+private:
+    quint64 _anomyIndex = 0;
 };
 
 #endif // _TYPE_PARSER_H_

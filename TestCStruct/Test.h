@@ -2,12 +2,12 @@
 #ifdef OS_WIN
 #endif
 
-// Top-level define and typedef
-#define DEFAULT_VALUE  42
-#define DVALUE \
-                    ((2 << 1) + 1)
-
 typedef unsigned char Byte;
+typedef const char* str ;
+
+#include "TestOut.h"
+
+// we dont't support #include <xxx.h>
 
 // Enum for testing
 enum TestEnum { Test1, Test2, Test3 };
@@ -27,14 +27,14 @@ struct Cont {
     const char ch;
 };
 
-union UCont{
+typedef union {
     int heu;
     short ss;
     uint64 ts;
-};
+} UCont;
 
 // A struct containing a nested struct and a nested union
-/*struct Container {
+struct Container {
     int id, uid;
     
     // Nested struct
@@ -47,7 +47,7 @@ union UCont{
     // Nested union
     union InnerUnion {
         float f;
-        Byte b[2+3*2];
+        byte b[2+3*2];
     } raw;
 
     uint8 te;
@@ -55,15 +55,16 @@ union UCont{
     enum Status state; // pre-declaration
 };
 
+
 // A union containing a nested struct and a nested union
 union Variant {
-    
+
     // Nested struct inside union
     struct {
-        char name[DEFAULT_VALUE][1];
+        char name[DEFAULT_VALUE];
         int  count;
     } info;
-    
+
     // Nested union inside union
     union {
         long  L;
@@ -75,14 +76,14 @@ union Variant {
 struct Mix {
     enum key_t { Host, Cookie, Agent };
     union Variant v;         // union inside struct
-    key_t key;
+    enum key_t key;
 };
 
 union Mirror;  // forword declaration
 
 union Mirror {
     struct Container c;      // struct inside union
-};*/
+};
 
 // A stray semicolon to test that rule
 ;

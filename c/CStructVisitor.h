@@ -59,6 +59,8 @@ public:
 
     virtual std::any visitStructOrUnion(CStructParser::StructOrUnionContext *context) = 0;
 
+    virtual std::any visitAlignAsAttr(CStructParser::AlignAsAttrContext *context) = 0;
+
     virtual std::any visitStructDeclarationList(CStructParser::StructDeclarationListContext *context) = 0;
 
     virtual std::any visitStructDeclaration(CStructParser::StructDeclarationContext *context) = 0;

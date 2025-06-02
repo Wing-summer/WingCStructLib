@@ -1,3 +1,20 @@
+/*==============================================================================
+** Copyright (C) 2025-2028 WingSummer
+**
+** This program is free software: you can redistribute it and/or modify it under
+** the terms of the GNU Affero General Public License as published by the Free
+** Software Foundation, version 3.
+**
+** This program is distributed in the hope that it will be useful, but WITHOUT
+** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+** FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+** details.
+**
+** You should have received a copy of the GNU Affero General Public License
+** along with this program. If not, see <https://www.gnu.org/licenses/>.
+** =============================================================================
+*/
+
 #ifndef CSTRUCTVISITORPARSER_H
 #define CSTRUCTVISITORPARSER_H
 
@@ -30,19 +47,22 @@ public:
     virtual std::any visitAssignmentExpressionDef(
         CStructParser::AssignmentExpressionDefContext *ctx) override;
 
-    virtual std::any visitExternalDeclaration(
-        CStructParser::ExternalDeclarationContext *ctx) override;
+    virtual std::any
+    visitDeclaration(CStructParser::DeclarationContext *ctx) override;
 
 private:
-    using EnumDecl = QPair<QString, QHash<QString, qint64>>;
+    using EnumDecl = QPair<QString, QHash<QString, int>>;
 
     std::optional<EnumDecl> parseEnum(CStructParser::EnumSpecifierContext *ctx);
+
+    void storeEnum(const EnumDecl &e);
 
     enum class StructMemType { Normal, Pointer, Enum, Struct, Union };
 
     struct StructUnionDecl {
         QString name;
         bool isStruct = true;
+        qsizetype alignment = 0;
         QVector<VariableDeclaration> members;
     };
 
@@ -57,10 +77,12 @@ private:
     std::optional<Specifier>
     getSpecifier(CStructParser::SpecifierQualifierListContext *ctx);
 
+    std::optional<Specifier>
+    getSpecifier(CStructParser::TypeSpecifierContext *ctx);
+
     struct Declarator {
         QString retName;
         bool isPointer = false;
-        bool isFunctionPtr = false;
         size_t arrayCount = 1;
         size_t bitField = 0;
         CStructParser::DirectDeclaratorContext *next = nullptr;
@@ -69,7 +91,8 @@ private:
     std::optional<Declarator>
     getDeclarator(CStructParser::DirectDeclaratorContext *ctx);
 
-    QString getFinalDeclaratorName(CStructParser::DirectDeclaratorContext *ctx);
+    static QString
+    getFinalDeclaratorName(CStructParser::DirectDeclaratorContext *ctx);
 
 private:
     CTypeParser *parser;
@@ -114,9 +137,6 @@ private:
 
 private:
     bool isInteger(const QString &text);
-
-private:
-    quint64 _anomyIndex = 0;
 };
 
 #endif // CSTRUCTVISITORPARSER_H
