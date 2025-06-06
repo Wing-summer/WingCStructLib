@@ -135,6 +135,8 @@ public:
 private:
     std::optional<qint64> parseIntegerConstant(const std::string &text);
 
+    bool existedTypeName(const QString &name);
+
 private:
     bool isInteger(const QString &text);
 };

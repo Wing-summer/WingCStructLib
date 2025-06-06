@@ -31,18 +31,12 @@ std::any CStructVisitorParser::visitEnumSpecifier(
     CStructParser::EnumSpecifierContext *ctx) {
     auto e = parseEnum(ctx);
     if (e) {
-        if (parser->type_maps_.contains(e->first)) {
-            // report error
-            return defaultResult();
-        }
         for (auto pkey = e->second.keyBegin(); pkey != e->second.keyEnd();
              pkey++) {
             auto key = *pkey;
-            if (parser->type_maps_.contains(key)) {
+            if (parser->const_defs_.contains(key)) {
                 // report error
                 return defaultResult();
-            } else {
-                ;
             }
         }
         storeEnum(e.value());
@@ -163,6 +157,10 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
     }
 
     return std::nullopt;
+}
+
+bool CStructVisitorParser::existedTypeName(const QString &name) {
+    return parser->type_maps_.contains(name);
 }
 
 bool CStructVisitorParser::isInteger(const QString &text) {
@@ -625,8 +623,9 @@ CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
         if (spec) {
             parser->type_defs_.insert(
                 iden, qMakePair(spec->tname, ctx->pointer() != nullptr));
+            parser->type_maps_.insert(iden,
+                                      parser->type_maps_.value(spec->tname));
         }
-
         return defaultResult();
     } else {
         return visitChildren(ctx);
@@ -870,6 +869,9 @@ CStructVisitorParser::parseStructOrUnion(
 
     if (ctx->Identifier()) {
         decl.name = QString::fromStdString(ctx->Identifier()->getText());
+        if (existedTypeName(decl.name)) {
+            return std::nullopt;
+        }
     }
 
     if (ctx->alignAsAttr()) {
@@ -928,7 +930,7 @@ CStructVisitorParser::parseStructOrUnion(
                             return std::nullopt;
                         }
 
-                        if (var.bit_size > t.second * 8) {
+                        if (var.bit_size > t.second * 8 || var.bit_size == 0) {
                             return std::nullopt;
                         }
                     }
@@ -954,8 +956,10 @@ CStructVisitorParser::parseStructOrUnion(
                         if (info) {
                             var.is_pointer = info->isPointer;
                             if (info->arrayCount == 0) {
-                                var.array_dims.clear();
-
+                                var.array_dims = {0};
+                                var.var_size = 0;
+                                decl.members.append(var);
+                                used_names.append(var.var_name);
                                 continue; // no nessesary to deep parse
                             }
                             auto nestedInfo = getDeclarator(info->next);
@@ -975,12 +979,16 @@ CStructVisitorParser::parseStructOrUnion(
                                 if (used_names.contains(var.var_name)) {
                                     return std::nullopt;
                                 }
-                                var.array_dims = dims;
                                 var.var_size =
                                     t.second *
                                     std::accumulate(dims.begin(), dims.end(),
                                                     size_t(1),
                                                     std::multiplies<size_t>());
+                                if (var.var_size) {
+                                    var.array_dims = dims;
+                                } else {
+                                    var.array_dims = {0};
+                                }
                                 decl.members.append(var);
                                 used_names.append(var.var_name);
                             } else {
@@ -1034,6 +1042,9 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
 
     if (name) {
         decl_name = QString::fromStdString(name->getText());
+        if (existedTypeName(decl_name)) {
+            return std::nullopt;
+        }
     }
 
     int i = 0;

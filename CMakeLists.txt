@@ -35,13 +35,26 @@ set(CDES_PARSER
     c/CStructParser.h)
 
 add_library(
-    WingCStructLib STATIC ${CDES_PARSER} ctypeparser.cpp ctypeparser.h
-                          cstructvisitorparser.h cstructvisitorparser.cpp
-                          define.h)
+    WingCStructLib STATIC
+    ${CDES_PARSER}
+    ctypeparser.cpp
+    ctypeparser.h
+    cstructvisitorparser.h
+    cstructvisitorparser.cpp
+    define.h
+    cstructerrorlistener.h
+    cstructerrorlistener.cpp
+
+
+
+
+
+)
 
 target_include_directories(WingCStructLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(WingCStructLib PRIVATE Qt${QT_VERSION_MAJOR}::Core
                                              antlr4_static)
-target_compile_definitions(WingCStructLib PRIVATE QT_NO_EMIT WORDSIZE=${CMAKE_SIZEOF_VOID_P})
+target_compile_definitions(WingCStructLib
+                           PRIVATE QT_NO_EMIT WORDSIZE=${CMAKE_SIZEOF_VOID_P})
 
 add_subdirectory(TestCStruct)

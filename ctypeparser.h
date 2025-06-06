@@ -89,6 +89,8 @@ public:
 
     const QHash<QString, QList<VariableDeclaration>> &unionDefs() const;
 
+    const QHash<QString, QPair<QString, bool>> &typeDefs() const;
+
 public:
     void dumpTypeDefs() const;
 

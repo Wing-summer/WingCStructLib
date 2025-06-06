@@ -27,6 +27,7 @@
 
 #include "c/CStructLexer.h"
 #include "c/CStructParser.h"
+#include "cstructerrorlistener.h"
 #include "cstructvisitorparser.h"
 #include "ctypeparser.h"
 
@@ -248,8 +249,14 @@ bool CTypeParser::parseFile(const QString &file) {
         tokens.reset();
         parser.reset();
 
-        parser.setErrorHandler(
-            std::make_shared<antlr4::DefaultErrorStrategy>());
+        parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
+        parser.removeErrorListeners();
+
+        parser.addErrorListener(new CStructErrorListener(
+            [](const CStructErrorListener::ErrorInfo &info) {
+
+            }));
+
         parser.compilationUnit();
         return false;
     }
@@ -276,6 +283,10 @@ qsizetype CTypeParser::getTypeSize(const QString &data_type) const {
         qCritical() << QStringLiteral("Unknown data type - ") + data_type;
         return -1;
     }
+}
+
+const QHash<QString, QPair<QString, bool>> &CTypeParser::typeDefs() const {
+    return type_defs_;
 }
 
 LongMode CTypeParser::longMode() const { return _lmode; }
