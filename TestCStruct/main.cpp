@@ -25,7 +25,20 @@ static QTextStream qout(stdout);
 int main(int argc, char *argv[]) {
     QCoreApplication a(argc, argv);
 
-    CTypeParser parser;
+    CTypeParser parser([](const MsgInfo &info) {
+        switch (info.type) {
+        case MsgType::Error:
+            qout << QStringLiteral("[Error] ");
+            break;
+        case MsgType::Warn:
+            qout << QStringLiteral("[Warn] ");
+            break;
+        }
+
+        qout << QStringLiteral("(") << info.line << QStringLiteral(", ")
+             << info.charPositionInLine << QStringLiteral(") ") << info.info
+             << Qt::endl;
+    });
 
     // only take effects before parsing
     parser.setPointerMode(PointerMode::X64);
@@ -35,7 +48,7 @@ int main(int argc, char *argv[]) {
     parser.parseFile(CODE_PATH "/Test.h");
 
     // dump message to check
-    parser.dumpTypeDefs();
+    parser.dumpAllTypeDefines(qout);
 
     return 0;
 }

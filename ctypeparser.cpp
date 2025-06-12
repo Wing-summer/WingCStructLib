@@ -28,6 +28,7 @@
 #include "c/CStructLexer.h"
 #include "c/CStructParser.h"
 #include "cstructerrorlistener.h"
+#include "cstructerrorstrategy.h"
 #include "cstructvisitorparser.h"
 #include "ctypeparser.h"
 
@@ -38,7 +39,7 @@
 
 CTypeParser::~CTypeParser() {}
 
-CTypeParser::CTypeParser()
+CTypeParser::CTypeParser(const std::function<void(const MsgInfo &)> &msgcb)
     :
 #if WORDSIZE == 8
       _pmode(PointerMode::X64),
@@ -50,7 +51,10 @@ CTypeParser::CTypeParser()
 #else
       _lmode(LongMode::LP64)
 #endif
-{
+      ,
+      _msgcb(msgcb) {
+    Q_ASSERT(_msgcb);
+
     initialize();
 }
 
@@ -240,24 +244,26 @@ bool CTypeParser::parseFile(const QString &file) {
     antlr4::CommonTokenStream tokens(&lexer);
 
     CStructParser parser(&tokens);
+    parser.removeErrorListeners();
     parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
 
-    CStructVisitorParser visitor(this);
+    CStructErrorListener lis(_msgcb);
+    CStructVisitorParser visitor(this, &lis);
+
     try {
         visitor.visit(parser.compilationUnit());
     } catch (...) {
+        clear();
         tokens.reset();
         parser.reset();
 
-        parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
-        parser.removeErrorListeners();
+        parser.setErrorHandler(std::make_shared<CStructErrorStrategy>());
 
-        parser.addErrorListener(new CStructErrorListener(
-            [](const CStructErrorListener::ErrorInfo &info) {
-
-            }));
+        parser.addErrorListener(&lis);
 
         parser.compilationUnit();
+
+        clear();
         return false;
     }
 
@@ -335,8 +341,28 @@ CTypeParser::types() const {
     return type_maps_;
 }
 
-QPair<QMetaType::Type, qsizetype> CTypeParser::type(const QString &t) const {
+QPair<QMetaType::Type, qsizetype>
+CTypeParser::typeInfo(const QString &t) const {
     return type_maps_.value(t, qMakePair(QMetaType::Type::UnknownType, 0));
+}
+
+CTypeParser::DeclType CTypeParser::type(const QString &t) const {
+    if (type_defs_.contains(t)) {
+        return DeclType::TypeDef;
+    }
+    if (const_defs_.contains(t)) {
+        return DeclType::Constant;
+    }
+    if (enum_defs_.contains(t)) {
+        return DeclType::Enum;
+    }
+    if (struct_defs_.contains(t)) {
+        return DeclType::Struct;
+    }
+    if (union_defs_.contains(t)) {
+        return DeclType::Union;
+    }
+    return DeclType::Invalid;
 }
 
 const QHash<QString, QList<VariableDeclaration>> &
@@ -369,132 +395,159 @@ void CTypeParser::setPadAlignment(qsizetype newKAlignment) {
 }
 
 /// Dump the extracted type definitions
-void CTypeParser::dumpTypeDefs() const {
+void CTypeParser::dumpAllTypeDefines(QTextStream &output) const {
     VariableDeclaration var;
-
-    static QTextStream qout(stdout);
 
     static QString padding(4, ' ');
 
     // dump typedef definitions
-    qout << "\ntypedef definitions:"
-         << "\n--------------------" << Qt::endl;
+    output << "\ntypedef definitions:"
+           << "\n--------------------" << Qt::endl;
     for (auto it = type_defs_.constKeyValueBegin();
          it != type_defs_.constKeyValueEnd(); ++it) {
-        qout << padding << it->first << " = " << it->second.first;
+        output << padding << it->first << " = " << it->second.first;
         if (it->second.second) {
-            qout << '*';
+            output << '*';
         }
-        qout << Qt::endl;
+        output << Qt::endl;
     }
 
     // dump numeric const variables or macros
-    qout << "\nconstant values:"
-         << "\n--------------------" << Qt::endl;
+    output << "\nconstant values:"
+           << "\n--------------------" << Qt::endl;
     for (auto it = const_defs_.constKeyValueBegin();
          it != const_defs_.constKeyValueEnd(); ++it) {
         auto v = it->second;
-        qout << padding << it->first << padding << " = ";
+        output << padding << it->first << padding << " = ";
         if (std::holds_alternative<qint64>(v)) {
-            qout << std::get<qint64>(v);
+            output << std::get<qint64>(v);
         } else if (std::holds_alternative<quint64>(v)) {
-            qout << std::get<quint64>(v);
+            output << std::get<quint64>(v);
         } else {
-            qout << "?";
+            output << "?";
         }
-        qout << Qt::endl;
+        output << Qt::endl;
     }
 
     // dump struct definitions
-    qout << "\nstruct definitions:"
-         << "\n--------------------" << Qt::endl;
+    output << "\nstruct definitions:"
+           << "\n--------------------" << Qt::endl;
     for (auto it = struct_defs_.constKeyValueBegin();
          it != struct_defs_.constKeyValueEnd(); ++it) {
 
-        qout << "struct " << it->first << ":" << Qt::endl;
+        output << "struct " << it->first << ":" << Qt::endl;
 
         auto members = it->second;
         while (!members.empty()) {
             var = members.front();
-            qout << padding << var.data_type;
+            output << padding << var.data_type;
 
             if (var.is_pointer)
-                qout << "* ";
+                output << "* ";
 
-            qout << padding << var.var_name;
+            output << padding;
+            if (var.var_name.isEmpty()) {
+                output << '?';
+            } else {
+                output << var.var_name;
+            }
 
             for (auto &dim : var.array_dims) {
-                qout << "[" << dim << "]";
+                output << "[" << dim << "]";
             }
 
             if (var.bit_size) {
-                qout << " : " << var.bit_size;
+                output << " : " << var.bit_size;
             }
 
-            qout << padding << "(off: " << var.offset
-                 << ", size: " << var.var_size << ")";
+            output << padding << "(off: " << var.offset
+                   << ", size: " << var.var_size << ")";
 
             if (var.bit_size) {
-                qout << " { mask: " << QString::number(var.op.mask, 16)
-                     << ", shift: " << var.op.shift << " }";
+                output << " { mask: " << QString::number(var.op.mask, 16)
+                       << ", shift: " << var.op.shift << " }";
             }
 
-            qout << Qt::endl;
+            output << Qt::endl;
 
             members.pop_front();
         }
 
         auto type = it->first;
-        qout << padding << "(size = " << type_maps_.value(type).second << ")\n"
-             << Qt::endl;
+        output << padding << "(size = " << type_maps_.value(type).second
+               << ")\n"
+               << Qt::endl;
     }
 
     // dump union definitions
-    qout << "\nunion definitions:"
-         << "\n--------------------" << Qt::endl;
+    output << "\nunion definitions:"
+           << "\n--------------------" << Qt::endl;
     for (auto itu = union_defs_.constKeyValueBegin();
          itu != union_defs_.constKeyValueEnd(); ++itu) {
 
-        qout << "union " << itu->first << ":" << Qt::endl;
+        output << "union " << itu->first << ":" << Qt::endl;
 
         auto members = itu->second;
         while (!members.isEmpty()) {
             var = members.front();
-            qout << padding << var.data_type;
+            output << padding << var.data_type;
 
             if (var.is_pointer)
-                qout << "* ";
+                output << "* ";
 
-            qout << padding << var.var_name;
-
-            for (auto &dim : var.array_dims) {
-                qout << "[" << dim << "]";
+            output << padding;
+            if (var.var_name.isEmpty()) {
+                output << '?';
+            } else {
+                output << var.var_name;
             }
 
-            qout << padding << "(" << var.var_size << ")" << Qt::endl;
+            for (auto &dim : var.array_dims) {
+                output << "[" << dim << "]";
+            }
+
+            output << padding << "(" << var.var_size << ")" << Qt::endl;
 
             members.pop_front();
         }
-        qout << padding << "(size = " << type_maps_.value(itu->first).second
-             << ")\n"
-             << Qt::endl;
+        output << padding << "(size = " << type_maps_.value(itu->first).second
+               << ")\n"
+               << Qt::endl;
     }
 
     // dump enum definitions
-    qout << "\nenum definitions:"
-         << "\n--------------------" << Qt::endl;
+    output << "\nenum definitions:"
+           << "\n--------------------" << Qt::endl;
     for (auto itv = enum_defs_.constKeyValueBegin();
          itv != enum_defs_.constKeyValueEnd(); ++itv) {
 
-        qout << "enum " << itv->first << ":" << Qt::endl;
+        output << "enum " << itv->first << ":" << Qt::endl;
 
         auto members = itv->second;
         for (auto &&[key, value] : members.asKeyValueRange()) {
-            qout << padding << key << "(" << value << ")" << Qt::endl;
+            output << padding << key << "(" << value << ")" << Qt::endl;
         }
 
-        qout << '\n' << Qt::endl;
+        output << '\n' << Qt::endl;
     }
+}
+
+bool CTypeParser::finish() {
+    QStringList ret;
+
+    // only struct/union can be incomplete
+
+    for (auto &l : padding_later_) {
+    }
+
+    return true;
+}
+
+bool CTypeParser::isIncompleteType(const QString &name, LazyType type) {
+    return std::find_if(padding_later_.begin(), padding_later_.end(),
+                        [type](const LazyStructUnion &lsu) {
+                            // TODO
+                        }) != padding_later_.end();
 }
 
 void CTypeParser::clear() {
@@ -532,18 +585,27 @@ qsizetype CTypeParser::calcUnionSize(const QList<VariableDeclaration> &members,
 void CTypeParser::storeStructUnionDef(const bool is_struct,
                                       const QString &type_name,
                                       QList<VariableDeclaration> &members,
-                                      qsizetype alignment) {
-    qsizetype size;
-    if (is_struct) {
-        size = padStruct(members, alignment);
-        struct_defs_[type_name] = members;
-    } else {
-        size = calcUnionSize(members, alignment);
-        union_defs_[type_name] = members;
-    }
+                                      qsizetype alignment, bool padLater) {
+    if (!padLater) {
+        qsizetype size;
+        if (is_struct) {
+            size = padStruct(members, alignment);
+            struct_defs_[type_name] = members;
+        } else {
+            size = calcUnionSize(members, alignment);
+            union_defs_[type_name] = members;
+        }
 
-    // struct meta type = QMetaType::User;
-    type_maps_[type_name] = qMakePair(QMetaType::User, size);
+        // struct meta type = QMetaType::User;
+        type_maps_[type_name] = qMakePair(QMetaType::User, size);
+    } else {
+        LazyStructUnion lsu;
+        lsu.is_struct = is_struct;
+        lsu.type_name = type_name;
+        lsu.members = members;
+        lsu.alignment = alignment;
+        padding_later_.append(lsu);
+    }
 }
 
 qsizetype CTypeParser::padStruct(QList<VariableDeclaration> &members,

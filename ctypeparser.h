@@ -39,7 +39,12 @@ class CTypeParser {
     friend class CStructVisitorParser;
 
 public:
-    explicit CTypeParser();
+    enum class DeclType { Invalid, TypeDef, Constant, Enum, Struct, Union };
+
+    enum class LazyType { None, Enum, Struct, Union };
+
+public:
+    explicit CTypeParser(const std::function<void(const MsgInfo &)> &msgcb);
     virtual ~CTypeParser();
 
 public:
@@ -83,7 +88,9 @@ public:
 
     const QHash<QString, QPair<QMetaType::Type, qsizetype>> &types() const;
 
-    QPair<QMetaType::Type, qsizetype> type(const QString &t) const;
+    QPair<QMetaType::Type, qsizetype> typeInfo(const QString &t) const;
+
+    DeclType type(const QString &t) const;
 
     const QHash<QString, std::variant<qint64, quint64>> &constDefs() const;
 
@@ -92,7 +99,15 @@ public:
     const QHash<QString, QPair<QString, bool>> &typeDefs() const;
 
 public:
-    void dumpTypeDefs() const;
+    void dumpAllTypeDefines(QTextStream &output) const;
+
+    ///
+    /// \brief finish
+    /// \return
+    ///
+    bool finish();
+
+    bool isIncompleteType(const QString &name, LazyType type = LazyType::None);
 
     void clear();
 
@@ -104,7 +119,19 @@ private:
 
     void storeStructUnionDef(const bool is_struct, const QString &type_name,
                              QList<VariableDeclaration> &members,
-                             qsizetype alignment);
+                             qsizetype alignment, bool padLater = false);
+
+private:
+    /// incomplete type region
+    struct LazyStructUnion {
+        bool is_struct;
+        QString type_name;
+        QList<VariableDeclaration> members;
+        qsizetype alignment;
+    };
+
+    QList<LazyStructUnion> padding_later_;
+    QStringList enum_incomplete_;
 
 private:
     /// read in basic data such as keywords/qualifiers, and basic data type
@@ -156,6 +183,8 @@ private:
     /// value   - an integer (all types of number are cast to long type for
     /// convenience)
     QHash<QString, std::variant<qint64, quint64>> const_defs_;
+
+    std::function<void(const MsgInfo &)> _msgcb;
 
 private:
     quint64 _anomyIndex = 0;

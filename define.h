@@ -39,4 +39,13 @@ public:
     }
 };
 
+enum class MsgType { Error, Warn };
+
+struct MsgInfo {
+    MsgType type = MsgType::Error;
+    size_t line = 0;
+    size_t charPositionInLine = 0;
+    QString info;
+};
+
 #endif // DEFINE_H

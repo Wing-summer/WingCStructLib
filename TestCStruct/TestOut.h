@@ -10,6 +10,6 @@ struct alignas(4) TestPad{
     char b0 : 6;
     char b1 : 2;
     int a;
-    char b;
-    ushort c;
+    char ?;
+    ushort ?;
 };

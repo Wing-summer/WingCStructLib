@@ -18,6 +18,7 @@
 #ifndef CSTRUCTVISITORPARSER_H
 #define CSTRUCTVISITORPARSER_H
 
+#include <QCoreApplication>
 #include <QHash>
 #include <QPair>
 #include <QString>
@@ -28,10 +29,14 @@
 #include "define.h"
 
 class CTypeParser;
+class CStructErrorListener;
 
 class CStructVisitorParser : public CStructBaseVisitor {
+    Q_DECLARE_TR_FUNCTIONS(CStructVisitorParser)
+
 public:
-    explicit CStructVisitorParser(CTypeParser *container);
+    explicit CStructVisitorParser(CTypeParser *container,
+                                  CStructErrorListener *listener);
 
     // CStructVisitor interface
 public:
@@ -97,6 +102,8 @@ private:
 private:
     CTypeParser *parser;
 
+    CStructErrorListener *errlis;
+
     // CStructVisitor interface
 public:
     virtual std::any visitInclusiveOrExpression(
@@ -133,9 +140,25 @@ public:
         CStructParser::PrimaryExpressionContext *ctx) override;
 
 private:
-    std::optional<qint64> parseIntegerConstant(const std::string &text);
+    std::variant<std::monostate, qint64, quint64>
+    parseIntegerConstant(const std::string &text);
 
     bool existedTypeName(const QString &name);
+
+    void reportDupError(size_t line, size_t charPositionInLine,
+                        const QString &var);
+
+    void reportUnexpectedType(size_t line, size_t charPositionInLine,
+                              const QString &var, const QStringList &expected);
+
+    void reportUnexpectedToken(size_t line, size_t charPositionInLine,
+                               const QString &token,
+                               const QStringList &expected);
+
+    void reportSyntaxDeclError(size_t line, size_t charPositionInLine);
+
+    void reportUndeclaredType(size_t line, size_t charPositionInLine,
+                              const QString &type);
 
 private:
     bool isInteger(const QString &text);

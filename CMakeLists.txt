@@ -44,12 +44,8 @@ add_library(
     define.h
     cstructerrorlistener.h
     cstructerrorlistener.cpp
-
-
-
-
-
-)
+    cstructerrorstrategy.h
+    cstructerrorstrategy.cpp)
 
 target_include_directories(WingCStructLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(WingCStructLib PRIVATE Qt${QT_VERSION_MAJOR}::Core

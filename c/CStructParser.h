@@ -1,5 +1,5 @@
 
-// Generated from ./CStruct.g4 by ANTLR 4.13.2
+// Generated from CStruct.g4 by ANTLR 4.13.2
 
 #pragma once
 
@@ -14,14 +14,15 @@ public:
   enum {
     T__0 = 1, Char = 2, Const = 3, Double = 4, Enum = 5, Float = 6, Int = 7, 
     Long = 8, TypeDef = 9, AlignAs = 10, SizeOf = 11, Short = 12, Signed = 13, 
-    Struct = 14, Union = 15, Unsigned = 16, Void = 17, LeftParen = 18, RightParen = 19, 
-    LeftBracket = 20, RightBracket = 21, LeftBrace = 22, RightBrace = 23, 
-    LeftShift = 24, RightShift = 25, Plus = 26, PlusPlus = 27, Minus = 28, 
-    MinusMinus = 29, Star = 30, Div = 31, Mod = 32, And = 33, Or = 34, Caret = 35, 
-    Tilde = 36, Colon = 37, Semi = 38, Comma = 39, Identifier = 40, IntegerConstant = 41, 
-    StringLiteral = 42, MultiLineMacroDefine = 43, MultiLineMacro = 44, 
-    DirectiveInclude = 45, DirectiveDefine = 46, Directive = 47, Whitespace = 48, 
-    Newline = 49, LINE_CONTINUATION = 50, BlockComment = 51, LineComment = 52
+    Struct = 14, Union = 15, Unsigned = 16, Void = 17, QuestionMark = 18, 
+    LeftParen = 19, RightParen = 20, LeftBracket = 21, RightBracket = 22, 
+    LeftBrace = 23, RightBrace = 24, LeftShift = 25, RightShift = 26, Plus = 27, 
+    PlusPlus = 28, Minus = 29, MinusMinus = 30, Star = 31, Div = 32, Mod = 33, 
+    And = 34, Or = 35, Caret = 36, Tilde = 37, Colon = 38, Semi = 39, Comma = 40, 
+    Identifier = 41, IntegerConstant = 42, StringLiteral = 43, MultiLineMacroDefine = 44, 
+    MultiLineMacro = 45, DirectiveInclude = 46, DirectiveDefine = 47, Directive = 48, 
+    Whitespace = 49, Newline = 50, LINE_CONTINUATION = 51, BlockComment = 52, 
+    LineComment = 53
   };
 
   enum {
@@ -609,6 +610,7 @@ public:
     DirectDeclaratorContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *Identifier();
+    antlr4::tree::TerminalNode *QuestionMark();
     antlr4::tree::TerminalNode *LeftParen();
     DeclaratorContext *declarator();
     antlr4::tree::TerminalNode *RightParen();

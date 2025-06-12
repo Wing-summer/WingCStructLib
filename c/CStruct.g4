@@ -175,6 +175,7 @@ declarator
 
 directDeclarator
     : Identifier
+    | '?'
     | '(' declarator ')'
     | directDeclarator '[' assignmentExpression ']'
     ;
@@ -284,6 +285,10 @@ Unsigned
 
 Void
     : 'void'
+    ;
+
+QuestionMark
+    : '?'
     ;
 
 LeftParen

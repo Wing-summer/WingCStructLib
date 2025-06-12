@@ -18,27 +18,26 @@
 #include "cstructvisitorparser.h"
 
 #include "c/CStructLexer.h"
+#include "cstructerrorlistener.h"
 #include "ctypeparser.h"
 
 #include <QCoreApplication>
 
-CStructVisitorParser::CStructVisitorParser(CTypeParser *container)
-    : parser(container) {
+CStructVisitorParser::CStructVisitorParser(CTypeParser *container,
+                                           CStructErrorListener *listener)
+    : parser(container), errlis(listener) {
     Q_ASSERT(parser);
+    Q_ASSERT(errlis);
 }
 
 std::any CStructVisitorParser::visitEnumSpecifier(
     CStructParser::EnumSpecifierContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto e = parseEnum(ctx);
     if (e) {
-        for (auto pkey = e->second.keyBegin(); pkey != e->second.keyEnd();
-             pkey++) {
-            auto key = *pkey;
-            if (parser->const_defs_.contains(key)) {
-                // report error
-                return defaultResult();
-            }
-        }
         storeEnum(e.value());
     }
     return defaultResult();
@@ -46,6 +45,10 @@ std::any CStructVisitorParser::visitEnumSpecifier(
 
 std::any CStructVisitorParser::visitInclusiveOrExpression(
     CStructParser::InclusiveOrExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     qulonglong ret = 0;
     for (auto &v : ctx->exclusiveOrExpression()) {
         auto r = visitExclusiveOrExpression(v);
@@ -56,7 +59,9 @@ std::any CStructVisitorParser::visitInclusiveOrExpression(
             auto rr = std::any_cast<qint64>(r);
             ret |= rr;
         } else {
-            // error
+            auto t = v->start;
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 r.type().name(), {"uint64", "int64"});
             return defaultResult();
         }
     }
@@ -65,11 +70,21 @@ std::any CStructVisitorParser::visitInclusiveOrExpression(
 
 std::any CStructVisitorParser::visitAssignmentExpression(
     CStructParser::AssignmentExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     if (ctx->IntegerConstant()) {
+        auto t = ctx->IntegerConstant();
         auto v = parseIntegerConstant(ctx->IntegerConstant()->getText());
-        if (v) {
-            return v.value();
+        if (std::holds_alternative<quint64>(v)) {
+            return std::get<quint64>(v);
+        } else if (std::holds_alternative<qint64>(v)) {
+            return std::get<qint64>(v);
         } else {
+            auto tk = t->getSymbol();
+            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
             return defaultResult();
         }
     } else if (ctx->inclusiveOrExpression()) {
@@ -81,6 +96,10 @@ std::any CStructVisitorParser::visitAssignmentExpression(
 
 std::any CStructVisitorParser::visitExclusiveOrExpression(
     CStructParser::ExclusiveOrExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     quint64 v = 0;
     for (auto &ex : ctx->andExpression()) {
         auto r = visitAndExpression(ex);
@@ -91,6 +110,9 @@ std::any CStructVisitorParser::visitExclusiveOrExpression(
             auto rv = std::any_cast<quint64>(r);
             v ^= rv;
         } else {
+            auto t = ex->start;
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
             return defaultResult();
         }
     }
@@ -98,7 +120,7 @@ std::any CStructVisitorParser::visitExclusiveOrExpression(
     return v;
 }
 
-std::optional<qint64>
+std::variant<std::monostate, qint64, quint64>
 CStructVisitorParser::parseIntegerConstant(const std::string &text) {
     auto txt = QByteArray::fromStdString(text);
 
@@ -106,7 +128,7 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
         auto inner = txt.sliced(1, text.size() - 2);
 
         if (inner.size() == 1) {
-            return inner[0];
+            return qint64(inner[0]);
         } else if (inner[0] == '\\') {
             if (inner.length() == 4) {
                 if (std::all_of(std::next(inner.begin()), inner.end(),
@@ -117,8 +139,8 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
                     auto toNum = [](const QChar &num) {
                         return num.toLatin1() - '0';
                     };
-                    return toNum(inner[1]) * 64 + toNum(inner[2]) * 8 +
-                           toNum(inner[3]);
+                    return qint64(toNum(inner[1]) * 64 + toNum(inner[2]) * 8 +
+                                  toNum(inner[3]));
                 }
             } else {
                 static QHash<QByteArray, char> buffer{
@@ -128,7 +150,7 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
                     {R"(\f)", '\f'}, {R"(\r)", '\r'}, {R"(\v)", '\v'}};
 
                 if (buffer.contains(inner)) {
-                    return buffer.value(inner);
+                    return qint64(buffer.value(inner));
                 }
 
                 auto n = inner[1];
@@ -137,6 +159,11 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
                     auto v = inner.toLongLong(&b, 0);
                     if (b) {
                         return v;
+                    } else {
+                        auto v = inner.toULongLong(&b, 0);
+                        if (b) {
+                            return v;
+                        }
                     }
                 }
             }
@@ -153,14 +180,56 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
         auto v = numberPart.toLongLong(&b);
         if (b) {
             return v;
+        } else {
+            auto v = numberPart.toULongLong(&b);
+            if (b) {
+                return v;
+            }
         }
     }
 
-    return std::nullopt;
+    return {};
 }
 
 bool CStructVisitorParser::existedTypeName(const QString &name) {
     return parser->type_maps_.contains(name);
+}
+
+void CStructVisitorParser::reportDupError(size_t line,
+                                          size_t charPositionInLine,
+                                          const QString &var) {
+    errlis->reportError(line, charPositionInLine,
+                        tr("\"%1\" is duplicated declaration").arg(var));
+}
+
+void CStructVisitorParser::reportUnexpectedType(size_t line,
+                                                size_t charPositionInLine,
+                                                const QString &var,
+                                                const QStringList &expected) {
+    errlis->reportError(line, charPositionInLine,
+                        tr("Unexprected type \"%1\", expecting: %2")
+                            .arg(var, expected.join(QStringLiteral(", "))));
+}
+
+void CStructVisitorParser::reportUnexpectedToken(size_t line,
+                                                 size_t charPositionInLine,
+                                                 const QString &token,
+                                                 const QStringList &expected) {
+    errlis->reportError(line, charPositionInLine,
+                        tr("Unexprected token \"%1\", expecting: {%2}")
+                            .arg(token, expected.join(QStringLiteral(", "))));
+}
+
+void CStructVisitorParser::reportSyntaxDeclError(size_t line,
+                                                 size_t charPositionInLine) {
+    errlis->reportError(line, charPositionInLine, tr("Declaring syntax error"));
+}
+
+void CStructVisitorParser::reportUndeclaredType(size_t line,
+                                                size_t charPositionInLine,
+                                                const QString &type) {
+    errlis->reportError(line, charPositionInLine,
+                        tr("\"%1\" is unknown type").arg(type));
 }
 
 bool CStructVisitorParser::isInteger(const QString &text) {
@@ -168,7 +237,7 @@ bool CStructVisitorParser::isInteger(const QString &text) {
         return true;
     }
 
-    auto type = parser->type(text);
+    auto type = parser->typeInfo(text);
     switch (type.first) {
     case QMetaType::Int:
     case QMetaType::UInt:
@@ -192,6 +261,10 @@ bool CStructVisitorParser::isInteger(const QString &text) {
 
 std::any CStructVisitorParser::visitAndExpression(
     CStructParser::AndExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     quint64 v = std::numeric_limits<quint64>::max();
     for (auto &ex : ctx->shiftExpression()) {
         auto r = visitShiftExpression(ex);
@@ -202,6 +275,9 @@ std::any CStructVisitorParser::visitAndExpression(
             auto rv = std::any_cast<quint64>(r);
             v &= rv;
         } else {
+            auto t = ex->start;
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
             return defaultResult();
         }
     }
@@ -210,8 +286,16 @@ std::any CStructVisitorParser::visitAndExpression(
 
 std::any CStructVisitorParser::visitShiftExpression(
     CStructParser::ShiftExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto data = ctx->additiveExpression();
     auto total = data.size();
+
+    if (total < 1) {
+        return defaultResult();
+    }
 
     quint64 ret = 0;
     auto retv = visitAdditiveExpression(data.front());
@@ -220,12 +304,16 @@ std::any CStructVisitorParser::visitShiftExpression(
     } else if (retv.type() == typeid(quint64)) {
         ret = std::any_cast<quint64>(retv);
     } else {
+        auto t = data.front()->start;
+        reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                             tr("<unknown>"), {"uint64", "int64"});
         return defaultResult();
     }
 
     for (size_t i = 1; i < total; ++i) {
         auto op = ctx->children[2 * i - 1]->getText();
-        auto r = visitAdditiveExpression(data.at(i));
+        auto ex = data.at(i);
+        auto r = visitAdditiveExpression(ex);
         if (op == "<<") {
             if (r.type() == typeid(qint64)) {
                 auto rv = std::any_cast<qint64>(r);
@@ -234,6 +322,9 @@ std::any CStructVisitorParser::visitShiftExpression(
                 auto rv = std::any_cast<quint64>(r);
                 ret <<= rv;
             } else {
+                auto t = ex->start;
+                reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                     tr("<unknown>"), {"uint64", "int64"});
                 return defaultResult();
             }
         } else if (op == ">>") {
@@ -244,9 +335,16 @@ std::any CStructVisitorParser::visitShiftExpression(
                 auto rv = std::any_cast<quint64>(r);
                 ret >>= rv;
             } else {
+                auto t = ex->start;
+                reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                     tr("<unknown>"), {"uint64", "int64"});
                 return defaultResult();
             }
         } else {
+            auto t = ex->start;
+            reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                  QString::fromStdString(op),
+                                  {R"("<<")", R"(">>")"});
             return defaultResult();
         }
     }
@@ -256,8 +354,16 @@ std::any CStructVisitorParser::visitShiftExpression(
 
 std::any CStructVisitorParser::visitAdditiveExpression(
     CStructParser::AdditiveExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto data = ctx->multiplicativeExpression();
     auto total = data.size();
+
+    if (total < 1) {
+        return defaultResult();
+    }
 
     quint64 ret = 0;
     auto retv = visitMultiplicativeExpression(data.front());
@@ -266,11 +372,15 @@ std::any CStructVisitorParser::visitAdditiveExpression(
     } else if (retv.type() == typeid(quint64)) {
         ret = std::any_cast<quint64>(retv);
     } else {
+        auto t = data.front()->start;
+        reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                             tr("<unknown>"), {"uint64", "int64"});
         return defaultResult();
     }
 
     for (size_t i = 1; i < total; i++) {
-        auto r = visitMultiplicativeExpression(data.at(i));
+        auto ex = data.at(i);
+        auto r = visitMultiplicativeExpression(ex);
         auto op = ctx->children[2 * i - 1]->getText();
         if (r.type() == typeid(qint64)) {
             auto rv = std::any_cast<qint64>(r);
@@ -279,6 +389,10 @@ std::any CStructVisitorParser::visitAdditiveExpression(
             } else if (op == "-") {
                 ret -= rv;
             } else {
+                auto t = ex->start;
+                reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                      QString::fromStdString(op),
+                                      {R"("+")", R"("-")"});
                 return defaultResult();
             }
         } else if (r.type() == typeid(quint64)) {
@@ -288,9 +402,16 @@ std::any CStructVisitorParser::visitAdditiveExpression(
             } else if (op == "-") {
                 ret -= rv;
             } else {
+                auto t = ex->start;
+                reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                      QString::fromStdString(op),
+                                      {R"("+")", R"("-")"});
                 return defaultResult();
             }
         } else {
+            auto t = ex->start;
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
             return defaultResult();
         }
     }
@@ -300,8 +421,16 @@ std::any CStructVisitorParser::visitAdditiveExpression(
 
 std::any CStructVisitorParser::visitMultiplicativeExpression(
     CStructParser::MultiplicativeExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto data = ctx->castExpression();
     auto total = data.size();
+
+    if (total < 1) {
+        return defaultResult();
+    }
 
     quint64 ret = 0;
     auto retv = visitCastExpression(data.front());
@@ -310,11 +439,15 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
     } else if (retv.type() == typeid(quint64)) {
         ret = std::any_cast<quint64>(retv);
     } else {
+        auto t = data.front()->start;
+        reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                             tr("<unknown>"), {"uint64", "int64"});
         return defaultResult();
     }
 
     for (size_t i = 1; i < total; i++) {
-        auto r = visitCastExpression(data.at(i));
+        auto ex = data.at(i);
+        auto r = visitCastExpression(ex);
         auto op = ctx->children[2 * i - 1]->getText();
         if (r.type() == typeid(qint64)) {
             auto rv = std::any_cast<qint64>(r);
@@ -325,6 +458,10 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
             } else if (op == "%") {
                 ret %= rv;
             } else {
+                auto t = ex->start;
+                reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                      QString::fromStdString(op),
+                                      {R"("*")", R"("/")", R"("%")"});
                 return defaultResult();
             }
         } else if (r.type() == typeid(quint64)) {
@@ -336,9 +473,16 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
             } else if (op == "%") {
                 ret %= rv;
             } else {
+                auto t = ex->start;
+                reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                      QString::fromStdString(op),
+                                      {R"("*")", R"("/")", R"("%")"});
                 return defaultResult();
             }
         } else {
+            auto t = ex->start;
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
             return defaultResult();
         }
     }
@@ -348,10 +492,22 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
 
 std::any CStructVisitorParser::visitCastExpression(
     CStructParser::CastExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     if (ctx->IntegerConstant()) {
-        auto r = parseIntegerConstant(ctx->IntegerConstant()->getText());
-        if (r) {
-            return r;
+        auto ex = ctx->IntegerConstant();
+        auto r = parseIntegerConstant(ex->getText());
+        if (std::holds_alternative<quint64>(r)) {
+            return std::get<quint64>(r);
+        } else if (std::holds_alternative<qint64>(r)) {
+            return std::get<qint64>(r);
+        } else {
+            auto tk = ex->getSymbol();
+            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
+            return defaultResult();
         }
     } else if (ctx->castExpression()) {
         auto tname = QString::fromStdString(ctx->typeName()->getText());
@@ -371,14 +527,23 @@ std::any CStructVisitorParser::visitCastExpression(
             case sizeof(quint64):
                 mask = std::numeric_limits<quint64>::max();
                 break;
-            default:
+            default: {
+                auto t = ctx->typeName()->start;
+                errlis->reportError(
+                    t->getLine(), t->getCharPositionInLine(),
+                    tr("Invalid typeName Mask with converting"));
                 return defaultResult();
+            }
             }
         } else {
             if (!parser->enum_defs_.contains(tname)) {
+                auto t = ctx->typeName()->start;
+                errlis->reportError(
+                    t->getLine(), t->getCharPositionInLine(),
+                    tr("Can not convert Interger to \"%1\"").arg(tname));
                 return defaultResult();
             }
-            mask = std::numeric_limits<quint64>::max();
+            mask = std::numeric_limits<int>::max();
         }
 
         auto r = visitCastExpression(ctx->castExpression());
@@ -400,6 +565,10 @@ std::any CStructVisitorParser::visitCastExpression(
 
 std::any CStructVisitorParser::visitUnaryExpression(
     CStructParser::UnaryExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto minCount = ctx->MinusMinus().size();
     auto addCount = ctx->PlusPlus().size();
     auto leftCount = addCount - minCount;
@@ -418,6 +587,10 @@ std::any CStructVisitorParser::visitUnaryExpression(
             } else if (op->Tilde()) {
                 return ~v + leftCount;
             } else {
+                auto t = op->start;
+                reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                      QString::fromStdString(op->getText()),
+                                      {R"("+")", R"("-")", R"("~")"});
                 return defaultResult();
             }
         } else if (r.type() == typeid(qint64)) {
@@ -429,8 +602,17 @@ std::any CStructVisitorParser::visitUnaryExpression(
             } else if (op->Tilde()) {
                 return ~v + leftCount;
             } else {
+                auto t = op->start;
+                reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
+                                      QString::fromStdString(op->getText()),
+                                      {R"("+")", R"("-")", R"("~")"});
                 return defaultResult();
             }
+        } else {
+            auto tk = ctx->castExpression()->start;
+            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                 QStringLiteral("<unknown>"),
+                                 {"uint64", "int64"});
         }
     }
 
@@ -439,6 +621,10 @@ std::any CStructVisitorParser::visitUnaryExpression(
 
 std::any CStructVisitorParser::visitPostfixExpression(
     CStructParser::PostfixExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto r = visitPrimaryExpression(ctx->primaryExpression());
 
     auto minCount = ctx->MinusMinus().size();
@@ -454,27 +640,49 @@ std::any CStructVisitorParser::visitPostfixExpression(
         v += leftCount;
         return v;
     } else {
+        auto tk = ctx->primaryExpression()->start;
+        reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                             QStringLiteral("<unknown>"), {"uint64", "int64"});
         return defaultResult();
     }
 }
 
 std::any CStructVisitorParser::visitPrimaryExpression(
     CStructParser::PrimaryExpressionContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     if (ctx->IntegerConstant()) {
-        auto r = parseIntegerConstant(ctx->IntegerConstant()->getText());
-        if (r) {
-            return r.value();
+        auto t = ctx->IntegerConstant();
+        auto r = parseIntegerConstant(t->getText());
+        if (std::holds_alternative<quint64>(r)) {
+            return std::get<quint64>(r);
+        } else if (std::holds_alternative<qint64>(r)) {
+            return std::get<qint64>(r);
+        } else {
+            auto tk = t->getSymbol();
+            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                 QStringLiteral("<unknown>"),
+                                 {"uint64", "int64"});
+            return defaultResult();
         }
     } else if (ctx->Identifier()) {
-        auto vname = QString::fromStdString(ctx->Identifier()->getText());
+        auto t = ctx->Identifier();
+        auto vname = QString::fromStdString(t->getText());
         if (parser->const_defs_.contains(vname)) {
             auto v = parser->const_defs_.value(vname);
             if (std::holds_alternative<qint64>(v)) {
                 return std::get<qint64>(v);
             } else if (std::holds_alternative<quint64>(v)) {
                 return std::get<quint64>(v);
+            } else {
+                auto tk = t->getSymbol();
+                reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                     QStringLiteral("<unknown>"),
+                                     {"uint64", "int64"});
+                return defaultResult();
             }
-            return defaultResult();
         }
     } else if (ctx->assignmentExpression()) {
         return visitAssignmentExpression(ctx->assignmentExpression());
@@ -493,11 +701,17 @@ std::any CStructVisitorParser::visitPrimaryExpression(
 
 std::any CStructVisitorParser::visitStructOrUnionSpecifier(
     CStructParser::StructOrUnionSpecifierContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     auto decl = parseStructOrUnion(ctx);
     if (decl) {
         if (!decl->name.isEmpty()) {
             parser->storeStructUnionDef(decl->isStruct, decl->name,
                                         decl->members, decl->alignment);
+        } else {
+            // TODO
         }
     }
     return defaultResult();
@@ -505,6 +719,10 @@ std::any CStructVisitorParser::visitStructOrUnionSpecifier(
 
 std::any
 CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     std::string def;
 
     if (ctx->DirectiveInclude()) {
@@ -518,6 +736,7 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
         antlr4::CommonTokenStream tokens(&lexer);
 
         tokens.fill();
+        auto t = tdinc->getSymbol();
 
         if (tokens.size() == 2) {
             if (tokens.get(1)->getType() != CStructLexer::EOF) {
@@ -542,19 +761,35 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
 
                 auto header = dir.absoluteFilePath(path);
                 if (QFile::exists(header)) {
-                    parser->parseFile(header);
+                    if (!parser->parseFile(header)) {
+                        errlis->reportWarn(t->getLine(),
+                                           t->getCharPositionInLine(),
+                                           tr("Invalid #include marco failed"));
+                    }
                     return defaultResult();
+                } else {
+                    errlis->reportWarn(
+                        t->getLine(), t->getCharPositionInLine(),
+                        tr("Invalid #include file is not exists: ") +
+                            header.prepend('"').append('"'));
                 }
             }
         }
 
         // report warning and ignored
-
+        errlis->reportWarn(t->getLine(), t->getCharPositionInLine(),
+                           tr("Invalid #include marco syntax"));
     } else {
+        antlr4::Token *t = nullptr;
+
         if (ctx->DirectiveDefine()) {
-            def = ctx->DirectiveDefine()->getText();
+            auto ex = ctx->DirectiveDefine();
+            t = ex->getSymbol();
+            def = ex->getText();
         } else if (ctx->MultiLineMacroDefine()) {
-            def = ctx->MultiLineMacroDefine()->getText();
+            auto ex = ctx->MultiLineMacroDefine();
+            t = ex->getSymbol();
+            def = ex->getText();
 
             size_t pos = 0;
             constexpr auto es = "\\\n";
@@ -565,6 +800,10 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
                 strp += esLen;
                 strp = def.find(es, strp);
             }
+        }
+
+        if (t == nullptr) {
+            return defaultResult();
         }
 
         constexpr auto prefixLen = std::char_traits<char>::length("#define");
@@ -580,12 +819,13 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
         auto dname = QString::fromStdString(identifer);
         if (parser->type_maps_.contains(dname)) {
             // report error
+            reportDupError(t->getLine(), t->getCharPositionInLine(), dname);
             return defaultResult();
         }
 
         tokens.consume(); // remove the first token
 
-        CStructVisitorParser visitor(parser);
+        CStructVisitorParser visitor(parser, errlis);
         CStructParser parser(&tokens);
 
         auto ret = visitor.visit(parser.assignmentExpressionDef());
@@ -594,6 +834,10 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
                                              std::any_cast<quint64>(ret));
         } else if (ret.type() == typeid(qint64)) {
             this->parser->const_defs_.insert(dname, std::any_cast<qint64>(ret));
+        } else {
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 QStringLiteral("<unknown>"),
+                                 {"uint64", "int64"});
         }
     }
 
@@ -602,6 +846,10 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
 
 std::any CStructVisitorParser::visitAssignmentExpressionDef(
     CStructParser::AssignmentExpressionDefContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     if (ctx->assignmentExpression()) {
         return visitAssignmentExpression(ctx->assignmentExpression());
     }
@@ -611,11 +859,18 @@ std::any CStructVisitorParser::visitAssignmentExpressionDef(
 
 std::any
 CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
+    if (ctx == nullptr) {
+        return defaultResult();
+    }
+
     if (ctx->TypeDef()) {
-        auto iden = QString::fromStdString(ctx->Identifier()->getText());
+        auto ex = ctx->Identifier();
+        auto iden = QString::fromStdString(ex->getText());
 
         if (parser->type_maps_.contains(iden)) {
             // error report
+            auto t = ex->getSymbol();
+            reportDupError(t->getLine(), t->getCharPositionInLine(), iden);
             return defaultResult();
         }
 
@@ -695,8 +950,12 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
                 case 2:
                     sq.tname = QStringLiteral("longlong");
                     break;
-                default:
+                default: {
+                    auto t = ctx->start;
+                    reportSyntaxDeclError(t->getLine(),
+                                          t->getCharPositionInLine());
                     return std::nullopt;
+                }
                 }
             } else {
                 switch (len) {
@@ -706,8 +965,12 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
                 case 2:
                     sq.tname = QStringLiteral("ulonglong");
                     break;
-                default:
+                default: {
+                    auto t = ctx->start;
+                    reportSyntaxDeclError(t->getLine(),
+                                          t->getCharPositionInLine());
                     return std::nullopt;
+                }
                 }
             }
         }
@@ -741,6 +1004,9 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
             // iden can not be nullptr
             auto name = QString::fromStdString(iden->getText());
             if (!parser->enum_defs_.contains(name)) {
+                auto t = iden->getSymbol();
+                reportUndeclaredType(t->getLine(), t->getCharPositionInLine(),
+                                     name);
                 return std::nullopt;
             }
             sq.tname = name;
@@ -773,10 +1039,16 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
             auto name = QString::fromStdString(iden->getText());
             if (sus->structOrUnion()->Struct()) {
                 if (!parser->struct_defs_.contains(name)) {
+                    auto t = iden->getSymbol();
+                    reportUndeclaredType(t->getLine(),
+                                         t->getCharPositionInLine(), name);
                     return std::nullopt;
                 }
             } else {
                 if (!parser->union_defs_.contains(name)) {
+                    auto t = iden->getSymbol();
+                    reportUndeclaredType(t->getLine(),
+                                         t->getCharPositionInLine(), name);
                     return std::nullopt;
                 }
             }
@@ -815,6 +1087,8 @@ CStructVisitorParser::getDeclarator(
     if (ctx->Identifier()) {
         // Identifier only
         dor.retName = QString::fromStdString(ctx->Identifier()->getText());
+    } else if (ctx->QuestionMark()) {
+        dor.retName.clear();
     } else if (ctx->declarator()) {
         auto d = ctx->declarator();
 
@@ -823,6 +1097,7 @@ CStructVisitorParser::getDeclarator(
             dor.retName = getFinalDeclaratorName(d->directDeclarator());
             dor.isPointer = true;
         } else {
+            // TODO
             return std::nullopt;
         }
     } else if (ctx->assignmentExpression()) {
@@ -835,10 +1110,14 @@ CStructVisitorParser::getDeclarator(
             auto v = std::any_cast<qint64>(r);
             dor.arrayCount = v;
         } else {
+            auto t = ctx->assignmentExpression()->start;
+            reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
+                                 tr("<unknown>"), {"uint64", "int64"});
             return std::nullopt;
         }
         dor.next = ctx->directDeclarator();
     } else {
+        // TODO
         return std::nullopt;
     }
 
@@ -858,6 +1137,9 @@ CStructVisitorParser::getSpecifier(
 std::optional<CStructVisitorParser::StructUnionDecl>
 CStructVisitorParser::parseStructOrUnion(
     CStructParser::StructOrUnionSpecifierContext *ctx) {
+    if (ctx == nullptr) {
+        return std::nullopt;
+    }
 
     StructUnionDecl decl;
     decl.isStruct = ctx->structOrUnion()->Struct();
@@ -878,8 +1160,14 @@ CStructVisitorParser::parseStructOrUnion(
         auto num = parseIntegerConstant(
             ctx->alignAsAttr()->IntegerConstant()->getText());
 
-        if (num) {
-            auto v = num.value();
+        int v = 0;
+        if (std::holds_alternative<quint64>(num)) {
+            v = std::get<quint64>(num);
+        } else if (std::holds_alternative<qint64>(num)) {
+            v = std::get<qint64>(num);
+        }
+
+        if (v) {
             static std::array<int, 5> allowList{1, 2, 4, 8, 16};
             if (std::find(allowList.begin(), allowList.end(), v) !=
                 allowList.end()) {
@@ -902,7 +1190,7 @@ CStructVisitorParser::parseStructOrUnion(
             return std::nullopt;
         }
 
-        auto t = parser->type(dl->tname);
+        auto t = parser->typeInfo(dl->tname);
 
         auto dclist = m->structDeclaratorList();
         if (dclist) {
@@ -946,7 +1234,10 @@ CStructVisitorParser::parseStructOrUnion(
                                            ? sizeof(quint64)
                                            : sizeof(quint32);
                         decl.members.append(var);
-                        used_names.append(var.var_name);
+
+                        if (!var.var_name.isEmpty()) {
+                            used_names.append(var.var_name);
+                        }
                     } else {
                         if (t.first == QMetaType::UnknownType) {
                             return std::nullopt;
@@ -990,7 +1281,10 @@ CStructVisitorParser::parseStructOrUnion(
                                     var.array_dims = {0};
                                 }
                                 decl.members.append(var);
-                                used_names.append(var.var_name);
+
+                                if (!var.var_name.isEmpty()) {
+                                    used_names.append(var.var_name);
+                                }
                             } else {
                                 var.var_name = info->retName;
                                 if (used_names.contains(var.var_name)) {
@@ -998,7 +1292,10 @@ CStructVisitorParser::parseStructOrUnion(
                                 }
                                 var.var_size = t.second;
                                 decl.members.append(var);
-                                used_names.append(var.var_name);
+
+                                if (!var.var_name.isEmpty()) {
+                                    used_names.append(var.var_name);
+                                }
                             }
                         } else {
                             return std::nullopt;
@@ -1034,6 +1331,10 @@ CStructVisitorParser::parseStructOrUnion(
 
 std::optional<CStructVisitorParser::EnumDecl>
 CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
+    if (ctx == nullptr) {
+        return std::nullopt;
+    }
+
     auto name = ctx->Identifier();
     auto enums = ctx->enumeratorList();
 
