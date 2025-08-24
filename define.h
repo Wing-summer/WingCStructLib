@@ -48,4 +48,11 @@ struct MsgInfo {
     QString info;
 };
 
+struct StructUnionDecl {
+    QString name;
+    bool isStruct = true;
+    qsizetype alignment = 0;
+    QVector<VariableDeclaration> members;
+};
+
 #endif // DEFINE_H

@@ -38,7 +38,7 @@ std::any CStructVisitorParser::visitEnumSpecifier(
 
     auto e = parseEnum(ctx);
     if (e) {
-        storeEnum(e.value());
+        parser->defineEnum(e->first, e->second);
     }
     return defaultResult();
 }
@@ -191,10 +191,6 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
     return {};
 }
 
-bool CStructVisitorParser::existedTypeName(const QString &name) {
-    return parser->type_maps_.contains(name);
-}
-
 void CStructVisitorParser::reportDupError(size_t line,
                                           size_t charPositionInLine,
                                           const QString &var) {
@@ -233,12 +229,12 @@ void CStructVisitorParser::reportUndeclaredType(size_t line,
 }
 
 bool CStructVisitorParser::isInteger(const QString &text) {
-    if (parser->enum_defs_.contains(text)) {
+    if (parser->containsEnum(text)) {
         return true;
     }
 
-    auto type = parser->typeInfo(text);
-    switch (type.first) {
+    auto type = parser->metaType(text);
+    switch (type) {
     case QMetaType::Int:
     case QMetaType::UInt:
     case QMetaType::LongLong:
@@ -512,8 +508,9 @@ std::any CStructVisitorParser::visitCastExpression(
     } else if (ctx->castExpression()) {
         auto tname = QString::fromStdString(ctx->typeName()->getText());
         quint64 mask = 0;
-        if (parser->base_types_.contains(tname)) {
-            auto size = parser->type_maps_.value(tname).second;
+        if (parser->isBasicType(tname)) {
+            auto size = parser->getTypeSize(tname);
+            Q_ASSERT(size > 0);
             switch (size) {
             case sizeof(quint8):
                 mask = std::numeric_limits<quint8>::max();
@@ -536,7 +533,7 @@ std::any CStructVisitorParser::visitCastExpression(
             }
             }
         } else {
-            if (!parser->enum_defs_.contains(tname)) {
+            if (!parser->containsEnum(tname)) {
                 auto t = ctx->typeName()->start;
                 errlis->reportError(
                     t->getLine(), t->getCharPositionInLine(),
@@ -670,8 +667,8 @@ std::any CStructVisitorParser::visitPrimaryExpression(
     } else if (ctx->Identifier()) {
         auto t = ctx->Identifier();
         auto vname = QString::fromStdString(t->getText());
-        if (parser->const_defs_.contains(vname)) {
-            auto v = parser->const_defs_.value(vname);
+        if (parser->containsConstVar(vname)) {
+            auto v = parser->constVarValue(vname);
             if (std::holds_alternative<qint64>(v)) {
                 return std::get<qint64>(v);
             } else if (std::holds_alternative<quint64>(v)) {
@@ -708,7 +705,7 @@ std::any CStructVisitorParser::visitStructOrUnionSpecifier(
     auto decl = parseStructOrUnion(ctx);
     if (decl) {
         if (!decl->name.isEmpty()) {
-            parser->storeStructUnionDef(decl->isStruct, decl->name,
+            parser->defineStructOrUnion(decl->isStruct, decl->name,
                                         decl->members, decl->alignment);
         } else {
             // TODO
@@ -761,7 +758,7 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
 
                 auto header = dir.absoluteFilePath(path);
                 if (QFile::exists(header)) {
-                    if (!parser->parseFile(header)) {
+                    if (!parser->parse(header)) {
                         errlis->reportWarn(t->getLine(),
                                            t->getCharPositionInLine(),
                                            tr("Invalid #include marco failed"));
@@ -817,7 +814,7 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
         auto identifer = ts.front()->getText();
 
         auto dname = QString::fromStdString(identifer);
-        if (parser->type_maps_.contains(dname)) {
+        if (parser->containsType(dname)) {
             // report error
             reportDupError(t->getLine(), t->getCharPositionInLine(), dname);
             return defaultResult();
@@ -830,10 +827,9 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
 
         auto ret = visitor.visit(parser.assignmentExpressionDef());
         if (ret.type() == typeid(quint64)) {
-            this->parser->const_defs_.insert(dname,
-                                             std::any_cast<quint64>(ret));
+            this->parser->defineConstVar(dname, std::any_cast<quint64>(ret));
         } else if (ret.type() == typeid(qint64)) {
-            this->parser->const_defs_.insert(dname, std::any_cast<qint64>(ret));
+            this->parser->defineConstVar(dname, std::any_cast<qint64>(ret));
         } else {
             reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
                                  QStringLiteral("<unknown>"),
@@ -867,7 +863,7 @@ CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
         auto ex = ctx->Identifier();
         auto iden = QString::fromStdString(ex->getText());
 
-        if (parser->type_maps_.contains(iden)) {
+        if (parser->containsType(iden)) {
             // error report
             auto t = ex->getSymbol();
             reportDupError(t->getLine(), t->getCharPositionInLine(), iden);
@@ -876,20 +872,12 @@ CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
 
         auto spec = getSpecifier(ctx->typeSpecifier());
         if (spec) {
-            parser->type_defs_.insert(
-                iden, qMakePair(spec->tname, ctx->pointer() != nullptr));
-            parser->type_maps_.insert(iden,
-                                      parser->type_maps_.value(spec->tname));
+            parser->defineTypedef(iden, spec->tname, ctx->pointer() != nullptr);
         }
         return defaultResult();
     } else {
         return visitChildren(ctx);
     }
-}
-
-void CStructVisitorParser::storeEnum(const EnumDecl &e) {
-    parser->type_maps_.insert(e.first, qMakePair(QMetaType::Int, sizeof(int)));
-    parser->enum_defs_.insert(e.first, e.second);
 }
 
 std::optional<CStructVisitorParser::Specifier>
@@ -988,14 +976,14 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
                 if (en->first.isEmpty()) {
                     // anonymous? I will give you a name!
                     en->first =
-                        QString::number(parser->_anomyIndex).prepend('?');
-                    Q_ASSERT(!parser->type_maps_.contains(en->first));
-                    parser->_anomyIndex++;
+                        QString::number(parser->generateAnomyID()).prepend('?');
+                    // TODO
                 }
                 sq.tname = en->first;
 
                 // store it
-                storeEnum(en.value());
+                parser->defineEnum(en->first, en->second);
+
             } else {
                 // error occurred
                 return std::nullopt;
@@ -1003,7 +991,7 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
         } else {
             // iden can not be nullptr
             auto name = QString::fromStdString(iden->getText());
-            if (!parser->enum_defs_.contains(name)) {
+            if (!parser->containsEnum(name)) {
                 auto t = iden->getSymbol();
                 reportUndeclaredType(t->getLine(), t->getCharPositionInLine(),
                                      name);
@@ -1021,14 +1009,13 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
             if (st) {
                 if (st->name.isEmpty()) {
                     st->name =
-                        QString::number(parser->_anomyIndex).prepend('?');
-                    Q_ASSERT(!parser->type_maps_.contains(st->name));
-                    parser->_anomyIndex++;
+                        QString::number(parser->generateAnomyID()).prepend('?');
+                    // Q_ASSERT(!parser->type_maps_.contains(st->name));
                 }
 
                 sq.tname = st->name;
                 // store it
-                parser->storeStructUnionDef(st->isStruct, st->name, st->members,
+                parser->defineStructOrUnion(st->isStruct, st->name, st->members,
                                             st->alignment);
             } else {
                 // error occurred
@@ -1038,14 +1025,14 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
             // iden can not be nullptr
             auto name = QString::fromStdString(iden->getText());
             if (sus->structOrUnion()->Struct()) {
-                if (!parser->struct_defs_.contains(name)) {
+                if (!parser->containsStruct(name)) {
                     auto t = iden->getSymbol();
                     reportUndeclaredType(t->getLine(),
                                          t->getCharPositionInLine(), name);
                     return std::nullopt;
                 }
             } else {
-                if (!parser->union_defs_.contains(name)) {
+                if (!parser->containsUnion(name)) {
                     auto t = iden->getSymbol();
                     reportUndeclaredType(t->getLine(),
                                          t->getCharPositionInLine(), name);
@@ -1134,8 +1121,7 @@ CStructVisitorParser::getSpecifier(
     return getSpecifier(spec);
 }
 
-std::optional<CStructVisitorParser::StructUnionDecl>
-CStructVisitorParser::parseStructOrUnion(
+std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
     CStructParser::StructOrUnionSpecifierContext *ctx) {
     if (ctx == nullptr) {
         return std::nullopt;
@@ -1151,7 +1137,7 @@ CStructVisitorParser::parseStructOrUnion(
 
     if (ctx->Identifier()) {
         decl.name = QString::fromStdString(ctx->Identifier()->getText());
-        if (existedTypeName(decl.name)) {
+        if (parser->containsType(decl.name)) {
             return std::nullopt;
         }
     }
@@ -1175,11 +1161,11 @@ CStructVisitorParser::parseStructOrUnion(
             }
         } else {
             // report warning and ignored
-            decl.alignment = parser->kAlignment_;
+            decl.alignment = parser->padAlignment();
         }
 
     } else {
-        decl.alignment = parser->kAlignment_;
+        decl.alignment = parser->padAlignment();
     }
 
     QStringList used_names;
@@ -1189,8 +1175,6 @@ CStructVisitorParser::parseStructOrUnion(
         if (!dl) {
             return std::nullopt;
         }
-
-        auto t = parser->typeInfo(dl->tname);
 
         auto dclist = m->structDeclaratorList();
         if (dclist) {
@@ -1217,10 +1201,6 @@ CStructVisitorParser::parseStructOrUnion(
                         } else {
                             return std::nullopt;
                         }
-
-                        if (var.bit_size > t.second * 8 || var.bit_size == 0) {
-                            return std::nullopt;
-                        }
                     }
 
                     auto d = declor->directDeclarator();
@@ -1230,25 +1210,18 @@ CStructVisitorParser::parseStructOrUnion(
                         if (used_names.contains(var.var_name)) {
                             return std::nullopt;
                         }
-                        var.var_size = parser->pointerMode() == PointerMode::X64
-                                           ? sizeof(quint64)
-                                           : sizeof(quint32);
+
                         decl.members.append(var);
 
                         if (!var.var_name.isEmpty()) {
                             used_names.append(var.var_name);
                         }
                     } else {
-                        if (t.first == QMetaType::UnknownType) {
-                            return std::nullopt;
-                        }
-
                         auto info = getDeclarator(d);
                         if (info) {
                             var.is_pointer = info->isPointer;
                             if (info->arrayCount == 0) {
                                 var.array_dims = {0};
-                                var.var_size = 0;
                                 decl.members.append(var);
                                 used_names.append(var.var_name);
                                 continue; // no nessesary to deep parse
@@ -1270,11 +1243,6 @@ CStructVisitorParser::parseStructOrUnion(
                                 if (used_names.contains(var.var_name)) {
                                     return std::nullopt;
                                 }
-                                var.var_size =
-                                    t.second *
-                                    std::accumulate(dims.begin(), dims.end(),
-                                                    size_t(1),
-                                                    std::multiplies<size_t>());
                                 if (var.var_size) {
                                     var.array_dims = dims;
                                 } else {
@@ -1290,7 +1258,6 @@ CStructVisitorParser::parseStructOrUnion(
                                 if (used_names.contains(var.var_name)) {
                                     return std::nullopt;
                                 }
-                                var.var_size = t.second;
                                 decl.members.append(var);
 
                                 if (!var.var_name.isEmpty()) {
@@ -1315,11 +1282,6 @@ CStructVisitorParser::parseStructOrUnion(
                         var.bit_size = b;
                     }
 
-                    if (var.bit_size > t.second * 8) {
-                        return std::nullopt;
-                    }
-
-                    var.var_size = t.second;
                     decl.members.append(var);
                 }
             }
@@ -1339,11 +1301,11 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
     auto enums = ctx->enumeratorList();
 
     QString decl_name;
-    QHash<QString, int> decl_enums;
+    QHash<QString, qint64> decl_enums;
 
     if (name) {
         decl_name = QString::fromStdString(name->getText());
-        if (existedTypeName(decl_name)) {
+        if (parser->containsType(decl_name)) {
             return std::nullopt;
         }
     }

@@ -51,8 +51,6 @@ struct Container {
     } raw;
 
     uint8 te;
-    
-    enum Status state; // pre-declaration
 };
 
 
@@ -76,7 +74,6 @@ union Variant {
 struct Mix {
     enum key_t { Host, Cookie, Agent };
     union Variant v;         // union inside struct
-    enum key_t key;
 };
 
 union Mirror;  // forword declaration

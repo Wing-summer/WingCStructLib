@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     parser.setPadAlignment(1);
 
     // parsing the file
-    parser.parseFile(CODE_PATH "/Test.h");
+    parser.parse(CODE_PATH "/Test.h");
 
     // dump message to check
     parser.dumpAllTypeDefines(qout);

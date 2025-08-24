@@ -56,20 +56,11 @@ public:
     visitDeclaration(CStructParser::DeclarationContext *ctx) override;
 
 private:
-    using EnumDecl = QPair<QString, QHash<QString, int>>;
+    using EnumDecl = QPair<QString, QHash<QString, qint64>>;
 
     std::optional<EnumDecl> parseEnum(CStructParser::EnumSpecifierContext *ctx);
 
-    void storeEnum(const EnumDecl &e);
-
     enum class StructMemType { Normal, Pointer, Enum, Struct, Union };
-
-    struct StructUnionDecl {
-        QString name;
-        bool isStruct = true;
-        qsizetype alignment = 0;
-        QVector<VariableDeclaration> members;
-    };
 
     std::optional<StructUnionDecl>
     parseStructOrUnion(CStructParser::StructOrUnionSpecifierContext *ctx);
@@ -142,8 +133,6 @@ public:
 private:
     std::variant<std::monostate, qint64, quint64>
     parseIntegerConstant(const std::string &text);
-
-    bool existedTypeName(const QString &name);
 
     void reportDupError(size_t line, size_t charPositionInLine,
                         const QString &var);

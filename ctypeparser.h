@@ -36,19 +36,48 @@ enum class PointerMode { X86, X64 };
 enum class LongMode { LLP64, LP64 };
 
 class CTypeParser {
-    friend class CStructVisitorParser;
-
 public:
-    enum class DeclType { Invalid, TypeDef, Constant, Enum, Struct, Union };
-
-    enum class LazyType { None, Enum, Struct, Union };
+    // Result codes for manager operations
+    enum class StructResult {
+        Ok,
+        NameConflict,
+        DuplicateDefinition,
+        IncompleteReference
+    };
 
 public:
     explicit CTypeParser(const std::function<void(const MsgInfo &)> &msgcb);
     virtual ~CTypeParser();
 
 public:
-    bool parseFile(const QString &file);
+    bool parse(const QString &file);
+
+public:
+    quint64 generateAnomyID();
+
+    // Forward declarations
+    StructResult addForwardStruct(const QString &name);
+    StructResult addForwardUnion(const QString &name);
+
+    // Definitions (only register names)
+    StructResult defineStruct(const QString &name,
+                              const QVector<VariableDeclaration> &members,
+                              qsizetype alignment);
+    StructResult defineUnion(const QString &name,
+                             const QVector<VariableDeclaration> &members,
+                             qsizetype alignment);
+    StructResult
+    defineStructOrUnion(bool isStruct, const QString &name,
+                        const QVector<VariableDeclaration> &members,
+                        qsizetype alignment);
+
+    StructResult defineEnum(const QString &name,
+                            const QHash<QString, qint64> &values);
+    StructResult defineTypedef(const QString &alias, const QString &origin,
+                               bool isPointer);
+
+    StructResult defineConstVar(const QString &name,
+                                const std::variant<qint64, quint64> &var);
 
 public:
     qsizetype padAlignment() const;
@@ -82,56 +111,43 @@ public:
     void setLongmode(LongMode newLmode);
 
 public:
-    const QHash<QString, QList<VariableDeclaration>> &structDefs() const;
+    bool containsType(const QString &name) const;
 
-    const QHash<QString, QHash<QString, int>> &enumDefs() const;
+    bool isBasicType(const QString &name) const;
+    bool containsEnum(const QString &name) const;
+    bool containsStruct(const QString &name) const;
+    bool containsUnion(const QString &name) const;
+    bool containsTypeDef(const QString &name) const;
+    bool containsConstVar(const QString &name) const;
 
-    const QHash<QString, QPair<QMetaType::Type, qsizetype>> &types() const;
+    std::variant<qint64, quint64> constVarValue(const QString &name) const;
 
-    QPair<QMetaType::Type, qsizetype> typeInfo(const QString &t) const;
-
-    DeclType type(const QString &t) const;
-
-    const QHash<QString, std::variant<qint64, quint64>> &constDefs() const;
-
-    const QHash<QString, QList<VariableDeclaration>> &unionDefs() const;
-
-    const QHash<QString, QPair<QString, bool>> &typeDefs() const;
+public:
+    QMetaType::Type metaType(const QString &name) const;
+    qsizetype getTypeSize(const QString &data_type) const;
 
 public:
     void dumpAllTypeDefines(QTextStream &output) const;
 
-    ///
-    /// \brief finish
-    /// \return
-    ///
-    bool finish();
-
-    bool isIncompleteType(const QString &name, LazyType type = LazyType::None);
-
     void clear();
 
 private:
-    qsizetype padStruct(QList<VariableDeclaration> &members,
+    QStringList
+    getMissingDependencise(const QVector<VariableDeclaration> &members);
+
+    qsizetype padStruct(QVector<VariableDeclaration> &members,
                         qsizetype alignment);
-    qsizetype calcUnionSize(const QList<VariableDeclaration> &members,
+    qsizetype calcUnionSize(const QVector<VariableDeclaration> &members,
                             qsizetype alignment) const;
 
     void storeStructUnionDef(const bool is_struct, const QString &type_name,
-                             QList<VariableDeclaration> &members,
-                             qsizetype alignment, bool padLater = false);
+                             QVector<VariableDeclaration> &members,
+                             qsizetype alignment);
+
+    void restoreIncompleteType();
 
 private:
-    /// incomplete type region
-    struct LazyStructUnion {
-        bool is_struct;
-        QString type_name;
-        QList<VariableDeclaration> members;
-        qsizetype alignment;
-    };
-
-    QList<LazyStructUnion> padding_later_;
-    QStringList enum_incomplete_;
+    enum class IncompleteType { Struct, Union, Typedef };
 
 private:
     /// read in basic data such as keywords/qualifiers, and basic data type
@@ -140,8 +156,6 @@ private:
 
     void findHeaderFiles(const QString &path);
     QString getFile(QString &filename) const;
-
-    qsizetype getTypeSize(const QString &data_type) const;
 
     /// class members
 private:
@@ -157,6 +171,10 @@ private:
     /// @note All enum types have fixed size, so they're not stored
     QHash<QString, QPair<QMetaType::Type, qsizetype>> type_maps_;
 
+    /// names awaiting definition
+    QHash<QString, IncompleteType> referencedIncomplete_;
+    QHash<QString, QStringList> incompleteDeps_;
+
     /// basic types
     QStringList base_types_;
 
@@ -171,12 +189,14 @@ private:
     /// union definitions
     QHash<QString, QList<VariableDeclaration>> union_defs_;
 
+    QHash<QString, int> struct_union_alignments_;
+
     /// typedef definitions
     /// <typedefName, <originalName, isPointer>>
     QHash<QString, QPair<QString, bool>> type_defs_;
 
     /// enum definitions
-    QHash<QString, QHash<QString, int>> enum_defs_;
+    QHash<QString, QHash<QString, qint64>> enum_defs_;
 
     /// constants and macros that have integer values
     /// key     - constant/macro name
