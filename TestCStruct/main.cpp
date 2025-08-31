@@ -44,8 +44,10 @@ int main(int argc, char *argv[]) {
     parser.setPointerMode(PointerMode::X64);
     parser.setPadAlignment(1);
 
-    // parsing the file
-    parser.parse(CODE_PATH "/Test.h");
+    // parsing the file tests
+
+    // parser.parse(CODE_PATH "/Test.h");
+    parser.parse(CODE_PATH "/TestPreDeclStruct.h");
 
     // dump message to check
     parser.dumpAllTypeDefines(qout);

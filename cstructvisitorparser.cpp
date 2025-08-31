@@ -19,9 +19,9 @@
 
 #include "c/CStructLexer.h"
 #include "cstructerrorlistener.h"
-#include "ctypeparser.h"
 
 #include <QCoreApplication>
+#include <QMetaEnum>
 
 CStructVisitorParser::CStructVisitorParser(CTypeParser *container,
                                            CStructErrorListener *listener)
@@ -226,6 +226,34 @@ void CStructVisitorParser::reportUndeclaredType(size_t line,
                                                 const QString &type) {
     errlis->reportError(line, charPositionInLine,
                         tr("\"%1\" is unknown type").arg(type));
+}
+
+CTypeParser::StructResult
+CStructVisitorParser::reportCTypeError(size_t line, size_t charPositionInLine,
+                                       CTypeParser::StructResult result,
+                                       const QString &identifier) {
+    switch (result) {
+    case CTypeParser::StructResult::Ok:
+        // nothing
+        break;
+    case CTypeParser::StructResult::NameConflict: {
+        auto e = QMetaEnum::fromType<CTypeParser::CType>();
+        errlis->reportError(
+            line, charPositionInLine,
+            tr("\"%1\" is already declared with type %2")
+                .arg(identifier)
+                .arg(e.valueToKey(int(parser->type(identifier)))));
+
+    } break;
+    case CTypeParser::StructResult::DuplicateDefinition:
+        reportDupError(line, charPositionInLine, identifier);
+        break;
+    case CTypeParser::StructResult::IncompleteReference:
+        errlis->reportError(line, charPositionInLine,
+                            tr("\"%1\" is incompleted type").arg(identifier));
+        break;
+    }
+    return result;
 }
 
 bool CStructVisitorParser::isInteger(const QString &text) {
@@ -701,14 +729,27 @@ std::any CStructVisitorParser::visitStructOrUnionSpecifier(
     if (ctx == nullptr) {
         return defaultResult();
     }
-
-    auto decl = parseStructOrUnion(ctx);
-    if (decl) {
-        if (!decl->name.isEmpty()) {
-            parser->defineStructOrUnion(decl->isStruct, decl->name,
-                                        decl->members, decl->alignment);
+    if (ctx->structDeclarationList()) {
+        auto decl = parseStructOrUnion(ctx);
+        if (decl) {
+            auto sym = ctx->getStart();
+            reportCTypeError(
+                sym->getLine(), sym->getCharPositionInLine(),
+                parser->defineStructOrUnion(decl->isStruct, decl->name,
+                                            decl->members, decl->alignment),
+                decl->name);
+        }
+    } else {
+        auto iden = ctx->Identifier();
+        Q_ASSERT(iden);
+        auto sym = iden->getSymbol();
+        auto name = QString::fromStdString(iden->getText());
+        if (ctx->structOrUnion()->Struct()) {
+            reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                             parser->addForwardStruct(name), name);
         } else {
-            // TODO
+            reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                             parser->addForwardUnion(name), name);
         }
     }
     return defaultResult();
@@ -1131,9 +1172,7 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
     decl.isStruct = ctx->structOrUnion()->Struct();
 
     auto mems = ctx->structDeclarationList();
-    if (!mems) {
-        return std::nullopt;
-    }
+    Q_ASSERT(mems);
 
     if (ctx->Identifier()) {
         decl.name = QString::fromStdString(ctx->Identifier()->getText());

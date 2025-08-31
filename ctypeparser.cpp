@@ -358,7 +358,7 @@ CTypeParser::defineUnion(const QString &name,
     if (referencedIncomplete_.contains(name)) {
         switch (referencedIncomplete_[name]) {
         case IncompleteType::Struct:
-            return StructResult::DuplicateDefinition;
+            return StructResult::NameConflict;
         case IncompleteType::Union:
             referencedIncomplete_.remove(name);
             break;
@@ -382,8 +382,9 @@ CTypeParser::defineUnion(const QString &name,
     auto missingDeps = getMissingDependencise(members);
     if (missingDeps.isEmpty()) {
         storeStructUnionDef(false, name, union_defs_[name], alignment);
-        restoreIncompleteType();
+        restoreIncompleteType(name);
     } else {
+        referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Union);
         incompleteDeps_.insert(name, missingDeps);
     }
 
@@ -405,7 +406,7 @@ CTypeParser::StructResult
 CTypeParser::defineStruct(const QString &name,
                           const QVector<VariableDeclaration> &members,
                           qsizetype alignment) {
-    if (!containsType(name))
+    if (containsType(name))
         return StructResult::NameConflict;
 
     if (containsStruct(name))
@@ -417,7 +418,7 @@ CTypeParser::defineStruct(const QString &name,
             referencedIncomplete_.remove(name);
             break;
         case IncompleteType::Union:
-            return StructResult::DuplicateDefinition;
+            return StructResult::NameConflict;
         default:
             break;
         }
@@ -437,9 +438,10 @@ CTypeParser::defineStruct(const QString &name,
 
     auto missingDeps = getMissingDependencise(members);
     if (missingDeps.isEmpty()) {
-        storeStructUnionDef(false, name, union_defs_[name], alignment);
-        restoreIncompleteType();
+        storeStructUnionDef(true, name, struct_defs_[name], alignment);
+        restoreIncompleteType(name);
     } else {
+        referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Struct);
         incompleteDeps_.insert(name, missingDeps);
     }
 
@@ -452,6 +454,13 @@ CTypeParser::StructResult CTypeParser::addForwardStruct(const QString &name) {
         return StructResult::NameConflict;
     if (containsStruct(name))
         return StructResult::DuplicateDefinition;
+
+    if (referencedIncomplete_.contains(name)) {
+        if (referencedIncomplete_.value(name) == IncompleteType::Struct) {
+            return StructResult::DuplicateDefinition;
+        }
+        return StructResult::NameConflict;
+    }
     referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Struct);
     return StructResult::Ok;
 }
@@ -463,6 +472,12 @@ CTypeParser::StructResult CTypeParser::addForwardUnion(const QString &name) {
     if (containsUnion(name))
         return StructResult::DuplicateDefinition;
 
+    if (referencedIncomplete_.contains(name)) {
+        if (referencedIncomplete_.value(name) == IncompleteType::Union) {
+            return StructResult::DuplicateDefinition;
+        }
+        return StructResult::NameConflict;
+    }
     referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Union);
     return StructResult::Ok;
 }
@@ -504,8 +519,9 @@ void CTypeParser::setLongmode(LongMode newLmode) {
 }
 
 bool CTypeParser::containsType(const QString &name) const {
-    return containsConstVar(name) || containsTypeDef(name) ||
-           containsStruct(name) || containsUnion(name) || containsEnum(name);
+    return isBasicType(name) || containsConstVar(name) ||
+           containsTypeDef(name) || containsStruct(name) ||
+           containsUnion(name) || containsEnum(name);
 }
 
 bool CTypeParser::isBasicType(const QString &name) const {
@@ -532,6 +548,10 @@ bool CTypeParser::containsConstVar(const QString &name) const {
     return const_defs_.contains(name);
 }
 
+bool CTypeParser::isCompletedType(const QString &name) const {
+    return !referencedIncomplete_.contains(name);
+}
+
 std::variant<qint64, quint64>
 CTypeParser::constVarValue(const QString &name) const {
     Q_ASSERT(const_defs_.contains(name));
@@ -539,7 +559,7 @@ CTypeParser::constVarValue(const QString &name) const {
 }
 
 QMetaType::Type CTypeParser::metaType(const QString &name) const {
-    if (base_types_.contains(name)) {
+    if (isBasicType(name)) {
         return type_maps_.value(name).first;
     } else if (containsConstVar(name) || containsConstVar(name)) {
         return QMetaType::LongLong;
@@ -549,6 +569,46 @@ QMetaType::Type CTypeParser::metaType(const QString &name) const {
     } else {
         return QMetaType::UnknownType;
     }
+}
+
+CTypeParser::CType CTypeParser::type(const QString &name) const {
+    if (isBasicType(name)) {
+        return CType::BasicType;
+    }
+
+    if (containsConstVar(name)) {
+        return CType::ConstVar;
+    }
+
+    if (containsStruct(name)) {
+        return CType::Struct;
+    }
+
+    if (containsUnion(name)) {
+        return CType::Union;
+    }
+
+    if (containsEnum(name)) {
+        return CType::Enum;
+    }
+
+    if (containsTypeDef(name)) {
+        return CType::TypeDef;
+    }
+
+    if (referencedIncomplete_.contains(name)) {
+        auto v = referencedIncomplete_.value(name);
+        switch (v) {
+        case IncompleteType::Struct:
+            return CType::Struct;
+        case IncompleteType::Union:
+            return CType::Union;
+        case IncompleteType::Typedef:
+            return CType::TypeDef;
+        }
+    }
+
+    return CType::Unknown;
 }
 
 PointerMode CTypeParser::pointerMode() const { return _pmode; }
@@ -592,13 +652,15 @@ void CTypeParser::dumpAllTypeDefines(QTextStream &output) const {
     static QString padding(4, ' ');
 
     // dump typedef definitions
-    output << "\ntypedef definitions:"
-           << "\n--------------------" << Qt::endl;
+    output << "\ntypedef definitions:" << "\n--------------------" << Qt::endl;
     for (auto it = type_defs_.constKeyValueBegin();
          it != type_defs_.constKeyValueEnd(); ++it) {
         output << padding << it->first << " = " << it->second.first;
         if (it->second.second) {
             output << '*';
+        }
+        if (!isCompletedType(it->first)) {
+            output << "[?]";
         }
         output << Qt::endl;
     }
@@ -626,7 +688,11 @@ void CTypeParser::dumpAllTypeDefines(QTextStream &output) const {
     for (auto it = struct_defs_.constKeyValueBegin();
          it != struct_defs_.constKeyValueEnd(); ++it) {
 
-        output << "struct " << it->first << ":" << Qt::endl;
+        output << "struct " << it->first;
+        if (!isCompletedType(it->first)) {
+            output << " [?]";
+        }
+        output << ":" << Qt::endl;
 
         auto members = it->second;
         while (!members.empty()) {
@@ -676,7 +742,11 @@ void CTypeParser::dumpAllTypeDefines(QTextStream &output) const {
     for (auto itu = union_defs_.constKeyValueBegin();
          itu != union_defs_.constKeyValueEnd(); ++itu) {
 
-        output << "union " << itu->first << ":" << Qt::endl;
+        output << "union " << itu->first;
+        if (!isCompletedType(itu->first)) {
+            output << " [?]";
+        }
+        output << ":" << Qt::endl;
 
         auto members = itu->second;
         while (!members.isEmpty()) {
@@ -742,8 +812,7 @@ QStringList CTypeParser::getMissingDependencise(
         if (m.is_pointer) {
             continue;
         } else {
-            auto s = getTypeSize(m.data_type);
-            if (s < 0) {
+            if (!containsType(m.data_type)) {
                 missingDeps.append(m.data_type);
             }
         }
@@ -775,18 +844,18 @@ void CTypeParser::storeStructUnionDef(const bool is_struct,
                                       const QString &type_name,
                                       QVector<VariableDeclaration> &members,
                                       qsizetype alignment) {
-    for (auto &m : members) {
-        auto s = getTypeSize(m.data_type);
-        Q_ASSERT(s > 0);
-        // TODO
-    }
+    // for (auto &m : members) {
+    //     auto s = getTypeSize(m.data_type);
+    //     Q_ASSERT(s > 0);
+    //     // TODO
+    // }
 
-    qsizetype size;
+    qsizetype size = 0;
     if (is_struct) {
-        size = padStruct(members, alignment);
+        // size = padStruct(members, alignment);
         struct_defs_[type_name] = members;
     } else {
-        size = calcUnionSize(members, alignment);
+        // size = calcUnionSize(members, alignment);
         union_defs_[type_name] = members;
     }
 
@@ -794,12 +863,13 @@ void CTypeParser::storeStructUnionDef(const bool is_struct,
     type_maps_[type_name] = qMakePair(QMetaType::User, size);
 }
 
-void CTypeParser::restoreIncompleteType() {
-    for (auto [name, deps] : incompleteDeps_.asKeyValueRange()) {
+void CTypeParser::restoreIncompleteType(const QString &name) {
+    for (auto &deps : incompleteDeps_) {
         if (deps.contains(name)) {
             deps.removeOne(name);
         }
     }
+
     incompleteDeps_.removeIf(
         [this](const QPair<QString, QStringList> &item) -> bool {
             auto name = item.first;
@@ -817,6 +887,7 @@ void CTypeParser::restoreIncompleteType() {
                     type_maps_.insert(name, type_maps_[type_defs_[name].first]);
                     break;
                 }
+                referencedIncomplete_.remove(name);
                 return true;
             }
             return false;

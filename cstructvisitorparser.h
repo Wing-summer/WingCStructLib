@@ -26,9 +26,9 @@
 #include <optional>
 
 #include "c/CStructBaseVisitor.h"
+#include "ctypeparser.h"
 #include "define.h"
 
-class CTypeParser;
 class CStructErrorListener;
 
 class CStructVisitorParser : public CStructBaseVisitor {
@@ -148,6 +148,11 @@ private:
 
     void reportUndeclaredType(size_t line, size_t charPositionInLine,
                               const QString &type);
+
+    CTypeParser::StructResult reportCTypeError(size_t line,
+                                               size_t charPositionInLine,
+                                               CTypeParser::StructResult result,
+                                               const QString &identifier);
 
 private:
     bool isInteger(const QString &text);

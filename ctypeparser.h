@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QHash>
 #include <QList>
+#include <QObject>
 #include <QPair>
 #include <QRegularExpression>
 #include <QStringList>
@@ -36,6 +37,8 @@ enum class PointerMode { X86, X64 };
 enum class LongMode { LLP64, LP64 };
 
 class CTypeParser {
+    Q_GADGET
+
 public:
     // Result codes for manager operations
     enum class StructResult {
@@ -44,6 +47,17 @@ public:
         DuplicateDefinition,
         IncompleteReference
     };
+
+    enum class CType {
+        Unknown,
+        ConstVar,
+        Enum,
+        Struct,
+        Union,
+        TypeDef,
+        BasicType
+    };
+    Q_ENUM(CType);
 
 public:
     explicit CTypeParser(const std::function<void(const MsgInfo &)> &msgcb);
@@ -119,11 +133,13 @@ public:
     bool containsUnion(const QString &name) const;
     bool containsTypeDef(const QString &name) const;
     bool containsConstVar(const QString &name) const;
+    bool isCompletedType(const QString &name) const;
 
     std::variant<qint64, quint64> constVarValue(const QString &name) const;
 
 public:
     QMetaType::Type metaType(const QString &name) const;
+    CType type(const QString &name) const;
     qsizetype getTypeSize(const QString &data_type) const;
 
 public:
@@ -144,7 +160,7 @@ private:
                              QVector<VariableDeclaration> &members,
                              qsizetype alignment);
 
-    void restoreIncompleteType();
+    void restoreIncompleteType(const QString &name);
 
 private:
     enum class IncompleteType { Struct, Union, Typedef };
