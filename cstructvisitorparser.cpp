@@ -78,7 +78,11 @@ std::any CStructVisitorParser::visitInclusiveOrExpression(
             return defaultResult();
         }
     }
-    return isUnsigned ? ret : qint64(ret);
+    if (isUnsigned) {
+        return ret;
+    } else {
+        return qint64(ret);
+    }
 }
 
 std::any CStructVisitorParser::visitAssignmentExpression(
@@ -133,7 +137,11 @@ std::any CStructVisitorParser::visitExclusiveOrExpression(
         }
     }
 
-    return isUnsigned ? v : qint64(v);
+    if (isUnsigned) {
+        return v;
+    } else {
+        return qint64(v);
+    }
 }
 
 std::variant<std::monostate, qint64, quint64>
@@ -358,7 +366,11 @@ std::any CStructVisitorParser::visitAndExpression(
             return defaultResult();
         }
     }
-    return isUnsigned ? v : qint64(v);
+    if (isUnsigned) {
+        return v;
+    } else {
+        return qint64(v);
+    }
 }
 
 std::any CStructVisitorParser::visitShiftExpression(
@@ -610,7 +622,11 @@ std::any CStructVisitorParser::visitAdditiveExpression(
         }
     }
 
-    return ret;
+    if (std::holds_alternative<qint64>(ret)) {
+        return std::get<qint64>(ret);
+    } else {
+        return std::get<quint64>(ret);
+    }
 }
 
 std::any CStructVisitorParser::visitMultiplicativeExpression(
@@ -758,7 +774,11 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
         }
     }
 
-    return ret;
+    if (std::holds_alternative<qint64>(ret)) {
+        return std::get<qint64>(ret);
+    } else {
+        return std::get<quint64>(ret);
+    }
 }
 
 std::any CStructVisitorParser::visitCastExpression(
@@ -823,11 +843,19 @@ std::any CStructVisitorParser::visitCastExpression(
         auto r = visitCastExpression(ctx->castExpression());
         if (r.has_value()) {
             if (r.type() == typeid(qint64)) {
-                auto v = std::any_cast<qint64>(r);
-                return (isUnsigned ? quint64(v) : v) & mask;
+                auto v = std::any_cast<qint64>(r) & mask;
+                if (isUnsigned) {
+                    return v;
+                } else {
+                    return qint64(v);
+                }
             } else if (r.type() == typeid(quint64)) {
-                auto v = std::any_cast<quint64>(r);
-                return (isUnsigned ? v : qint64(v)) & mask;
+                auto v = std::any_cast<quint64>(r) & mask;
+                if (isUnsigned) {
+                    return v;
+                } else {
+                    return qint64(v);
+                }
             }
         }
     } else if (ctx->unaryExpression()) {
@@ -1008,7 +1036,7 @@ std::any CStructVisitorParser::visitPostfixExpression(
                                QString::number(v) +
                                    QStringLiteral("(++/--): ") +
                                    QString::number(leftCount));
-            return v + leftCount;
+            return qint64(v + rv);
         } else {
             return r;
         }
@@ -1407,7 +1435,7 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
 
                 sq.tname = st->name;
                 // store it
-                auto sym = iden->getSymbol();
+                auto sym = sus->getStart();
                 auto ret = reportCTypeError(
                     sym->getLine(), sym->getCharPositionInLine(),
                     parser->defineStructOrUnion(st->isStruct, st->name,

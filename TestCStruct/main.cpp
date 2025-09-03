@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     // parser.parse(CODE_PATH "/TestPreDeclUnion.h");
     // parser.parse(CODE_PATH "/TestPreEnum.h");
     // parser.parse(CODE_PATH "/TestAutoDeclStruct.h");
-    parser.parse(CODE_PATH "/TestLargeInt.h");
+    // parser.parse(CODE_PATH "/TestLargeInt.h");
 
     // dump message to check
     parser.dumpAllTypeDefines(qout);
