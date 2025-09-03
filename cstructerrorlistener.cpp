@@ -24,15 +24,29 @@ void CStructErrorListener::reportWarn(size_t line, size_t charPositionInLine,
     reportMsg(MsgType::Warn, line, charPositionInLine, info);
 }
 
+size_t CStructErrorListener::lineOffset() const { return _line; }
+
 void CStructErrorListener::reportMsg(MsgType type, size_t line,
                                      size_t charPositionInLine,
                                      const QString &info) {
     if (_handler) {
         MsgInfo inf;
         inf.type = type;
-        inf.line = line;
-        inf.charPositionInLine = charPositionInLine;
+        inf.line = line + _line;
+        inf.charPositionInLine = charPositionInLine + _charPosOffset;
         inf.info = info;
         _handler(inf);
     }
+}
+
+size_t CStructErrorListener::charPosOffset() const { return _charPosOffset; }
+
+void CStructErrorListener::setPositionOffset(size_t line, size_t charPosOff) {
+    _line = line;
+    _charPosOffset = charPosOff;
+}
+
+void CStructErrorListener::resetPositionOffset() {
+    _line = 0;
+    _charPosOffset = 0;
 }

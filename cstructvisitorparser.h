@@ -90,6 +90,8 @@ private:
     static QString
     getFinalDeclaratorName(CStructParser::DirectDeclaratorContext *ctx);
 
+    std::optional<size_t> safeMultiply(const QVector<size_t> &vec);
+
 private:
     CTypeParser *parser;
 
@@ -134,6 +136,12 @@ private:
     std::variant<std::monostate, qint64, quint64>
     parseIntegerConstant(const std::string &text);
 
+    void reportNumOutofRangeError(size_t line, size_t charPositionInLine,
+                                  const QString &num);
+
+    void reportDupDeclError(size_t line, size_t charPositionInLine,
+                            const QString &var);
+
     void reportDupError(size_t line, size_t charPositionInLine,
                         const QString &var);
 
@@ -148,6 +156,15 @@ private:
 
     void reportUndeclaredType(size_t line, size_t charPositionInLine,
                               const QString &type);
+
+    void reportArrayOutofLimit(size_t line, size_t charPositionInLine,
+                               const QString &name, const QString &iden);
+
+    void reportOverflowWarn(size_t line, size_t charPositionInLine,
+                            const QString &op);
+
+    void reportFiledBitOverflow(size_t line, size_t charPositionInLine,
+                                const QString &type, quint64 bit);
 
     CTypeParser::StructResult reportCTypeError(size_t line,
                                                size_t charPositionInLine,

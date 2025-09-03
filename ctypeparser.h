@@ -72,6 +72,7 @@ public:
     // Forward declarations
     StructResult addForwardStruct(const QString &name);
     StructResult addForwardUnion(const QString &name);
+    StructResult addForwardEnum(const QString &name);
 
     // Definitions (only register names)
     StructResult defineStruct(const QString &name,
@@ -128,6 +129,8 @@ public:
     bool containsType(const QString &name) const;
 
     bool isBasicType(const QString &name) const;
+    bool isUnsignedBasicType(const QString &name) const;
+
     bool containsEnum(const QString &name) const;
     bool containsStruct(const QString &name) const;
     bool containsUnion(const QString &name) const;
@@ -163,7 +166,7 @@ private:
     void restoreIncompleteType(const QString &name);
 
 private:
-    enum class IncompleteType { Struct, Union, Typedef };
+    enum class IncompleteType { Struct, Union, Typedef, Enum };
 
 private:
     /// read in basic data such as keywords/qualifiers, and basic data type

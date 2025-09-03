@@ -279,6 +279,23 @@ quint64 CTypeParser::generateAnomyID() {
     return ret;
 }
 
+CTypeParser::StructResult CTypeParser::addForwardEnum(const QString &name) {
+    Q_ASSERT(!name.isEmpty());
+    if (containsType(name))
+        return StructResult::NameConflict;
+    if (containsEnum(name))
+        return StructResult::DuplicateDefinition;
+
+    if (referencedIncomplete_.contains(name)) {
+        if (referencedIncomplete_.value(name) == IncompleteType::Enum) {
+            return StructResult::DuplicateDefinition;
+        }
+        return StructResult::NameConflict;
+    }
+    referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Enum);
+    return StructResult::Ok;
+}
+
 CTypeParser::StructResult
 CTypeParser::defineConstVar(const QString &name,
                             const std::variant<qint64, quint64> &var) {
@@ -297,7 +314,7 @@ CTypeParser::defineConstVar(const QString &name,
 CTypeParser::StructResult CTypeParser::defineTypedef(const QString &alias,
                                                      const QString &origin,
                                                      bool isPointer) {
-    if (containsType(alias))
+    if (containsType(alias) || containsConstVar(alias))
         return StructResult::NameConflict;
 
     if (containsTypeDef(alias))
@@ -328,20 +345,30 @@ CTypeParser::StructResult CTypeParser::defineTypedef(const QString &alias,
             type_maps_.insert(alias, type_maps_[origin]);
         }
     }
+    restoreIncompleteType(alias);
     return StructResult::Ok;
 }
 
 CTypeParser::StructResult
 CTypeParser::defineEnum(const QString &name,
                         const QHash<QString, qint64> &values) {
-    if (containsType(name))
+    if (containsType(name) || containsConstVar(name))
         return StructResult::NameConflict;
 
     if (containsEnum(name))
         return StructResult::DuplicateDefinition;
 
+    if (referencedIncomplete_.contains(name)) {
+        if (referencedIncomplete_[name] == IncompleteType::Enum) {
+            referencedIncomplete_.remove(name);
+        } else {
+            return StructResult::NameConflict;
+        }
+    }
+
     enum_defs_.insert(name, values);
     type_maps_.insert(name, qMakePair(QMetaType::LongLong, sizeof(qint64)));
+    restoreIncompleteType(name);
     return StructResult::Ok;
 }
 
@@ -349,21 +376,17 @@ CTypeParser::StructResult
 CTypeParser::defineUnion(const QString &name,
                          const QVector<VariableDeclaration> &members,
                          qsizetype alignment) {
-    if (containsType(name))
+    if (containsType(name) || containsConstVar(name))
         return StructResult::NameConflict;
 
     if (containsUnion(name))
         return StructResult::DuplicateDefinition;
 
     if (referencedIncomplete_.contains(name)) {
-        switch (referencedIncomplete_[name]) {
-        case IncompleteType::Struct:
-            return StructResult::NameConflict;
-        case IncompleteType::Union:
+        if (referencedIncomplete_[name] == IncompleteType::Union) {
             referencedIncomplete_.remove(name);
-            break;
-        default:
-            break;
+        } else {
+            return StructResult::NameConflict;
         }
     }
 
@@ -406,21 +429,19 @@ CTypeParser::StructResult
 CTypeParser::defineStruct(const QString &name,
                           const QVector<VariableDeclaration> &members,
                           qsizetype alignment) {
-    if (containsType(name))
+    if (containsType(name) || containsConstVar(name))
         return StructResult::NameConflict;
 
     if (containsStruct(name))
         return StructResult::DuplicateDefinition;
 
     if (referencedIncomplete_.contains(name)) {
-        switch (referencedIncomplete_[name]) {
-        case IncompleteType::Struct:
-            referencedIncomplete_.remove(name);
-            break;
-        case IncompleteType::Union:
-            return StructResult::NameConflict;
-        default:
-            break;
+        if (referencedIncomplete_.contains(name)) {
+            if (referencedIncomplete_[name] == IncompleteType::Struct) {
+                referencedIncomplete_.remove(name);
+            } else {
+                return StructResult::NameConflict;
+            }
         }
     }
 
@@ -519,13 +540,31 @@ void CTypeParser::setLongmode(LongMode newLmode) {
 }
 
 bool CTypeParser::containsType(const QString &name) const {
-    return isBasicType(name) || containsConstVar(name) ||
-           containsTypeDef(name) || containsStruct(name) ||
+    return isBasicType(name) || containsTypeDef(name) || containsStruct(name) ||
            containsUnion(name) || containsEnum(name);
 }
 
 bool CTypeParser::isBasicType(const QString &name) const {
     return base_types_.contains(name);
+}
+
+bool CTypeParser::isUnsignedBasicType(const QString &name) const {
+    if (!isBasicType(name)) {
+        return false;
+    }
+
+    auto t = type_maps_.value(name);
+    switch (t.first) {
+    case QMetaType::UChar:
+    case QMetaType::UInt:
+    case QMetaType::UShort:
+    case QMetaType::ULong:
+    case QMetaType::ULongLong:
+    case QMetaType::VoidStar:
+        return true;
+    default:
+        return false;
+    }
 }
 
 bool CTypeParser::containsEnum(const QString &name) const {
@@ -561,7 +600,7 @@ CTypeParser::constVarValue(const QString &name) const {
 QMetaType::Type CTypeParser::metaType(const QString &name) const {
     if (isBasicType(name)) {
         return type_maps_.value(name).first;
-    } else if (containsConstVar(name) || containsConstVar(name)) {
+    } else if (containsConstVar(name)) {
         return QMetaType::LongLong;
     } else if (containsStruct(name) || containsUnion(name) ||
                containsEnum(name)) {
@@ -605,6 +644,8 @@ CTypeParser::CType CTypeParser::type(const QString &name) const {
             return CType::Union;
         case IncompleteType::Typedef:
             return CType::TypeDef;
+        case IncompleteType::Enum:
+            return CType::Enum;
         }
     }
 
@@ -660,7 +701,7 @@ void CTypeParser::dumpAllTypeDefines(QTextStream &output) const {
             output << '*';
         }
         if (!isCompletedType(it->first)) {
-            output << "[?]";
+            output << " [?]";
         }
         output << Qt::endl;
     }
@@ -802,6 +843,8 @@ void CTypeParser::clear() {
     type_defs_.clear();
     struct_defs_.clear();
     union_defs_.clear();
+    incompleteDeps_.clear();
+    referencedIncomplete_.clear();
     _anomyIndex = 0;
 }
 
@@ -844,18 +887,19 @@ void CTypeParser::storeStructUnionDef(const bool is_struct,
                                       const QString &type_name,
                                       QVector<VariableDeclaration> &members,
                                       qsizetype alignment) {
-    // for (auto &m : members) {
-    //     auto s = getTypeSize(m.data_type);
-    //     Q_ASSERT(s > 0);
-    //     // TODO
-    // }
+    for (auto &m : members) {
+        auto s = getTypeSize(m.data_type);
+        Q_ASSERT(s >= 0);
+        auto total = m.element_count;
+        m.var_size = total * s;
+    }
 
     qsizetype size = 0;
     if (is_struct) {
-        // size = padStruct(members, alignment);
+        size = padStruct(members, alignment);
         struct_defs_[type_name] = members;
     } else {
-        // size = calcUnionSize(members, alignment);
+        size = calcUnionSize(members, alignment);
         union_defs_[type_name] = members;
     }
 
@@ -870,8 +914,9 @@ void CTypeParser::restoreIncompleteType(const QString &name) {
         }
     }
 
+    QStringList ct;
     incompleteDeps_.removeIf(
-        [this](const QPair<QString, QStringList> &item) -> bool {
+        [this, &ct](const QPair<QString, QStringList> &item) -> bool {
             auto name = item.first;
             if (item.second.isEmpty()) {
                 switch (referencedIncomplete_[name]) {
@@ -886,12 +931,19 @@ void CTypeParser::restoreIncompleteType(const QString &name) {
                 case IncompleteType::Typedef:
                     type_maps_.insert(name, type_maps_[type_defs_[name].first]);
                     break;
+                case IncompleteType::Enum:
+                    defineEnum(name, enum_defs_[name]);
+                    break;
                 }
                 referencedIncomplete_.remove(name);
+                ct.append(name);
                 return true;
             }
             return false;
         });
+    for (auto &c : ct) {
+        restoreIncompleteType(c);
+    }
 }
 
 qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
@@ -944,7 +996,10 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
 
                 // Start a new bitfield storage unit of size 'this_base_size'
                 bitfield_offset = total;
-                total += this_base_size;
+
+                if (qAddOverflow(total, this_base_size, &total)) {
+                    return -1;
+                }
 
                 bitfield_base_size = this_base_size;
                 bitfield_capacity = this_capacity;
@@ -988,7 +1043,10 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
             total = align_up(total, align_req);
 
             member.offset = total;
-            total += block_size;
+
+            if (qAddOverflow(total, block_size, &total)) {
+                return -1;
+            }
         }
     }
 

@@ -28,15 +28,7 @@ struct VariableDeclaration {
     QVector<size_t> array_dims; ///< array size: empty for non-array
     bool is_pointer = false; ///< true when it's a pointer
     qsizetype var_size = -1; ///< total size in bytes
-
-public:
-    size_t element_count() const {
-        size_t ret = 1;
-        for (auto &dims : array_dims) {
-            ret *= dims;
-        }
-        return ret;
-    }
+    qint64 element_count = 1; ///< cached element_count
 };
 
 enum class MsgType { Error, Warn };

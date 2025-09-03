@@ -32,12 +32,20 @@ public:
     void reportWarn(size_t line, size_t charPositionInLine,
                     const QString &info);
 
+    size_t lineOffset() const;
+    size_t charPosOffset() const;
+    void setPositionOffset(size_t line, size_t charPosOff);
+    void resetPositionOffset();
+
 private:
     void reportMsg(MsgType type, size_t line, size_t charPositionInLine,
                    const QString &info);
 
 private:
     ErrorHandler _handler;
+
+    size_t _line = 0;
+    size_t _charPosOffset = 0;
 };
 
 #endif // CSTRUCTERRORLISTENER_H

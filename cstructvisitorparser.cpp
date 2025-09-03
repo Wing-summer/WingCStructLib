@@ -22,6 +22,7 @@
 
 #include <QCoreApplication>
 #include <QMetaEnum>
+#include <QScopeGuard>
 
 CStructVisitorParser::CStructVisitorParser(CTypeParser *container,
                                            CStructErrorListener *listener)
@@ -36,9 +37,19 @@ std::any CStructVisitorParser::visitEnumSpecifier(
         return defaultResult();
     }
 
-    auto e = parseEnum(ctx);
-    if (e) {
-        parser->defineEnum(e->first, e->second);
+    auto sym = ctx->getStart();
+    if (ctx->enumeratorList()) {
+        auto e = parseEnum(ctx);
+        if (e) {
+            reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                             parser->defineEnum(e->first, e->second), e->first);
+        }
+    } else {
+        auto iden = ctx->Identifier();
+        Q_ASSERT(iden);
+        auto name = QString::fromStdString(iden->getText());
+        reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                         parser->addForwardEnum(name), name);
     }
     return defaultResult();
 }
@@ -49,12 +60,14 @@ std::any CStructVisitorParser::visitInclusiveOrExpression(
         return defaultResult();
     }
 
-    qulonglong ret = 0;
+    quint64 ret = 0;
+    bool isUnsigned = false;
     for (auto &v : ctx->exclusiveOrExpression()) {
         auto r = visitExclusiveOrExpression(v);
         if (r.type() == typeid(quint64)) {
             auto rr = std::any_cast<quint64>(r);
             ret |= rr;
+            isUnsigned = true;
         } else if (r.type() == typeid(qint64)) {
             auto rr = std::any_cast<qint64>(r);
             ret |= rr;
@@ -65,7 +78,7 @@ std::any CStructVisitorParser::visitInclusiveOrExpression(
             return defaultResult();
         }
     }
-    return ret;
+    return isUnsigned ? ret : qint64(ret);
 }
 
 std::any CStructVisitorParser::visitAssignmentExpression(
@@ -76,15 +89,16 @@ std::any CStructVisitorParser::visitAssignmentExpression(
 
     if (ctx->IntegerConstant()) {
         auto t = ctx->IntegerConstant();
-        auto v = parseIntegerConstant(ctx->IntegerConstant()->getText());
+        auto num = ctx->IntegerConstant()->getText();
+        auto v = parseIntegerConstant(num);
         if (std::holds_alternative<quint64>(v)) {
             return std::get<quint64>(v);
         } else if (std::holds_alternative<qint64>(v)) {
             return std::get<qint64>(v);
         } else {
             auto tk = t->getSymbol();
-            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
-                                 tr("<unknown>"), {"uint64", "int64"});
+            reportNumOutofRangeError(tk->getLine(), tk->getCharPositionInLine(),
+                                     QString::fromStdString(num));
             return defaultResult();
         }
     } else if (ctx->inclusiveOrExpression()) {
@@ -101,6 +115,7 @@ std::any CStructVisitorParser::visitExclusiveOrExpression(
     }
 
     quint64 v = 0;
+    bool isUnsigned = false;
     for (auto &ex : ctx->andExpression()) {
         auto r = visitAndExpression(ex);
         if (r.type() == typeid(qint64)) {
@@ -109,6 +124,7 @@ std::any CStructVisitorParser::visitExclusiveOrExpression(
         } else if (r.type() == typeid(quint64)) {
             auto rv = std::any_cast<quint64>(r);
             v ^= rv;
+            isUnsigned = true;
         } else {
             auto t = ex->start;
             reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
@@ -117,7 +133,7 @@ std::any CStructVisitorParser::visitExclusiveOrExpression(
         }
     }
 
-    return v;
+    return isUnsigned ? v : qint64(v);
 }
 
 std::variant<std::monostate, qint64, quint64>
@@ -177,11 +193,11 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
         }
         auto numberPart = txt.sliced(0, i);
         bool b = false;
-        auto v = numberPart.toLongLong(&b);
+        auto v = numberPart.toLongLong(&b, 0);
         if (b) {
             return v;
         } else {
-            auto v = numberPart.toULongLong(&b);
+            auto v = numberPart.toULongLong(&b, 0);
             if (b) {
                 return v;
             }
@@ -189,6 +205,23 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
     }
 
     return {};
+}
+
+void CStructVisitorParser::reportNumOutofRangeError(size_t line,
+                                                    size_t charPositionInLine,
+                                                    const QString &num) {
+    errlis->reportError(line, charPositionInLine,
+                        tr("\"%1\" is out of range with number").arg(num));
+}
+
+void CStructVisitorParser::reportDupDeclError(size_t line,
+                                              size_t charPositionInLine,
+                                              const QString &var) {
+    auto e = QMetaEnum::fromType<CTypeParser::CType>();
+    errlis->reportError(line, charPositionInLine,
+                        tr("\"%1\" is already declared with type %2")
+                            .arg(var)
+                            .arg(e.valueToKey(int(parser->type(var)))));
 }
 
 void CStructVisitorParser::reportDupError(size_t line,
@@ -228,6 +261,31 @@ void CStructVisitorParser::reportUndeclaredType(size_t line,
                         tr("\"%1\" is unknown type").arg(type));
 }
 
+void CStructVisitorParser::reportArrayOutofLimit(size_t line,
+                                                 size_t charPositionInLine,
+                                                 const QString &name,
+                                                 const QString &iden) {
+
+    errlis->reportError(line, charPositionInLine,
+                        tr("Too large array \"%1\" in %2").arg(name, iden));
+}
+
+void CStructVisitorParser::reportOverflowWarn(size_t line,
+                                              size_t charPositionInLine,
+                                              const QString &op) {
+    errlis->reportWarn(
+        line, charPositionInLine,
+        tr("Operation \"%1\" will cause number overflow").arg(op));
+}
+
+void CStructVisitorParser::reportFiledBitOverflow(size_t line,
+                                                  size_t charPositionInLine,
+                                                  const QString &type,
+                                                  quint64 bit) {
+    errlis->reportError(line, charPositionInLine,
+                        tr("Too many bits(%1) for type %2").arg(bit).arg(type));
+}
+
 CTypeParser::StructResult
 CStructVisitorParser::reportCTypeError(size_t line, size_t charPositionInLine,
                                        CTypeParser::StructResult result,
@@ -237,13 +295,7 @@ CStructVisitorParser::reportCTypeError(size_t line, size_t charPositionInLine,
         // nothing
         break;
     case CTypeParser::StructResult::NameConflict: {
-        auto e = QMetaEnum::fromType<CTypeParser::CType>();
-        errlis->reportError(
-            line, charPositionInLine,
-            tr("\"%1\" is already declared with type %2")
-                .arg(identifier)
-                .arg(e.valueToKey(int(parser->type(identifier)))));
-
+        reportDupDeclError(line, charPositionInLine, identifier);
     } break;
     case CTypeParser::StructResult::DuplicateDefinition:
         reportDupError(line, charPositionInLine, identifier);
@@ -276,7 +328,6 @@ bool CStructVisitorParser::isInteger(const QString &text) {
     case QMetaType::UShort:
     case QMetaType::UChar:
     case QMetaType::SChar:
-    case QMetaType::QChar:
         return true;
     default:
         return false;
@@ -290,6 +341,7 @@ std::any CStructVisitorParser::visitAndExpression(
     }
 
     quint64 v = std::numeric_limits<quint64>::max();
+    bool isUnsigned = false;
     for (auto &ex : ctx->shiftExpression()) {
         auto r = visitShiftExpression(ex);
         if (r.type() == typeid(qint64)) {
@@ -298,6 +350,7 @@ std::any CStructVisitorParser::visitAndExpression(
         } else if (r.type() == typeid(quint64)) {
             auto rv = std::any_cast<quint64>(r);
             v &= rv;
+            isUnsigned = true;
         } else {
             auto t = ex->start;
             reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
@@ -305,7 +358,7 @@ std::any CStructVisitorParser::visitAndExpression(
             return defaultResult();
         }
     }
-    return v;
+    return isUnsigned ? v : qint64(v);
 }
 
 std::any CStructVisitorParser::visitShiftExpression(
@@ -321,7 +374,7 @@ std::any CStructVisitorParser::visitShiftExpression(
         return defaultResult();
     }
 
-    quint64 ret = 0;
+    std::variant<qint64, quint64> ret;
     auto retv = visitAdditiveExpression(data.front());
     if (retv.type() == typeid(qint64)) {
         ret = std::any_cast<qint64>(retv);
@@ -341,10 +394,22 @@ std::any CStructVisitorParser::visitShiftExpression(
         if (op == "<<") {
             if (r.type() == typeid(qint64)) {
                 auto rv = std::any_cast<qint64>(r);
-                ret <<= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v << rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v << rv;
+                }
             } else if (r.type() == typeid(quint64)) {
                 auto rv = std::any_cast<quint64>(r);
-                ret <<= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v << rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v << rv;
+                }
             } else {
                 auto t = ex->start;
                 reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
@@ -354,10 +419,22 @@ std::any CStructVisitorParser::visitShiftExpression(
         } else if (op == ">>") {
             if (r.type() == typeid(qint64)) {
                 auto rv = std::any_cast<qint64>(r);
-                ret >>= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v >> rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v >> rv;
+                }
             } else if (r.type() == typeid(quint64)) {
                 auto rv = std::any_cast<quint64>(r);
-                ret >>= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v >> rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v >> rv;
+                }
             } else {
                 auto t = ex->start;
                 reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
@@ -373,7 +450,11 @@ std::any CStructVisitorParser::visitShiftExpression(
         }
     }
 
-    return ret;
+    if (std::holds_alternative<qint64>(ret)) {
+        return std::get<qint64>(ret);
+    } else {
+        return std::get<quint64>(ret);
+    }
 }
 
 std::any CStructVisitorParser::visitAdditiveExpression(
@@ -389,7 +470,7 @@ std::any CStructVisitorParser::visitAdditiveExpression(
         return defaultResult();
     }
 
-    quint64 ret = 0;
+    std::variant<qint64, quint64> ret;
     auto retv = visitMultiplicativeExpression(data.front());
     if (retv.type() == typeid(qint64)) {
         ret = std::any_cast<qint64>(retv);
@@ -405,13 +486,59 @@ std::any CStructVisitorParser::visitAdditiveExpression(
     for (size_t i = 1; i < total; i++) {
         auto ex = data.at(i);
         auto r = visitMultiplicativeExpression(ex);
-        auto op = ctx->children[2 * i - 1]->getText();
+        auto opSym = ctx->children[2 * i - 1];
+        auto op = opSym->getText();
+        Q_ASSERT(antlr4::tree::TerminalNode::is(opSym));
+        auto osym =
+            reinterpret_cast<antlr4::tree::TerminalNode *>(opSym)->getSymbol();
         if (r.type() == typeid(qint64)) {
             auto rv = std::any_cast<qint64>(r);
             if (op == "+") {
-                ret += rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    qint64 r;
+                    if (qAddOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" + ") +
+                                QString::number(rv));
+                        ret = qint64(v + rv);
+                    } else {
+                        ret = r;
+                    }
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    if (rv < 0) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QStringLiteral(
+                                "implicit cast negtive int64 to uint64"));
+                    }
+                    ret = v + quint64(rv);
+                }
             } else if (op == "-") {
-                ret -= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    qint64 r;
+                    if (qSubOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" - ") +
+                                QString::number(rv));
+                        ret = qint64(v - rv);
+                    } else {
+                        ret = r;
+                    }
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    if (rv < 0) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QStringLiteral(
+                                "implicit cast negtive int64 to uint64"));
+                    }
+                    ret = v - quint64(rv);
+                }
             } else {
                 auto t = ex->start;
                 reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
@@ -422,9 +549,52 @@ std::any CStructVisitorParser::visitAdditiveExpression(
         } else if (r.type() == typeid(quint64)) {
             auto rv = std::any_cast<quint64>(r);
             if (op == "+") {
-                ret += rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    qint64 r;
+                    if (v < 0) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QStringLiteral(
+                                "implicit cast negtive int64 to uint64"));
+                    }
+                    ret = quint64(v) + rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    quint64 r;
+                    if (qAddOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" + ") +
+                                QString::number(rv));
+                        ret = quint64(v + rv);
+                    } else {
+                        ret = r;
+                    }
+                }
             } else if (op == "-") {
-                ret -= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    if (v < 0) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QStringLiteral(
+                                "implicit cast negtive int64 to uint64"));
+                    }
+                    ret = quint64(v) - rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    quint64 r;
+                    if (qSubOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" - ") +
+                                QString::number(rv));
+                        ret = quint64(v - rv);
+                    } else {
+                        ret = r;
+                    }
+                }
             } else {
                 auto t = ex->start;
                 reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
@@ -456,7 +626,7 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
         return defaultResult();
     }
 
-    quint64 ret = 0;
+    std::variant<qint64, quint64> ret;
     auto retv = visitCastExpression(data.front());
     if (retv.type() == typeid(qint64)) {
         ret = std::any_cast<qint64>(retv);
@@ -472,15 +642,56 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
     for (size_t i = 1; i < total; i++) {
         auto ex = data.at(i);
         auto r = visitCastExpression(ex);
-        auto op = ctx->children[2 * i - 1]->getText();
+        auto opSym = ctx->children[2 * i - 1];
+        auto op = opSym->getText();
+        Q_ASSERT(antlr4::tree::TerminalNode::is(opSym));
+        auto osym =
+            reinterpret_cast<antlr4::tree::TerminalNode *>(opSym)->getSymbol();
         if (r.type() == typeid(qint64)) {
             auto rv = std::any_cast<qint64>(r);
             if (op == "*") {
-                ret *= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    qint64 r;
+                    if (qMulOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" * ") +
+                                QString::number(rv));
+                        ret = v * rv;
+                    } else {
+                        ret = r;
+                    }
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    auto rvv = quint64(rv);
+                    quint64 r;
+                    if (qMulOverflow(v, rvv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" * ") +
+                                QString::number(rvv));
+                        ret = v * rvv;
+                    } else {
+                        ret = r;
+                    }
+                }
             } else if (op == "/") {
-                ret /= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v / rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v / rv;
+                }
             } else if (op == "%") {
-                ret %= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v % rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v % rv;
+                }
             } else {
                 auto t = ex->start;
                 reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
@@ -491,11 +702,47 @@ std::any CStructVisitorParser::visitMultiplicativeExpression(
         } else if (r.type() == typeid(quint64)) {
             auto rv = std::any_cast<quint64>(r);
             if (op == "*") {
-                ret *= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = quint64(std::get<qint64>(ret));
+                    quint64 r;
+                    if (qMulOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" * ") +
+                                QString::number(rv));
+                        ret = v * rv;
+                    } else {
+                        ret = r;
+                    }
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    quint64 r;
+                    if (qMulOverflow(v, rv, &r)) {
+                        reportOverflowWarn(
+                            osym->getLine(), osym->getCharPositionInLine(),
+                            QString::number(v) + QStringLiteral(" * ") +
+                                QString::number(rv));
+                        ret = v * rv;
+                    } else {
+                        ret = r;
+                    }
+                }
             } else if (op == "/") {
-                ret /= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v / rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v / rv;
+                }
             } else if (op == "%") {
-                ret %= rv;
+                if (std::holds_alternative<qint64>(ret)) {
+                    auto v = std::get<qint64>(ret);
+                    ret = v % rv;
+                } else {
+                    auto v = std::get<quint64>(ret);
+                    ret = v % rv;
+                }
             } else {
                 auto t = ex->start;
                 reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
@@ -522,19 +769,21 @@ std::any CStructVisitorParser::visitCastExpression(
 
     if (ctx->IntegerConstant()) {
         auto ex = ctx->IntegerConstant();
-        auto r = parseIntegerConstant(ex->getText());
+        auto num = ex->getText();
+        auto r = parseIntegerConstant(num);
         if (std::holds_alternative<quint64>(r)) {
             return std::get<quint64>(r);
         } else if (std::holds_alternative<qint64>(r)) {
             return std::get<qint64>(r);
         } else {
             auto tk = ex->getSymbol();
-            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
-                                 tr("<unknown>"), {"uint64", "int64"});
+            reportNumOutofRangeError(tk->getLine(), tk->getCharPositionInLine(),
+                                     QString::fromStdString(num));
             return defaultResult();
         }
     } else if (ctx->castExpression()) {
         auto tname = QString::fromStdString(ctx->typeName()->getText());
+        auto isUnsigned = parser->isUnsignedBasicType(tname);
         quint64 mask = 0;
         if (parser->isBasicType(tname)) {
             auto size = parser->getTypeSize(tname);
@@ -575,10 +824,10 @@ std::any CStructVisitorParser::visitCastExpression(
         if (r.has_value()) {
             if (r.type() == typeid(qint64)) {
                 auto v = std::any_cast<qint64>(r);
-                return v & mask;
+                return (isUnsigned ? quint64(v) : v) & mask;
             } else if (r.type() == typeid(quint64)) {
                 auto v = std::any_cast<quint64>(r);
-                return v & mask;
+                return (isUnsigned ? v : qint64(v)) & mask;
             }
         }
     } else if (ctx->unaryExpression()) {
@@ -606,11 +855,49 @@ std::any CStructVisitorParser::visitUnaryExpression(
         if (r.type() == typeid(quint64)) {
             auto v = std::any_cast<quint64>(r);
             if (op->Minus()) {
-                return -v + leftCount;
+                auto sym = op->Minus()->getSymbol();
+                if (v < 0) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QStringLiteral("make unsigned number negative"));
+                }
+                v = -v;
+                quint64 r;
+                sym = ctx->getStart();
+                if (qAddOverflow(v, leftCount, &r)) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QString::number(v) + QStringLiteral("(++/--): ") +
+                            QString::number(leftCount));
+                    return v + leftCount;
+                } else {
+                    return r;
+                }
             } else if (op->Plus()) {
-                return +v + leftCount;
+                quint64 r;
+                auto sym = ctx->getStart();
+                if (qAddOverflow(v, leftCount, &r)) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QString::number(v) + QStringLiteral("(++/--): ") +
+                            QString::number(leftCount));
+                    return v + leftCount;
+                } else {
+                    return r;
+                }
             } else if (op->Tilde()) {
-                return ~v + leftCount;
+                v = ~v;
+                quint64 r;
+                auto sym = ctx->getStart();
+                if (qAddOverflow(v, leftCount, &r)) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QString::number(v) + QStringLiteral("(++/--): ") +
+                            QString::number(leftCount));
+                    return v + leftCount;
+                } else {
+                    return r;
+                }
             } else {
                 auto t = op->start;
                 reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
@@ -620,12 +907,50 @@ std::any CStructVisitorParser::visitUnaryExpression(
             }
         } else if (r.type() == typeid(qint64)) {
             auto v = std::any_cast<qint64>(r);
+            auto sym = ctx->getStart();
+            auto rv = qint64(leftCount);
+            if (rv < 0) {
+                reportOverflowWarn(
+                    sym->getLine(), sym->getCharPositionInLine(),
+                    QStringLiteral("too many incremental operation"));
+            }
+
             if (op->Minus()) {
-                return -v + leftCount;
+                qint64 r;
+                v = -v;
+                if (qAddOverflow(v, rv, &r)) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QString::number(v) + QStringLiteral("(++/--): ") +
+                            QString::number(leftCount));
+                    return v + leftCount;
+                } else {
+                    return r;
+                }
             } else if (op->Plus()) {
-                return +v + leftCount;
+                qint64 r;
+                if (qAddOverflow(v, rv, &r)) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QString::number(v) + QStringLiteral("(++/--): ") +
+                            QString::number(leftCount));
+                    return v + leftCount;
+                } else {
+                    return r;
+                }
             } else if (op->Tilde()) {
-                return ~v + leftCount;
+                v = ~v;
+                qint64 r;
+                auto sym = ctx->getStart();
+                if (qAddOverflow(v, rv, &r)) {
+                    reportOverflowWarn(
+                        sym->getLine(), sym->getCharPositionInLine(),
+                        QString::number(v) + QStringLiteral("(++/--): ") +
+                            QString::number(leftCount));
+                    return v + leftCount;
+                } else {
+                    return r;
+                }
             } else {
                 auto t = op->start;
                 reportUnexpectedToken(t->getLine(), t->getCharPositionInLine(),
@@ -656,14 +981,37 @@ std::any CStructVisitorParser::visitPostfixExpression(
     auto addCount = ctx->PlusPlus().size();
     auto leftCount = addCount - minCount;
 
+    auto sym = ctx->getStart();
     if (r.type() == typeid(quint64)) {
         auto v = std::any_cast<quint64>(r);
-        v += leftCount;
-        return v;
+        quint64 r;
+        if (qAddOverflow(v, leftCount, &r)) {
+            reportOverflowWarn(sym->getLine(), sym->getCharPositionInLine(),
+                               QString::number(v) +
+                                   QStringLiteral("(++/--): ") +
+                                   QString::number(leftCount));
+            return v + leftCount;
+        } else {
+            return v;
+        }
     } else if (r.type() == typeid(qint64)) {
         auto v = std::any_cast<qint64>(r);
-        v += leftCount;
-        return v;
+        auto rv = qint64(leftCount);
+        qint64 r;
+        if (rv < 0) {
+            reportOverflowWarn(
+                sym->getLine(), sym->getCharPositionInLine(),
+                QStringLiteral("too many incremental operation"));
+        }
+        if (qAddOverflow(v, rv, &r)) {
+            reportOverflowWarn(sym->getLine(), sym->getCharPositionInLine(),
+                               QString::number(v) +
+                                   QStringLiteral("(++/--): ") +
+                                   QString::number(leftCount));
+            return v + leftCount;
+        } else {
+            return r;
+        }
     } else {
         auto tk = ctx->primaryExpression()->start;
         reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
@@ -680,16 +1028,16 @@ std::any CStructVisitorParser::visitPrimaryExpression(
 
     if (ctx->IntegerConstant()) {
         auto t = ctx->IntegerConstant();
-        auto r = parseIntegerConstant(t->getText());
+        auto num = t->getText();
+        auto r = parseIntegerConstant(num);
         if (std::holds_alternative<quint64>(r)) {
             return std::get<quint64>(r);
         } else if (std::holds_alternative<qint64>(r)) {
             return std::get<qint64>(r);
         } else {
             auto tk = t->getSymbol();
-            reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
-                                 QStringLiteral("<unknown>"),
-                                 {"uint64", "int64"});
+            reportNumOutofRangeError(tk->getLine(), tk->getCharPositionInLine(),
+                                     QString::fromStdString(num));
             return defaultResult();
         }
     } else if (ctx->Identifier()) {
@@ -766,6 +1114,7 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
     if (ctx->DirectiveInclude()) {
         auto tdinc = ctx->DirectiveInclude();
         def = tdinc->getText();
+        auto t = tdinc->getSymbol();
 
         constexpr auto prefixLen = std::char_traits<char>::length("#include");
         antlr4::ANTLRInputStream input(def.data() + prefixLen,
@@ -773,8 +1122,10 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
         CStructLexer lexer(&input);
         antlr4::CommonTokenStream tokens(&lexer);
 
+        QScopeGuard guard([this]() { errlis->resetPositionOffset(); });
+        errlis->setPositionOffset(t->getLine() - 1, prefixLen);
+
         tokens.fill();
-        auto t = tdinc->getSymbol();
 
         if (tokens.size() == 2) {
             if (tokens.get(1)->getType() != CStructLexer::EOF) {
@@ -850,14 +1201,18 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
         CStructLexer lexer(&input);
         antlr4::CommonTokenStream tokens(&lexer);
 
+        QScopeGuard guard([this]() { errlis->resetPositionOffset(); });
+        errlis->setPositionOffset(t->getLine() - 1, prefixLen);
+
         tokens.fill();
         auto ts = tokens.getTokens();
-        auto identifer = ts.front()->getText();
+        t = ts.front();
+        auto identifer = t->getText();
 
         auto dname = QString::fromStdString(identifer);
         if (parser->containsType(dname)) {
             // report error
-            reportDupError(t->getLine(), t->getCharPositionInLine(), dname);
+            reportDupDeclError(t->getLine(), t->getCharPositionInLine(), dname);
             return defaultResult();
         }
 
@@ -907,7 +1262,7 @@ CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
         if (parser->containsType(iden)) {
             // error report
             auto t = ex->getSymbol();
-            reportDupError(t->getLine(), t->getCharPositionInLine(), iden);
+            reportDupDeclError(t->getLine(), t->getCharPositionInLine(), iden);
             return defaultResult();
         }
 
@@ -1018,27 +1373,24 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
                     // anonymous? I will give you a name!
                     en->first =
                         QString::number(parser->generateAnomyID()).prepend('?');
-                    // TODO
                 }
                 sq.tname = en->first;
 
                 // store it
-                parser->defineEnum(en->first, en->second);
-
+                auto sym = iden->getSymbol();
+                auto ret = reportCTypeError(
+                    sym->getLine(), sym->getCharPositionInLine(),
+                    parser->defineEnum(en->first, en->second), en->first);
+                if (ret != CTypeParser::StructResult::Ok) {
+                    return std::nullopt;
+                }
             } else {
-                // error occurred
+                // error occurred, reported in parseEnum
                 return std::nullopt;
             }
         } else {
             // iden can not be nullptr
-            auto name = QString::fromStdString(iden->getText());
-            if (!parser->containsEnum(name)) {
-                auto t = iden->getSymbol();
-                reportUndeclaredType(t->getLine(), t->getCharPositionInLine(),
-                                     name);
-                return std::nullopt;
-            }
-            sq.tname = name;
+            sq.tname = QString::fromStdString(iden->getText());
         }
     } else if (ctx->structOrUnionSpecifier()) {
         sq.type = StructMemType::Struct;
@@ -1051,38 +1403,31 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
                 if (st->name.isEmpty()) {
                     st->name =
                         QString::number(parser->generateAnomyID()).prepend('?');
-                    // Q_ASSERT(!parser->type_maps_.contains(st->name));
                 }
 
                 sq.tname = st->name;
                 // store it
-                parser->defineStructOrUnion(st->isStruct, st->name, st->members,
-                                            st->alignment);
+                auto sym = iden->getSymbol();
+                auto ret = reportCTypeError(
+                    sym->getLine(), sym->getCharPositionInLine(),
+                    parser->defineStructOrUnion(st->isStruct, st->name,
+                                                st->members, st->alignment),
+                    sq.tname);
+                if (ret != CTypeParser::StructResult::Ok) {
+                    return std::nullopt;
+                }
             } else {
-                // error occurred
+                // error occurred, reported in parseStructOrUnion
                 return std::nullopt;
             }
         } else {
             // iden can not be nullptr
-            auto name = QString::fromStdString(iden->getText());
-            if (sus->structOrUnion()->Struct()) {
-                if (!parser->containsStruct(name)) {
-                    auto t = iden->getSymbol();
-                    reportUndeclaredType(t->getLine(),
-                                         t->getCharPositionInLine(), name);
-                    return std::nullopt;
-                }
-            } else {
-                if (!parser->containsUnion(name)) {
-                    auto t = iden->getSymbol();
-                    reportUndeclaredType(t->getLine(),
-                                         t->getCharPositionInLine(), name);
-                    return std::nullopt;
-                }
-            }
-            sq.tname = name;
+            sq.tname = QString::fromStdString(iden->getText());
         }
     } else {
+        auto sym = ctx->getStart();
+        errlis->reportError(sym->getLine(), sym->getCharPositionInLine(),
+                            tr("Unknown type of specifier"));
         return std::nullopt;
     }
 
@@ -1101,6 +1446,23 @@ QString CStructVisitorParser::getFinalDeclaratorName(
         ctx = ctx->directDeclarator();
     }
     return {};
+}
+
+std::optional<size_t>
+CStructVisitorParser::safeMultiply(const QVector<size_t> &vec) {
+    if (vec.isEmpty()) {
+        return 0;
+    }
+
+    size_t result = 1;
+    for (const auto &value : vec) {
+        size_t temp;
+        if (qMulOverflow(result, value, &temp)) {
+            return std::nullopt;
+        }
+        result = temp;
+    }
+    return result;
 }
 
 std::optional<CStructVisitorParser::Declarator>
@@ -1125,12 +1487,14 @@ CStructVisitorParser::getDeclarator(
             dor.retName = getFinalDeclaratorName(d->directDeclarator());
             dor.isPointer = true;
         } else {
-            // TODO
+            auto sym = d->getStart();
+            reportSyntaxDeclError(sym->getLine(), sym->getCharPositionInLine());
             return std::nullopt;
         }
     } else if (ctx->assignmentExpression()) {
         // array
-        auto r = visitAssignmentExpression(ctx->assignmentExpression());
+        auto sym = ctx->assignmentExpression();
+        auto r = visitAssignmentExpression(sym);
         if (r.type() == typeid(quint64)) {
             auto v = std::any_cast<quint64>(r);
             dor.arrayCount = v;
@@ -1138,14 +1502,16 @@ CStructVisitorParser::getDeclarator(
             auto v = std::any_cast<qint64>(r);
             dor.arrayCount = v;
         } else {
-            auto t = ctx->assignmentExpression()->start;
+            auto t = sym->getStart();
             reportUnexpectedType(t->getLine(), t->getCharPositionInLine(),
                                  tr("<unknown>"), {"uint64", "int64"});
             return std::nullopt;
         }
         dor.next = ctx->directDeclarator();
     } else {
-        // TODO
+        auto sym = ctx->getStart();
+        errlis->reportError(sym->getLine(), sym->getCharPositionInLine(),
+                            tr("Unknown type of declarator"));
         return std::nullopt;
     }
 
@@ -1174,22 +1540,41 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
     auto mems = ctx->structDeclarationList();
     Q_ASSERT(mems);
 
-    if (ctx->Identifier()) {
-        decl.name = QString::fromStdString(ctx->Identifier()->getText());
+    auto name = ctx->Identifier();
+    if (name) {
+        auto decl_name = QString::fromStdString(name->getText());
+        decl.name = decl_name;
         if (parser->containsType(decl.name)) {
+            auto sym = name->getSymbol();
+            reportDupDeclError(sym->getLine(), sym->getCharPositionInLine(),
+                               decl_name);
             return std::nullopt;
         }
     }
 
     if (ctx->alignAsAttr()) {
-        auto num = parseIntegerConstant(
-            ctx->alignAsAttr()->IntegerConstant()->getText());
+        auto integer = ctx->alignAsAttr()->IntegerConstant();
+        auto numstr = integer->getText();
+        auto num = parseIntegerConstant(numstr);
 
         int v = 0;
+        constexpr auto lmax = std::numeric_limits<int>::max();
         if (std::holds_alternative<quint64>(num)) {
-            v = std::get<quint64>(num);
+            auto r = std::get<quint64>(num);
+            if (r > lmax) {
+                v = 0;
+            } else {
+                v = r;
+            }
         } else if (std::holds_alternative<qint64>(num)) {
-            v = std::get<qint64>(num);
+            auto r = std::get<qint64>(num);
+            if (r > lmax) {
+                v = 0;
+            } else {
+                v = r;
+            }
+        } else {
+            v = 0;
         }
 
         if (v) {
@@ -1200,9 +1585,13 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
             }
         } else {
             // report warning and ignored
+            auto sym = integer->getSymbol();
+            errlis->reportWarn(sym->getLine(), sym->getCharPositionInLine(),
+                               tr("Unsupported alignas value: %1 , "
+                                  "supported alignas = {1, 2, 4, 8, 16}")
+                                   .arg(QString::fromStdString(numstr)));
             decl.alignment = parser->padAlignment();
         }
-
     } else {
         decl.alignment = parser->padAlignment();
     }
@@ -1225,19 +1614,42 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                 if (declor) {
                     // bit field
                     if (sub->Colon()) {
+                        auto sym = m->getStart();
+
                         if (!isInteger(dl->tname)) {
+                            errlis->reportError(sym->getLine(),
+                                                sym->getCharPositionInLine(),
+                                                tr("Only bit field feature of "
+                                                   "completed numberic types "
+                                                   "is supported"));
                             return std::nullopt;
                         }
 
+                        auto tbits = parser->getTypeSize(dl->tname) * 8;
                         auto bits = visitAssignmentExpression(
                             sub->assignmentExpression());
                         if (bits.type() == typeid(quint64)) {
                             auto b = std::any_cast<quint64>(bits);
+                            if (b > tbits) {
+                                reportFiledBitOverflow(
+                                    sym->getLine(),
+                                    sym->getCharPositionInLine(), dl->tname, b);
+                                return std::nullopt;
+                            }
                             var.bit_size = b;
                         } else if (bits.type() == typeid(qint64)) {
                             auto b = std::any_cast<qint64>(bits);
+                            if (b > tbits) {
+                                reportFiledBitOverflow(
+                                    sym->getLine(),
+                                    sym->getCharPositionInLine(), dl->tname, b);
+                                return std::nullopt;
+                            }
                             var.bit_size = b;
                         } else {
+                            reportUnexpectedType(
+                                sym->getLine(), sym->getCharPositionInLine(),
+                                tr("<unknown>"), {"uint64", "int64"});
                             return std::nullopt;
                         }
                     }
@@ -1247,6 +1659,10 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                         var.is_pointer = true;
                         var.var_name = getFinalDeclaratorName(d);
                         if (used_names.contains(var.var_name)) {
+                            auto sym = d->getStart();
+                            reportDupError(sym->getLine(),
+                                           sym->getCharPositionInLine(),
+                                           var.var_name);
                             return std::nullopt;
                         }
 
@@ -1280,6 +1696,10 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                                 }
                                 var.var_name = getFinalDeclaratorName(d);
                                 if (used_names.contains(var.var_name)) {
+                                    auto sym = d->getStart();
+                                    reportDupError(sym->getLine(),
+                                                   sym->getCharPositionInLine(),
+                                                   var.var_name);
                                     return std::nullopt;
                                 }
                                 if (var.var_size) {
@@ -1287,40 +1707,81 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                                 } else {
                                     var.array_dims = {0};
                                 }
-                                decl.members.append(var);
-
-                                if (!var.var_name.isEmpty()) {
-                                    used_names.append(var.var_name);
-                                }
                             } else {
                                 var.var_name = info->retName;
                                 if (used_names.contains(var.var_name)) {
+                                    auto sym = d->getStart();
+                                    reportDupError(sym->getLine(),
+                                                   sym->getCharPositionInLine(),
+                                                   var.var_name);
                                     return std::nullopt;
                                 }
-                                decl.members.append(var);
+                            }
 
-                                if (!var.var_name.isEmpty()) {
-                                    used_names.append(var.var_name);
-                                }
+                            auto ec = safeMultiply(dims);
+                            if (ec) {
+                                var.element_count = ec.value();
+                            } else {
+                                auto sym = d->getStart();
+                                reportArrayOutofLimit(
+                                    sym->getLine(),
+                                    sym->getCharPositionInLine(),
+                                    (var.var_name.isEmpty()
+                                         ? QStringLiteral("?")
+                                         : var.var_name),
+                                    decl.name);
+                                return std::nullopt;
+                            }
+
+                            decl.members.append(var);
+
+                            if (!var.var_name.isEmpty()) {
+                                used_names.append(var.var_name);
                             }
                         } else {
+                            // error occurred, reported in getDeclarator
                             return std::nullopt;
                         }
                     }
                 } else {
                     // must be bit field
                     var.var_name.clear();
+                    auto sym = m->getStart();
+                    if (!isInteger(dl->tname)) {
+                        errlis->reportError(sym->getLine(),
+                                            sym->getCharPositionInLine(),
+                                            tr("Only bit field feature of "
+                                               "completed numberic types "
+                                               "is supported"));
+                        return std::nullopt;
+                    }
 
+                    auto tbits = parser->getTypeSize(dl->tname) * 8;
                     auto bits =
                         visitAssignmentExpression(sub->assignmentExpression());
                     if (bits.type() == typeid(quint64)) {
                         auto b = std::any_cast<quint64>(bits);
+                        if (b > tbits) {
+                            reportFiledBitOverflow(sym->getLine(),
+                                                   sym->getCharPositionInLine(),
+                                                   dl->tname, b);
+                            return std::nullopt;
+                        }
                         var.bit_size = b;
                     } else if (bits.type() == typeid(qint64)) {
                         auto b = std::any_cast<qint64>(bits);
+                        if (b > tbits) {
+                            reportFiledBitOverflow(sym->getLine(),
+                                                   sym->getCharPositionInLine(),
+                                                   dl->tname, b);
+                            return std::nullopt;
+                        }
                         var.bit_size = b;
+                    } else {
+                        reportUnexpectedType(
+                            sym->getLine(), sym->getCharPositionInLine(),
+                            tr("<unknown>"), {"uint64", "int64"});
                     }
-
                     decl.members.append(var);
                 }
             }
@@ -1338,6 +1799,7 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
 
     auto name = ctx->Identifier();
     auto enums = ctx->enumeratorList();
+    Q_ASSERT(enums);
 
     QString decl_name;
     QHash<QString, qint64> decl_enums;
@@ -1345,51 +1807,56 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
     if (name) {
         decl_name = QString::fromStdString(name->getText());
         if (parser->containsType(decl_name)) {
+            auto sym = name->getSymbol();
+            reportDupDeclError(sym->getLine(), sym->getCharPositionInLine(),
+                               decl_name);
             return std::nullopt;
         }
     }
 
     int i = 0;
 
-    if (enums) {
-        auto es = enums->enumerator();
+    auto es = enums->enumerator();
 
-        for (auto &e : es) {
-            QString name;
+    for (auto &e : es) {
+        QString name;
 
-            auto en = e->enumerationConstant();
-            if (en) {
-                name = QString::fromStdString(en->getText());
-                if (decl_enums.contains(name)) {
-                    // report
-                    return std::nullopt;
-                }
-            } else {
-                // report error
+        auto en = e->enumerationConstant();
+        if (en) {
+            auto sym = en->Identifier()->getSymbol();
+            name = QString::fromStdString(sym->getText());
+            if (decl_enums.contains(name)) {
+                reportDupError(sym->getLine(), sym->getCharPositionInLine(),
+                               name);
                 return std::nullopt;
             }
-
-            auto value = e->assignmentExpression();
-            if (value) {
-                auto v = visitAssignmentExpression(value);
-                if (v.type() == typeid(qint64)) {
-                    i = std::any_cast<qint64>(v);
-                } else if (v.type() == typeid(quint64)) {
-                    i = qint64(std::any_cast<quint64>(v));
-                } else {
-                    // report error
-                    return std::nullopt;
-                }
-            }
-
-            decl_enums.insert(name, i);
-            i++;
+        } else {
+            auto sym = enums->getStart();
+            reportSyntaxDeclError(sym->getLine(), sym->getCharPositionInLine());
+            return std::nullopt;
         }
 
-        return qMakePair(decl_name, decl_enums);
-    } else {
-        // report warn
+        auto value = e->assignmentExpression();
+        if (value) {
+            auto v = visitAssignmentExpression(value);
+            if (v.type() == typeid(qint64)) {
+                i = std::any_cast<qint64>(v);
+            } else if (v.type() == typeid(quint64)) {
+                auto tk = value->getStart();
+                reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                     QStringLiteral("uint64"), {"int64"});
+                return std::nullopt;
+            } else {
+                auto tk = value->getStart();
+                reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
+                                     QStringLiteral("<unknown>"), {"int64"});
+                return std::nullopt;
+            }
+        }
 
-        return std::nullopt;
+        decl_enums.insert(name, i);
+        i++;
     }
+
+    return qMakePair(decl_name, decl_enums);
 }
