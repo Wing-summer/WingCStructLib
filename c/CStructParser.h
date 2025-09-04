@@ -413,10 +413,10 @@ public:
     virtual size_t getRuleIndex() const override;
     StructOrUnionContext *structOrUnion();
     antlr4::tree::TerminalNode *LeftBrace();
-    StructDeclarationListContext *structDeclarationList();
     antlr4::tree::TerminalNode *RightBrace();
     AlignAsAttrContext *alignAsAttr();
     antlr4::tree::TerminalNode *Identifier();
+    StructDeclarationListContext *structDeclarationList();
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;

@@ -85,7 +85,7 @@ void cstructParserInitialize() {
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,53,426,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,53,428,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,
   	14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,
   	21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,2,27,7,27,2,28,7,
@@ -103,65 +103,65 @@ void cstructParserInitialize() {
   	9,12,1,13,1,13,5,13,212,8,13,10,13,12,13,215,9,13,1,13,1,13,1,14,1,14,
   	3,14,221,8,14,1,15,1,15,1,15,1,15,1,15,1,15,3,15,229,8,15,1,15,1,15,1,
   	15,3,15,234,8,15,1,16,1,16,3,16,238,8,16,1,17,1,17,1,17,1,17,1,17,3,17,
-  	245,8,17,1,18,1,18,3,18,249,8,18,1,18,3,18,252,8,18,1,18,1,18,1,18,1,
-  	18,1,18,1,18,1,18,3,18,261,8,18,1,19,1,19,1,20,1,20,1,20,1,20,1,20,1,
-  	21,4,21,271,8,21,11,21,12,21,272,1,22,1,22,1,22,1,22,1,22,1,22,1,22,3,
-  	22,282,8,22,1,23,3,23,285,8,23,1,23,1,23,3,23,289,8,23,1,24,1,24,1,24,
-  	5,24,294,8,24,10,24,12,24,297,9,24,1,25,1,25,3,25,301,8,25,1,25,1,25,
-  	3,25,305,8,25,1,26,1,26,3,26,309,8,26,1,26,1,26,1,26,3,26,314,8,26,1,
-  	26,1,26,1,26,1,26,3,26,320,8,26,1,27,1,27,1,27,5,27,325,8,27,10,27,12,
-  	27,328,9,27,1,28,1,28,1,28,3,28,333,8,28,1,29,1,29,1,30,3,30,338,8,30,
-  	1,30,1,30,1,31,1,31,1,31,1,31,1,31,1,31,1,31,3,31,349,8,31,1,31,1,31,
-  	1,31,1,31,1,31,5,31,356,8,31,10,31,12,31,359,9,31,1,32,1,32,3,32,363,
-  	8,32,4,32,365,8,32,11,32,12,32,366,1,33,1,33,1,33,5,33,372,8,33,10,33,
-  	12,33,375,9,33,1,34,1,34,3,34,379,8,34,1,35,1,35,3,35,383,8,35,1,35,3,
-  	35,386,8,35,1,36,1,36,1,36,1,36,1,36,1,36,1,36,1,36,1,36,3,36,397,8,36,
-  	1,36,1,36,1,36,1,36,1,36,5,36,404,8,36,10,36,12,36,407,9,36,1,37,3,37,
-  	410,8,37,1,37,1,37,1,38,4,38,415,8,38,11,38,12,38,416,1,39,1,39,1,39,
-  	3,39,422,8,39,1,40,1,40,1,40,0,2,62,72,41,0,2,4,6,8,10,12,14,16,18,20,
-  	22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,
-  	68,70,72,74,76,78,80,0,9,3,0,2,2,7,8,12,12,2,0,13,13,16,16,2,0,28,28,
-  	30,30,3,0,27,27,29,29,37,37,1,0,31,33,2,0,27,27,29,29,1,0,25,26,1,0,14,
-  	15,2,0,44,44,46,47,451,0,114,1,0,0,0,2,116,1,0,0,0,4,129,1,0,0,0,6,131,
-  	1,0,0,0,8,141,1,0,0,0,10,150,1,0,0,0,12,159,1,0,0,0,14,161,1,0,0,0,16,
-  	169,1,0,0,0,18,177,1,0,0,0,20,185,1,0,0,0,22,193,1,0,0,0,24,201,1,0,0,
-  	0,26,209,1,0,0,0,28,220,1,0,0,0,30,233,1,0,0,0,32,237,1,0,0,0,34,244,
-  	1,0,0,0,36,260,1,0,0,0,38,262,1,0,0,0,40,264,1,0,0,0,42,270,1,0,0,0,44,
-  	281,1,0,0,0,46,284,1,0,0,0,48,290,1,0,0,0,50,304,1,0,0,0,52,319,1,0,0,
-  	0,54,321,1,0,0,0,56,329,1,0,0,0,58,334,1,0,0,0,60,337,1,0,0,0,62,348,
-  	1,0,0,0,64,364,1,0,0,0,66,368,1,0,0,0,68,376,1,0,0,0,70,385,1,0,0,0,72,
-  	396,1,0,0,0,74,409,1,0,0,0,76,414,1,0,0,0,78,421,1,0,0,0,80,423,1,0,0,
-  	0,82,84,3,2,1,0,83,82,1,0,0,0,83,84,1,0,0,0,84,86,1,0,0,0,85,87,5,3,0,
-  	0,86,85,1,0,0,0,86,87,1,0,0,0,87,88,1,0,0,0,88,115,7,0,0,0,89,91,7,0,
-  	0,0,90,92,5,3,0,0,91,90,1,0,0,0,91,92,1,0,0,0,92,94,1,0,0,0,93,95,3,2,
-  	1,0,94,93,1,0,0,0,94,95,1,0,0,0,95,115,1,0,0,0,96,98,3,2,1,0,97,96,1,
-  	0,0,0,97,98,1,0,0,0,98,100,1,0,0,0,99,101,5,3,0,0,100,99,1,0,0,0,100,
-  	101,1,0,0,0,101,102,1,0,0,0,102,103,5,8,0,0,103,115,5,8,0,0,104,105,5,
-  	8,0,0,105,107,5,8,0,0,106,108,5,3,0,0,107,106,1,0,0,0,107,108,1,0,0,0,
-  	108,110,1,0,0,0,109,111,3,2,1,0,110,109,1,0,0,0,110,111,1,0,0,0,111,115,
-  	1,0,0,0,112,115,5,6,0,0,113,115,5,4,0,0,114,83,1,0,0,0,114,89,1,0,0,0,
-  	114,97,1,0,0,0,114,104,1,0,0,0,114,112,1,0,0,0,114,113,1,0,0,0,115,1,
-  	1,0,0,0,116,117,7,1,0,0,117,3,1,0,0,0,118,130,5,41,0,0,119,130,5,42,0,
-  	0,120,121,5,19,0,0,121,122,3,28,14,0,122,123,5,20,0,0,123,130,1,0,0,0,
-  	124,125,5,11,0,0,125,126,5,19,0,0,126,127,3,46,23,0,127,128,5,20,0,0,
-  	128,130,1,0,0,0,129,118,1,0,0,0,129,119,1,0,0,0,129,120,1,0,0,0,129,124,
-  	1,0,0,0,130,5,1,0,0,0,131,135,3,4,2,0,132,134,7,2,0,0,133,132,1,0,0,0,
-  	134,137,1,0,0,0,135,133,1,0,0,0,135,136,1,0,0,0,136,7,1,0,0,0,137,135,
-  	1,0,0,0,138,140,7,2,0,0,139,138,1,0,0,0,140,143,1,0,0,0,141,139,1,0,0,
-  	0,141,142,1,0,0,0,142,148,1,0,0,0,143,141,1,0,0,0,144,149,3,6,3,0,145,
-  	146,3,10,5,0,146,147,3,12,6,0,147,149,1,0,0,0,148,144,1,0,0,0,148,145,
-  	1,0,0,0,149,9,1,0,0,0,150,151,7,3,0,0,151,11,1,0,0,0,152,153,5,19,0,0,
-  	153,154,3,68,34,0,154,155,5,20,0,0,155,156,3,12,6,0,156,160,1,0,0,0,157,
-  	160,3,8,4,0,158,160,5,42,0,0,159,152,1,0,0,0,159,157,1,0,0,0,159,158,
-  	1,0,0,0,160,13,1,0,0,0,161,166,3,12,6,0,162,163,7,4,0,0,163,165,3,12,
-  	6,0,164,162,1,0,0,0,165,168,1,0,0,0,166,164,1,0,0,0,166,167,1,0,0,0,167,
-  	15,1,0,0,0,168,166,1,0,0,0,169,174,3,14,7,0,170,171,7,5,0,0,171,173,3,
-  	14,7,0,172,170,1,0,0,0,173,176,1,0,0,0,174,172,1,0,0,0,174,175,1,0,0,
-  	0,175,17,1,0,0,0,176,174,1,0,0,0,177,182,3,16,8,0,178,179,7,6,0,0,179,
-  	181,3,16,8,0,180,178,1,0,0,0,181,184,1,0,0,0,182,180,1,0,0,0,182,183,
-  	1,0,0,0,183,19,1,0,0,0,184,182,1,0,0,0,185,190,3,18,9,0,186,187,5,34,
-  	0,0,187,189,3,18,9,0,188,186,1,0,0,0,189,192,1,0,0,0,190,188,1,0,0,0,
-  	190,191,1,0,0,0,191,21,1,0,0,0,192,190,1,0,0,0,193,198,3,20,10,0,194,
+  	245,8,17,1,18,1,18,3,18,249,8,18,1,18,3,18,252,8,18,1,18,1,18,3,18,256,
+  	8,18,1,18,1,18,1,18,1,18,1,18,3,18,263,8,18,1,19,1,19,1,20,1,20,1,20,
+  	1,20,1,20,1,21,4,21,273,8,21,11,21,12,21,274,1,22,1,22,1,22,1,22,1,22,
+  	1,22,1,22,3,22,284,8,22,1,23,3,23,287,8,23,1,23,1,23,3,23,291,8,23,1,
+  	24,1,24,1,24,5,24,296,8,24,10,24,12,24,299,9,24,1,25,1,25,3,25,303,8,
+  	25,1,25,1,25,3,25,307,8,25,1,26,1,26,3,26,311,8,26,1,26,1,26,1,26,3,26,
+  	316,8,26,1,26,1,26,1,26,1,26,3,26,322,8,26,1,27,1,27,1,27,5,27,327,8,
+  	27,10,27,12,27,330,9,27,1,28,1,28,1,28,3,28,335,8,28,1,29,1,29,1,30,3,
+  	30,340,8,30,1,30,1,30,1,31,1,31,1,31,1,31,1,31,1,31,1,31,3,31,351,8,31,
+  	1,31,1,31,1,31,1,31,1,31,5,31,358,8,31,10,31,12,31,361,9,31,1,32,1,32,
+  	3,32,365,8,32,4,32,367,8,32,11,32,12,32,368,1,33,1,33,1,33,5,33,374,8,
+  	33,10,33,12,33,377,9,33,1,34,1,34,3,34,381,8,34,1,35,1,35,3,35,385,8,
+  	35,1,35,3,35,388,8,35,1,36,1,36,1,36,1,36,1,36,1,36,1,36,1,36,1,36,3,
+  	36,399,8,36,1,36,1,36,1,36,1,36,1,36,5,36,406,8,36,10,36,12,36,409,9,
+  	36,1,37,3,37,412,8,37,1,37,1,37,1,38,4,38,417,8,38,11,38,12,38,418,1,
+  	39,1,39,1,39,3,39,424,8,39,1,40,1,40,1,40,0,2,62,72,41,0,2,4,6,8,10,12,
+  	14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,
+  	60,62,64,66,68,70,72,74,76,78,80,0,9,3,0,2,2,7,8,12,12,2,0,13,13,16,16,
+  	2,0,28,28,30,30,3,0,27,27,29,29,37,37,1,0,31,33,2,0,27,27,29,29,1,0,25,
+  	26,1,0,14,15,2,0,44,44,46,47,454,0,114,1,0,0,0,2,116,1,0,0,0,4,129,1,
+  	0,0,0,6,131,1,0,0,0,8,141,1,0,0,0,10,150,1,0,0,0,12,159,1,0,0,0,14,161,
+  	1,0,0,0,16,169,1,0,0,0,18,177,1,0,0,0,20,185,1,0,0,0,22,193,1,0,0,0,24,
+  	201,1,0,0,0,26,209,1,0,0,0,28,220,1,0,0,0,30,233,1,0,0,0,32,237,1,0,0,
+  	0,34,244,1,0,0,0,36,262,1,0,0,0,38,264,1,0,0,0,40,266,1,0,0,0,42,272,
+  	1,0,0,0,44,283,1,0,0,0,46,286,1,0,0,0,48,292,1,0,0,0,50,306,1,0,0,0,52,
+  	321,1,0,0,0,54,323,1,0,0,0,56,331,1,0,0,0,58,336,1,0,0,0,60,339,1,0,0,
+  	0,62,350,1,0,0,0,64,366,1,0,0,0,66,370,1,0,0,0,68,378,1,0,0,0,70,387,
+  	1,0,0,0,72,398,1,0,0,0,74,411,1,0,0,0,76,416,1,0,0,0,78,423,1,0,0,0,80,
+  	425,1,0,0,0,82,84,3,2,1,0,83,82,1,0,0,0,83,84,1,0,0,0,84,86,1,0,0,0,85,
+  	87,5,3,0,0,86,85,1,0,0,0,86,87,1,0,0,0,87,88,1,0,0,0,88,115,7,0,0,0,89,
+  	91,7,0,0,0,90,92,5,3,0,0,91,90,1,0,0,0,91,92,1,0,0,0,92,94,1,0,0,0,93,
+  	95,3,2,1,0,94,93,1,0,0,0,94,95,1,0,0,0,95,115,1,0,0,0,96,98,3,2,1,0,97,
+  	96,1,0,0,0,97,98,1,0,0,0,98,100,1,0,0,0,99,101,5,3,0,0,100,99,1,0,0,0,
+  	100,101,1,0,0,0,101,102,1,0,0,0,102,103,5,8,0,0,103,115,5,8,0,0,104,105,
+  	5,8,0,0,105,107,5,8,0,0,106,108,5,3,0,0,107,106,1,0,0,0,107,108,1,0,0,
+  	0,108,110,1,0,0,0,109,111,3,2,1,0,110,109,1,0,0,0,110,111,1,0,0,0,111,
+  	115,1,0,0,0,112,115,5,6,0,0,113,115,5,4,0,0,114,83,1,0,0,0,114,89,1,0,
+  	0,0,114,97,1,0,0,0,114,104,1,0,0,0,114,112,1,0,0,0,114,113,1,0,0,0,115,
+  	1,1,0,0,0,116,117,7,1,0,0,117,3,1,0,0,0,118,130,5,41,0,0,119,130,5,42,
+  	0,0,120,121,5,19,0,0,121,122,3,28,14,0,122,123,5,20,0,0,123,130,1,0,0,
+  	0,124,125,5,11,0,0,125,126,5,19,0,0,126,127,3,46,23,0,127,128,5,20,0,
+  	0,128,130,1,0,0,0,129,118,1,0,0,0,129,119,1,0,0,0,129,120,1,0,0,0,129,
+  	124,1,0,0,0,130,5,1,0,0,0,131,135,3,4,2,0,132,134,7,2,0,0,133,132,1,0,
+  	0,0,134,137,1,0,0,0,135,133,1,0,0,0,135,136,1,0,0,0,136,7,1,0,0,0,137,
+  	135,1,0,0,0,138,140,7,2,0,0,139,138,1,0,0,0,140,143,1,0,0,0,141,139,1,
+  	0,0,0,141,142,1,0,0,0,142,148,1,0,0,0,143,141,1,0,0,0,144,149,3,6,3,0,
+  	145,146,3,10,5,0,146,147,3,12,6,0,147,149,1,0,0,0,148,144,1,0,0,0,148,
+  	145,1,0,0,0,149,9,1,0,0,0,150,151,7,3,0,0,151,11,1,0,0,0,152,153,5,19,
+  	0,0,153,154,3,68,34,0,154,155,5,20,0,0,155,156,3,12,6,0,156,160,1,0,0,
+  	0,157,160,3,8,4,0,158,160,5,42,0,0,159,152,1,0,0,0,159,157,1,0,0,0,159,
+  	158,1,0,0,0,160,13,1,0,0,0,161,166,3,12,6,0,162,163,7,4,0,0,163,165,3,
+  	12,6,0,164,162,1,0,0,0,165,168,1,0,0,0,166,164,1,0,0,0,166,167,1,0,0,
+  	0,167,15,1,0,0,0,168,166,1,0,0,0,169,174,3,14,7,0,170,171,7,5,0,0,171,
+  	173,3,14,7,0,172,170,1,0,0,0,173,176,1,0,0,0,174,172,1,0,0,0,174,175,
+  	1,0,0,0,175,17,1,0,0,0,176,174,1,0,0,0,177,182,3,16,8,0,178,179,7,6,0,
+  	0,179,181,3,16,8,0,180,178,1,0,0,0,181,184,1,0,0,0,182,180,1,0,0,0,182,
+  	183,1,0,0,0,183,19,1,0,0,0,184,182,1,0,0,0,185,190,3,18,9,0,186,187,5,
+  	34,0,0,187,189,3,18,9,0,188,186,1,0,0,0,189,192,1,0,0,0,190,188,1,0,0,
+  	0,190,191,1,0,0,0,191,21,1,0,0,0,192,190,1,0,0,0,193,198,3,20,10,0,194,
   	195,5,36,0,0,195,197,3,20,10,0,196,194,1,0,0,0,197,200,1,0,0,0,198,196,
   	1,0,0,0,198,199,1,0,0,0,199,23,1,0,0,0,200,198,1,0,0,0,201,206,3,22,11,
   	0,202,203,5,35,0,0,203,205,3,22,11,0,204,202,1,0,0,0,205,208,1,0,0,0,
@@ -178,58 +178,58 @@ void cstructParserInitialize() {
   	52,26,0,243,245,5,41,0,0,244,239,1,0,0,0,244,240,1,0,0,0,244,241,1,0,
   	0,0,244,242,1,0,0,0,244,243,1,0,0,0,245,35,1,0,0,0,246,248,3,38,19,0,
   	247,249,3,40,20,0,248,247,1,0,0,0,248,249,1,0,0,0,249,251,1,0,0,0,250,
-  	252,5,41,0,0,251,250,1,0,0,0,251,252,1,0,0,0,252,253,1,0,0,0,253,254,
-  	5,23,0,0,254,255,3,42,21,0,255,256,5,24,0,0,256,261,1,0,0,0,257,258,3,
-  	38,19,0,258,259,5,41,0,0,259,261,1,0,0,0,260,246,1,0,0,0,260,257,1,0,
-  	0,0,261,37,1,0,0,0,262,263,7,7,0,0,263,39,1,0,0,0,264,265,5,10,0,0,265,
-  	266,5,19,0,0,266,267,5,42,0,0,267,268,5,20,0,0,268,41,1,0,0,0,269,271,
-  	3,44,22,0,270,269,1,0,0,0,271,272,1,0,0,0,272,270,1,0,0,0,272,273,1,0,
-  	0,0,273,43,1,0,0,0,274,275,3,46,23,0,275,276,3,48,24,0,276,277,5,39,0,
-  	0,277,282,1,0,0,0,278,279,3,46,23,0,279,280,5,39,0,0,280,282,1,0,0,0,
-  	281,274,1,0,0,0,281,278,1,0,0,0,282,45,1,0,0,0,283,285,5,3,0,0,284,283,
-  	1,0,0,0,284,285,1,0,0,0,285,286,1,0,0,0,286,288,3,34,17,0,287,289,5,3,
-  	0,0,288,287,1,0,0,0,288,289,1,0,0,0,289,47,1,0,0,0,290,295,3,50,25,0,
-  	291,292,5,40,0,0,292,294,3,50,25,0,293,291,1,0,0,0,294,297,1,0,0,0,295,
-  	293,1,0,0,0,295,296,1,0,0,0,296,49,1,0,0,0,297,295,1,0,0,0,298,305,3,
-  	60,30,0,299,301,3,60,30,0,300,299,1,0,0,0,300,301,1,0,0,0,301,302,1,0,
-  	0,0,302,303,5,38,0,0,303,305,3,28,14,0,304,298,1,0,0,0,304,300,1,0,0,
-  	0,305,51,1,0,0,0,306,308,5,5,0,0,307,309,5,41,0,0,308,307,1,0,0,0,308,
-  	309,1,0,0,0,309,310,1,0,0,0,310,311,5,23,0,0,311,313,3,54,27,0,312,314,
-  	5,40,0,0,313,312,1,0,0,0,313,314,1,0,0,0,314,315,1,0,0,0,315,316,5,24,
-  	0,0,316,320,1,0,0,0,317,318,5,5,0,0,318,320,5,41,0,0,319,306,1,0,0,0,
-  	319,317,1,0,0,0,320,53,1,0,0,0,321,326,3,56,28,0,322,323,5,40,0,0,323,
-  	325,3,56,28,0,324,322,1,0,0,0,325,328,1,0,0,0,326,324,1,0,0,0,326,327,
-  	1,0,0,0,327,55,1,0,0,0,328,326,1,0,0,0,329,332,3,58,29,0,330,331,5,1,
-  	0,0,331,333,3,28,14,0,332,330,1,0,0,0,332,333,1,0,0,0,333,57,1,0,0,0,
-  	334,335,5,41,0,0,335,59,1,0,0,0,336,338,3,64,32,0,337,336,1,0,0,0,337,
-  	338,1,0,0,0,338,339,1,0,0,0,339,340,3,62,31,0,340,61,1,0,0,0,341,342,
-  	6,31,-1,0,342,349,5,41,0,0,343,349,5,18,0,0,344,345,5,19,0,0,345,346,
-  	3,60,30,0,346,347,5,20,0,0,347,349,1,0,0,0,348,341,1,0,0,0,348,343,1,
-  	0,0,0,348,344,1,0,0,0,349,357,1,0,0,0,350,351,10,1,0,0,351,352,5,21,0,
-  	0,352,353,3,28,14,0,353,354,5,22,0,0,354,356,1,0,0,0,355,350,1,0,0,0,
-  	356,359,1,0,0,0,357,355,1,0,0,0,357,358,1,0,0,0,358,63,1,0,0,0,359,357,
-  	1,0,0,0,360,362,5,31,0,0,361,363,5,3,0,0,362,361,1,0,0,0,362,363,1,0,
-  	0,0,363,365,1,0,0,0,364,360,1,0,0,0,365,366,1,0,0,0,366,364,1,0,0,0,366,
-  	367,1,0,0,0,367,65,1,0,0,0,368,373,5,41,0,0,369,370,5,40,0,0,370,372,
-  	5,41,0,0,371,369,1,0,0,0,372,375,1,0,0,0,373,371,1,0,0,0,373,374,1,0,
-  	0,0,374,67,1,0,0,0,375,373,1,0,0,0,376,378,3,46,23,0,377,379,3,70,35,
-  	0,378,377,1,0,0,0,378,379,1,0,0,0,379,69,1,0,0,0,380,386,3,64,32,0,381,
-  	383,3,64,32,0,382,381,1,0,0,0,382,383,1,0,0,0,383,384,1,0,0,0,384,386,
-  	3,72,36,0,385,380,1,0,0,0,385,382,1,0,0,0,386,71,1,0,0,0,387,388,6,36,
-  	-1,0,388,389,5,19,0,0,389,390,3,70,35,0,390,391,5,20,0,0,391,397,1,0,
-  	0,0,392,393,5,21,0,0,393,394,3,28,14,0,394,395,5,22,0,0,395,397,1,0,0,
-  	0,396,387,1,0,0,0,396,392,1,0,0,0,397,405,1,0,0,0,398,399,10,1,0,0,399,
-  	400,5,21,0,0,400,401,3,28,14,0,401,402,5,22,0,0,402,404,1,0,0,0,403,398,
-  	1,0,0,0,404,407,1,0,0,0,405,403,1,0,0,0,405,406,1,0,0,0,406,73,1,0,0,
-  	0,407,405,1,0,0,0,408,410,3,76,38,0,409,408,1,0,0,0,409,410,1,0,0,0,410,
-  	411,1,0,0,0,411,412,5,0,0,1,412,75,1,0,0,0,413,415,3,78,39,0,414,413,
-  	1,0,0,0,415,416,1,0,0,0,416,414,1,0,0,0,416,417,1,0,0,0,417,77,1,0,0,
-  	0,418,422,3,30,15,0,419,422,3,80,40,0,420,422,5,39,0,0,421,418,1,0,0,
-  	0,421,419,1,0,0,0,421,420,1,0,0,0,422,79,1,0,0,0,423,424,7,8,0,0,424,
-  	81,1,0,0,0,55,83,86,91,94,97,100,107,110,114,129,135,141,148,159,166,
-  	174,182,190,198,206,213,220,228,233,237,244,248,251,260,272,281,284,288,
-  	295,300,304,308,313,319,326,332,337,348,357,362,366,373,378,382,385,396,
-  	405,409,416,421
+  	252,5,41,0,0,251,250,1,0,0,0,251,252,1,0,0,0,252,253,1,0,0,0,253,255,
+  	5,23,0,0,254,256,3,42,21,0,255,254,1,0,0,0,255,256,1,0,0,0,256,257,1,
+  	0,0,0,257,258,5,24,0,0,258,263,1,0,0,0,259,260,3,38,19,0,260,261,5,41,
+  	0,0,261,263,1,0,0,0,262,246,1,0,0,0,262,259,1,0,0,0,263,37,1,0,0,0,264,
+  	265,7,7,0,0,265,39,1,0,0,0,266,267,5,10,0,0,267,268,5,19,0,0,268,269,
+  	5,42,0,0,269,270,5,20,0,0,270,41,1,0,0,0,271,273,3,44,22,0,272,271,1,
+  	0,0,0,273,274,1,0,0,0,274,272,1,0,0,0,274,275,1,0,0,0,275,43,1,0,0,0,
+  	276,277,3,46,23,0,277,278,3,48,24,0,278,279,5,39,0,0,279,284,1,0,0,0,
+  	280,281,3,46,23,0,281,282,5,39,0,0,282,284,1,0,0,0,283,276,1,0,0,0,283,
+  	280,1,0,0,0,284,45,1,0,0,0,285,287,5,3,0,0,286,285,1,0,0,0,286,287,1,
+  	0,0,0,287,288,1,0,0,0,288,290,3,34,17,0,289,291,5,3,0,0,290,289,1,0,0,
+  	0,290,291,1,0,0,0,291,47,1,0,0,0,292,297,3,50,25,0,293,294,5,40,0,0,294,
+  	296,3,50,25,0,295,293,1,0,0,0,296,299,1,0,0,0,297,295,1,0,0,0,297,298,
+  	1,0,0,0,298,49,1,0,0,0,299,297,1,0,0,0,300,307,3,60,30,0,301,303,3,60,
+  	30,0,302,301,1,0,0,0,302,303,1,0,0,0,303,304,1,0,0,0,304,305,5,38,0,0,
+  	305,307,3,28,14,0,306,300,1,0,0,0,306,302,1,0,0,0,307,51,1,0,0,0,308,
+  	310,5,5,0,0,309,311,5,41,0,0,310,309,1,0,0,0,310,311,1,0,0,0,311,312,
+  	1,0,0,0,312,313,5,23,0,0,313,315,3,54,27,0,314,316,5,40,0,0,315,314,1,
+  	0,0,0,315,316,1,0,0,0,316,317,1,0,0,0,317,318,5,24,0,0,318,322,1,0,0,
+  	0,319,320,5,5,0,0,320,322,5,41,0,0,321,308,1,0,0,0,321,319,1,0,0,0,322,
+  	53,1,0,0,0,323,328,3,56,28,0,324,325,5,40,0,0,325,327,3,56,28,0,326,324,
+  	1,0,0,0,327,330,1,0,0,0,328,326,1,0,0,0,328,329,1,0,0,0,329,55,1,0,0,
+  	0,330,328,1,0,0,0,331,334,3,58,29,0,332,333,5,1,0,0,333,335,3,28,14,0,
+  	334,332,1,0,0,0,334,335,1,0,0,0,335,57,1,0,0,0,336,337,5,41,0,0,337,59,
+  	1,0,0,0,338,340,3,64,32,0,339,338,1,0,0,0,339,340,1,0,0,0,340,341,1,0,
+  	0,0,341,342,3,62,31,0,342,61,1,0,0,0,343,344,6,31,-1,0,344,351,5,41,0,
+  	0,345,351,5,18,0,0,346,347,5,19,0,0,347,348,3,60,30,0,348,349,5,20,0,
+  	0,349,351,1,0,0,0,350,343,1,0,0,0,350,345,1,0,0,0,350,346,1,0,0,0,351,
+  	359,1,0,0,0,352,353,10,1,0,0,353,354,5,21,0,0,354,355,3,28,14,0,355,356,
+  	5,22,0,0,356,358,1,0,0,0,357,352,1,0,0,0,358,361,1,0,0,0,359,357,1,0,
+  	0,0,359,360,1,0,0,0,360,63,1,0,0,0,361,359,1,0,0,0,362,364,5,31,0,0,363,
+  	365,5,3,0,0,364,363,1,0,0,0,364,365,1,0,0,0,365,367,1,0,0,0,366,362,1,
+  	0,0,0,367,368,1,0,0,0,368,366,1,0,0,0,368,369,1,0,0,0,369,65,1,0,0,0,
+  	370,375,5,41,0,0,371,372,5,40,0,0,372,374,5,41,0,0,373,371,1,0,0,0,374,
+  	377,1,0,0,0,375,373,1,0,0,0,375,376,1,0,0,0,376,67,1,0,0,0,377,375,1,
+  	0,0,0,378,380,3,46,23,0,379,381,3,70,35,0,380,379,1,0,0,0,380,381,1,0,
+  	0,0,381,69,1,0,0,0,382,388,3,64,32,0,383,385,3,64,32,0,384,383,1,0,0,
+  	0,384,385,1,0,0,0,385,386,1,0,0,0,386,388,3,72,36,0,387,382,1,0,0,0,387,
+  	384,1,0,0,0,388,71,1,0,0,0,389,390,6,36,-1,0,390,391,5,19,0,0,391,392,
+  	3,70,35,0,392,393,5,20,0,0,393,399,1,0,0,0,394,395,5,21,0,0,395,396,3,
+  	28,14,0,396,397,5,22,0,0,397,399,1,0,0,0,398,389,1,0,0,0,398,394,1,0,
+  	0,0,399,407,1,0,0,0,400,401,10,1,0,0,401,402,5,21,0,0,402,403,3,28,14,
+  	0,403,404,5,22,0,0,404,406,1,0,0,0,405,400,1,0,0,0,406,409,1,0,0,0,407,
+  	405,1,0,0,0,407,408,1,0,0,0,408,73,1,0,0,0,409,407,1,0,0,0,410,412,3,
+  	76,38,0,411,410,1,0,0,0,411,412,1,0,0,0,412,413,1,0,0,0,413,414,5,0,0,
+  	1,414,75,1,0,0,0,415,417,3,78,39,0,416,415,1,0,0,0,417,418,1,0,0,0,418,
+  	416,1,0,0,0,418,419,1,0,0,0,419,77,1,0,0,0,420,424,3,30,15,0,421,424,
+  	3,80,40,0,422,424,5,39,0,0,423,420,1,0,0,0,423,421,1,0,0,0,423,422,1,
+  	0,0,0,424,79,1,0,0,0,425,426,7,8,0,0,426,81,1,0,0,0,56,83,86,91,94,97,
+  	100,107,110,114,129,135,141,148,159,166,174,182,190,198,206,213,220,228,
+  	233,237,244,248,251,255,262,274,283,286,290,297,302,306,310,315,321,328,
+  	334,339,350,359,364,368,375,380,384,387,398,407,411,418,423
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -2007,10 +2007,6 @@ tree::TerminalNode* CStructParser::StructOrUnionSpecifierContext::LeftBrace() {
   return getToken(CStructParser::LeftBrace, 0);
 }
 
-CStructParser::StructDeclarationListContext* CStructParser::StructOrUnionSpecifierContext::structDeclarationList() {
-  return getRuleContext<CStructParser::StructDeclarationListContext>(0);
-}
-
 tree::TerminalNode* CStructParser::StructOrUnionSpecifierContext::RightBrace() {
   return getToken(CStructParser::RightBrace, 0);
 }
@@ -2021,6 +2017,10 @@ CStructParser::AlignAsAttrContext* CStructParser::StructOrUnionSpecifierContext:
 
 tree::TerminalNode* CStructParser::StructOrUnionSpecifierContext::Identifier() {
   return getToken(CStructParser::Identifier, 0);
+}
+
+CStructParser::StructDeclarationListContext* CStructParser::StructOrUnionSpecifierContext::structDeclarationList() {
+  return getRuleContext<CStructParser::StructDeclarationListContext>(0);
 }
 
 
@@ -2049,9 +2049,9 @@ CStructParser::StructOrUnionSpecifierContext* CStructParser::structOrUnionSpecif
     exitRule();
   });
   try {
-    setState(260);
+    setState(262);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 28, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 29, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
       setState(246);
@@ -2074,18 +2074,25 @@ CStructParser::StructOrUnionSpecifierContext* CStructParser::structOrUnionSpecif
       }
       setState(253);
       match(CStructParser::LeftBrace);
-      setState(254);
-      structDeclarationList();
       setState(255);
+      _errHandler->sync(this);
+
+      _la = _input->LA(1);
+      if ((((_la & ~ 0x3fULL) == 0) &&
+        ((1ULL << _la) & 2199023514108) != 0)) {
+        setState(254);
+        structDeclarationList();
+      }
+      setState(257);
       match(CStructParser::RightBrace);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(257);
+      setState(259);
       structOrUnion();
-      setState(258);
+      setState(260);
       match(CStructParser::Identifier);
       break;
     }
@@ -2145,7 +2152,7 @@ CStructParser::StructOrUnionContext* CStructParser::structOrUnion() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(262);
+    setState(264);
     _la = _input->LA(1);
     if (!(_la == CStructParser::Struct
 
@@ -2215,13 +2222,13 @@ CStructParser::AlignAsAttrContext* CStructParser::alignAsAttr() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(264);
-    match(CStructParser::AlignAs);
-    setState(265);
-    match(CStructParser::LeftParen);
     setState(266);
-    match(CStructParser::IntegerConstant);
+    match(CStructParser::AlignAs);
     setState(267);
+    match(CStructParser::LeftParen);
+    setState(268);
+    match(CStructParser::IntegerConstant);
+    setState(269);
     match(CStructParser::RightParen);
    
   }
@@ -2275,13 +2282,13 @@ CStructParser::StructDeclarationListContext* CStructParser::structDeclarationLis
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(270); 
+    setState(272); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(269);
+      setState(271);
       structDeclaration();
-      setState(272); 
+      setState(274); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while ((((_la & ~ 0x3fULL) == 0) &&
@@ -2340,25 +2347,25 @@ CStructParser::StructDeclarationContext* CStructParser::structDeclaration() {
     exitRule();
   });
   try {
-    setState(281);
+    setState(283);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 30, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 31, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(274);
-      specifierQualifierList();
-      setState(275);
-      structDeclaratorList();
       setState(276);
+      specifierQualifierList();
+      setState(277);
+      structDeclaratorList();
+      setState(278);
       match(CStructParser::Semi);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(278);
+      setState(280);
       specifierQualifierList();
-      setState(279);
+      setState(281);
       match(CStructParser::Semi);
       break;
     }
@@ -2422,12 +2429,12 @@ CStructParser::SpecifierQualifierListContext* CStructParser::specifierQualifierL
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(284);
+    setState(286);
     _errHandler->sync(this);
 
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 31, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 32, _ctx)) {
     case 1: {
-      setState(283);
+      setState(285);
       match(CStructParser::Const);
       break;
     }
@@ -2435,14 +2442,14 @@ CStructParser::SpecifierQualifierListContext* CStructParser::specifierQualifierL
     default:
       break;
     }
-    setState(286);
-    typeSpecifier();
     setState(288);
+    typeSpecifier();
+    setState(290);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == CStructParser::Const) {
-      setState(287);
+      setState(289);
       match(CStructParser::Const);
     }
    
@@ -2505,17 +2512,17 @@ CStructParser::StructDeclaratorListContext* CStructParser::structDeclaratorList(
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(290);
+    setState(292);
     structDeclarator();
-    setState(295);
+    setState(297);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Comma) {
-      setState(291);
+      setState(293);
       match(CStructParser::Comma);
-      setState(292);
+      setState(294);
       structDeclarator();
-      setState(297);
+      setState(299);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -2574,30 +2581,30 @@ CStructParser::StructDeclaratorContext* CStructParser::structDeclarator() {
     exitRule();
   });
   try {
-    setState(304);
+    setState(306);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 35, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 36, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(298);
+      setState(300);
       declarator();
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(300);
+      setState(302);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
         ((1ULL << _la) & 2201171525632) != 0)) {
-        setState(299);
+        setState(301);
         declarator();
       }
-      setState(302);
+      setState(304);
       match(CStructParser::Colon);
-      setState(303);
+      setState(305);
       assignmentExpression();
       break;
     }
@@ -2672,43 +2679,43 @@ CStructParser::EnumSpecifierContext* CStructParser::enumSpecifier() {
     exitRule();
   });
   try {
-    setState(319);
+    setState(321);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 38, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 39, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(306);
-      match(CStructParser::Enum);
       setState(308);
+      match(CStructParser::Enum);
+      setState(310);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Identifier) {
-        setState(307);
+        setState(309);
         match(CStructParser::Identifier);
       }
-      setState(310);
+      setState(312);
       match(CStructParser::LeftBrace);
-      setState(311);
-      enumeratorList();
       setState(313);
+      enumeratorList();
+      setState(315);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Comma) {
-        setState(312);
+        setState(314);
         match(CStructParser::Comma);
       }
-      setState(315);
+      setState(317);
       match(CStructParser::RightBrace);
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(317);
+      setState(319);
       match(CStructParser::Enum);
-      setState(318);
+      setState(320);
       match(CStructParser::Identifier);
       break;
     }
@@ -2776,21 +2783,21 @@ CStructParser::EnumeratorListContext* CStructParser::enumeratorList() {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(321);
+    setState(323);
     enumerator();
-    setState(326);
+    setState(328);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 39, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 40, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
-        setState(322);
+        setState(324);
         match(CStructParser::Comma);
-        setState(323);
+        setState(325);
         enumerator(); 
       }
-      setState(328);
+      setState(330);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 39, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 40, _ctx);
     }
    
   }
@@ -2844,16 +2851,16 @@ CStructParser::EnumeratorContext* CStructParser::enumerator() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(329);
+    setState(331);
     enumerationConstant();
-    setState(332);
+    setState(334);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == CStructParser::T__0) {
-      setState(330);
+      setState(332);
       match(CStructParser::T__0);
-      setState(331);
+      setState(333);
       assignmentExpression();
     }
    
@@ -2903,7 +2910,7 @@ CStructParser::EnumerationConstantContext* CStructParser::enumerationConstant() 
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(334);
+    setState(336);
     match(CStructParser::Identifier);
    
   }
@@ -2957,15 +2964,15 @@ CStructParser::DeclaratorContext* CStructParser::declarator() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(337);
+    setState(339);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == CStructParser::Star) {
-      setState(336);
+      setState(338);
       pointer();
     }
-    setState(339);
+    setState(341);
     directDeclarator(0);
    
   }
@@ -3059,27 +3066,27 @@ CStructParser::DirectDeclaratorContext* CStructParser::directDeclarator(int prec
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(348);
+    setState(350);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case CStructParser::Identifier: {
-        setState(342);
+        setState(344);
         match(CStructParser::Identifier);
         break;
       }
 
       case CStructParser::QuestionMark: {
-        setState(343);
+        setState(345);
         match(CStructParser::QuestionMark);
         break;
       }
 
       case CStructParser::LeftParen: {
-        setState(344);
-        match(CStructParser::LeftParen);
-        setState(345);
-        declarator();
         setState(346);
+        match(CStructParser::LeftParen);
+        setState(347);
+        declarator();
+        setState(348);
         match(CStructParser::RightParen);
         break;
       }
@@ -3088,9 +3095,9 @@ CStructParser::DirectDeclaratorContext* CStructParser::directDeclarator(int prec
       throw NoViableAltException(this);
     }
     _ctx->stop = _input->LT(-1);
-    setState(357);
+    setState(359);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 43, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 44, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
@@ -3098,19 +3105,19 @@ CStructParser::DirectDeclaratorContext* CStructParser::directDeclarator(int prec
         previousContext = _localctx;
         _localctx = _tracker.createInstance<DirectDeclaratorContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleDirectDeclarator);
-        setState(350);
+        setState(352);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(351);
-        match(CStructParser::LeftBracket);
-        setState(352);
-        assignmentExpression();
         setState(353);
+        match(CStructParser::LeftBracket);
+        setState(354);
+        assignmentExpression();
+        setState(355);
         match(CStructParser::RightBracket); 
       }
-      setState(359);
+      setState(361);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 43, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 44, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -3170,21 +3177,21 @@ CStructParser::PointerContext* CStructParser::pointer() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(364); 
+    setState(366); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(360);
-      match(CStructParser::Star);
       setState(362);
+      match(CStructParser::Star);
+      setState(364);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Const) {
-        setState(361);
+        setState(363);
         match(CStructParser::Const);
       }
-      setState(366); 
+      setState(368); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while (_la == CStructParser::Star);
@@ -3248,17 +3255,17 @@ CStructParser::IdentifierListContext* CStructParser::identifierList() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(368);
+    setState(370);
     match(CStructParser::Identifier);
-    setState(373);
+    setState(375);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == CStructParser::Comma) {
-      setState(369);
+      setState(371);
       match(CStructParser::Comma);
-      setState(370);
+      setState(372);
       match(CStructParser::Identifier);
-      setState(375);
+      setState(377);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -3314,15 +3321,15 @@ CStructParser::TypeNameContext* CStructParser::typeName() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(376);
-    specifierQualifierList();
     setState(378);
+    specifierQualifierList();
+    setState(380);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 2150105088) != 0)) {
-      setState(377);
+      setState(379);
       abstractDeclarator();
     }
    
@@ -3376,27 +3383,27 @@ CStructParser::AbstractDeclaratorContext* CStructParser::abstractDeclarator() {
     exitRule();
   });
   try {
-    setState(385);
+    setState(387);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 49, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 50, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(380);
+      setState(382);
       pointer();
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(382);
+      setState(384);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if (_la == CStructParser::Star) {
-        setState(381);
+        setState(383);
         pointer();
       }
-      setState(384);
+      setState(386);
       directAbstractDeclarator(0);
       break;
     }
@@ -3488,25 +3495,25 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(396);
+    setState(398);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case CStructParser::LeftParen: {
-        setState(388);
-        match(CStructParser::LeftParen);
-        setState(389);
-        abstractDeclarator();
         setState(390);
+        match(CStructParser::LeftParen);
+        setState(391);
+        abstractDeclarator();
+        setState(392);
         match(CStructParser::RightParen);
         break;
       }
 
       case CStructParser::LeftBracket: {
-        setState(392);
-        match(CStructParser::LeftBracket);
-        setState(393);
-        assignmentExpression();
         setState(394);
+        match(CStructParser::LeftBracket);
+        setState(395);
+        assignmentExpression();
+        setState(396);
         match(CStructParser::RightBracket);
         break;
       }
@@ -3515,9 +3522,9 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
       throw NoViableAltException(this);
     }
     _ctx->stop = _input->LT(-1);
-    setState(405);
+    setState(407);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 51, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 52, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
@@ -3525,19 +3532,19 @@ CStructParser::DirectAbstractDeclaratorContext* CStructParser::directAbstractDec
         previousContext = _localctx;
         _localctx = _tracker.createInstance<DirectAbstractDeclaratorContext>(parentContext, parentState);
         pushNewRecursionContext(_localctx, startState, RuleDirectAbstractDeclarator);
-        setState(398);
+        setState(400);
 
         if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-        setState(399);
-        match(CStructParser::LeftBracket);
-        setState(400);
-        assignmentExpression();
         setState(401);
+        match(CStructParser::LeftBracket);
+        setState(402);
+        assignmentExpression();
+        setState(403);
         match(CStructParser::RightBracket); 
       }
-      setState(407);
+      setState(409);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 51, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 52, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -3589,16 +3596,16 @@ CStructParser::CompilationUnitContext* CStructParser::compilationUnit() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(409);
+    setState(411);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 229248174440992) != 0)) {
-      setState(408);
+      setState(410);
       translationUnit();
     }
-    setState(411);
+    setState(413);
     match(CStructParser::EOF);
    
   }
@@ -3652,13 +3659,13 @@ CStructParser::TranslationUnitContext* CStructParser::translationUnit() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(414); 
+    setState(416); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(413);
+      setState(415);
       externalDeclaration();
-      setState(416); 
+      setState(418); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while ((((_la & ~ 0x3fULL) == 0) &&
@@ -3717,7 +3724,7 @@ CStructParser::ExternalDeclarationContext* CStructParser::externalDeclaration() 
     exitRule();
   });
   try {
-    setState(421);
+    setState(423);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case CStructParser::Enum:
@@ -3725,7 +3732,7 @@ CStructParser::ExternalDeclarationContext* CStructParser::externalDeclaration() 
       case CStructParser::Struct:
       case CStructParser::Union: {
         enterOuterAlt(_localctx, 1);
-        setState(418);
+        setState(420);
         declaration();
         break;
       }
@@ -3734,14 +3741,14 @@ CStructParser::ExternalDeclarationContext* CStructParser::externalDeclaration() 
       case CStructParser::DirectiveInclude:
       case CStructParser::DirectiveDefine: {
         enterOuterAlt(_localctx, 2);
-        setState(419);
+        setState(421);
         defineDecl();
         break;
       }
 
       case CStructParser::Semi: {
         enterOuterAlt(_localctx, 3);
-        setState(420);
+        setState(422);
         match(CStructParser::Semi);
         break;
       }
@@ -3805,7 +3812,7 @@ CStructParser::DefineDeclContext* CStructParser::defineDecl() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(423);
+    setState(425);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 228698418577408) != 0))) {

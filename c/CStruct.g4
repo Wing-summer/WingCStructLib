@@ -117,7 +117,7 @@ typeSpecifier
     ;
 
 structOrUnionSpecifier
-    : structOrUnion alignAsAttr? Identifier? '{' structDeclarationList '}'
+    : structOrUnion alignAsAttr? Identifier? '{' structDeclarationList? '}'
     | structOrUnion Identifier
     ;
 

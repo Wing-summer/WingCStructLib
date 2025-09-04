@@ -977,25 +977,33 @@ bool CTypeParser::storeStructUnionDef(const bool is_struct,
                                       const QString &type_name,
                                       QVector<VariableDeclaration> &members,
                                       qsizetype alignment) {
-    for (auto &m : members) {
-        auto s = getTypeSize(m.data_type);
-        Q_ASSERT(s);
-        auto total = m.element_count;
-        m.var_size = total * s.value();
-    }
-
     quint64 size = 0;
-    if (is_struct) {
-        auto os = padStruct(members, alignment);
-        if (!os) {
-            return false;
+    if (members.isEmpty()) {
+        size = 1;
+        if (is_struct) {
+            struct_defs_[type_name] = members;
+        } else {
+            union_defs_[type_name] = members;
         }
-        size = os.value();
-        struct_defs_[type_name] = members;
     } else {
-        size = calcUnionSize(members, alignment);
-        Q_ASSERT(size >= 0);
-        union_defs_[type_name] = members;
+        for (auto &m : members) {
+            auto s = getTypeSize(m.data_type);
+            Q_ASSERT(s);
+            auto total = m.element_count;
+            m.var_size = total * s.value();
+        }
+        if (is_struct) {
+            auto os = padStruct(members, alignment);
+            if (!os) {
+                return false;
+            }
+            size = os.value();
+            struct_defs_[type_name] = members;
+        } else {
+            size = calcUnionSize(members, alignment);
+            Q_ASSERT(size >= 0);
+            union_defs_[type_name] = members;
+        }
     }
 
     // struct meta type = QMetaType::User;

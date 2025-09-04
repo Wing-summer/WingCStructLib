@@ -1137,16 +1137,35 @@ std::any CStructVisitorParser::visitStructOrUnionSpecifier(
                 decl->name);
         }
     } else {
-        auto iden = ctx->Identifier();
-        Q_ASSERT(iden);
-        auto sym = iden->getSymbol();
-        auto name = QString::fromStdString(iden->getText());
-        if (ctx->structOrUnion()->Struct()) {
-            reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
-                             parser->addForwardStruct(name), name);
+        if (ctx->LeftBrace()) {
+            auto sym = ctx->getStart();
+
+            QString decl_name;
+            auto iden = ctx->Identifier();
+            if (iden) {
+                decl_name = QString::fromStdString(iden->getText());
+            } else {
+                decl_name =
+                    QString::number(parser->generateAnomyID()).prepend('?');
+            }
+
+            reportCTypeError(
+                sym->getLine(), sym->getCharPositionInLine(),
+                parser->defineStructOrUnion(ctx->structOrUnion()->Struct(),
+                                            decl_name, {}, 1),
+                decl_name);
         } else {
-            reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
-                             parser->addForwardUnion(name), name);
+            auto iden = ctx->Identifier();
+            Q_ASSERT(iden);
+            auto sym = iden->getSymbol();
+            auto name = QString::fromStdString(iden->getText());
+            if (ctx->structOrUnion()->Struct()) {
+                reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                                 parser->addForwardStruct(name), name);
+            } else {
+                reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                                 parser->addForwardUnion(name), name);
+            }
         }
     }
     return defaultResult();
