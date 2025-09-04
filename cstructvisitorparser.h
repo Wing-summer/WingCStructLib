@@ -56,14 +56,16 @@ public:
     visitDeclaration(CStructParser::DeclarationContext *ctx) override;
 
 private:
-    using EnumDecl = QPair<QString, QHash<QString, qint64>>;
+    using EnumDecl =
+        QPair<QString, QHash<QString, std::variant<qint64, quint64>>>;
 
     std::optional<EnumDecl> parseEnum(CStructParser::EnumSpecifierContext *ctx);
 
     enum class StructMemType { Normal, Pointer, Enum, Struct, Union };
 
     std::optional<StructUnionDecl>
-    parseStructOrUnion(CStructParser::StructOrUnionSpecifierContext *ctx);
+    parseStructOrUnion(CStructParser::StructOrUnionSpecifierContext *ctx,
+                       int alignment = -1);
 
     struct Specifier {
         StructMemType type = StructMemType::Normal;
@@ -71,10 +73,11 @@ private:
     };
 
     std::optional<Specifier>
-    getSpecifier(CStructParser::SpecifierQualifierListContext *ctx);
+    getSpecifier(CStructParser::SpecifierQualifierListContext *ctx,
+                 int alignment = -1);
 
     std::optional<Specifier>
-    getSpecifier(CStructParser::TypeSpecifierContext *ctx);
+    getSpecifier(CStructParser::TypeSpecifierContext *ctx, int alignment = -1);
 
     struct Declarator {
         QString retName;

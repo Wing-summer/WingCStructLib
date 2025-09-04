@@ -292,19 +292,27 @@ CTypeParser::StructResult CTypeParser::addForwardEnum(const QString &name) {
         }
         return StructResult::NameConflict;
     }
+
+    if (referencedIncomplete_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
+    }
+
     referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Enum);
     return StructResult::Ok;
 }
 
-CTypeParser::StructResult
-CTypeParser::defineConstVar(const QString &name,
-                            const std::variant<qint64, quint64> &var) {
+CTypeParser::StructResult CTypeParser::defineConstVar(const QString &name,
+                                                      const INT_TYPE &var) {
     if (containsType(name)) {
         return StructResult::NameConflict;
     }
 
     if (containsConstVar(name)) {
         return StructResult::DuplicateDefinition;
+    }
+
+    if (const_defs_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::OutofMemory;
     }
 
     const_defs_.insert(name, var);
@@ -324,6 +332,11 @@ CTypeParser::StructResult CTypeParser::defineTypedef(const QString &alias,
         return StructResult::IncompleteReference;
     }
 
+    if (type_defs_.size() >= std::numeric_limits<int>::max() ||
+        type_maps_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
+    }
+
     type_defs_.insert(alias, qMakePair(origin, isPointer));
     if (isPointer) {
         switch (pointerMode()) {
@@ -338,6 +351,13 @@ CTypeParser::StructResult CTypeParser::defineTypedef(const QString &alias,
         };
     } else {
         if (referencedIncomplete_.contains(origin)) {
+            if (referencedIncomplete_.size() >=
+                    std::numeric_limits<qsizetype>::max() ||
+                incompleteDeps_.size() >=
+                    std::numeric_limits<qsizetype>::max()) {
+                type_defs_.remove(alias);
+                return StructResult::CountOfLimit;
+            }
             referencedIncomplete_.insert(alias,
                                          CTypeParser::IncompleteType::Typedef);
             incompleteDeps_.insert(alias, {origin});
@@ -351,12 +371,18 @@ CTypeParser::StructResult CTypeParser::defineTypedef(const QString &alias,
 
 CTypeParser::StructResult
 CTypeParser::defineEnum(const QString &name,
-                        const QHash<QString, qint64> &values) {
+                        const QHash<QString, INT_TYPE> &values) {
     if (containsType(name) || containsConstVar(name))
         return StructResult::NameConflict;
 
     if (containsEnum(name))
         return StructResult::DuplicateDefinition;
+
+    if (enum_defs_.size() >= std::numeric_limits<int>::max() ||
+        const_defs_.size() >= std::numeric_limits<qsizetype>::max() ||
+        type_maps_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
+    }
 
     if (referencedIncomplete_.contains(name)) {
         if (referencedIncomplete_[name] == IncompleteType::Enum) {
@@ -368,6 +394,9 @@ CTypeParser::defineEnum(const QString &name,
 
     enum_defs_.insert(name, values);
     type_maps_.insert(name, qMakePair(QMetaType::LongLong, sizeof(qint64)));
+    for (auto &&v : values.asKeyValueRange()) {
+        const_defs_.insert(v.first, v.second);
+    }
     restoreIncompleteType(name);
     return StructResult::Ok;
 }
@@ -375,7 +404,7 @@ CTypeParser::defineEnum(const QString &name,
 CTypeParser::StructResult
 CTypeParser::defineUnion(const QString &name,
                          const QVector<VariableDeclaration> &members,
-                         qsizetype alignment) {
+                         int alignment) {
     if (containsType(name) || containsConstVar(name))
         return StructResult::NameConflict;
 
@@ -388,6 +417,14 @@ CTypeParser::defineUnion(const QString &name,
         } else {
             return StructResult::NameConflict;
         }
+    }
+
+    if (union_defs_.size() >= std::numeric_limits<int>::max() ||
+        struct_union_alignments_.size() >=
+            std::numeric_limits<qsizetype>::max() ||
+        referencedIncomplete_.size() >= std::numeric_limits<qsizetype>::max() ||
+        incompleteDeps_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
     }
 
     union_defs_.insert(name, members);
@@ -404,7 +441,14 @@ CTypeParser::defineUnion(const QString &name,
 
     auto missingDeps = getMissingDependencise(members);
     if (missingDeps.isEmpty()) {
-        storeStructUnionDef(false, name, union_defs_[name], alignment);
+        auto ret =
+            storeStructUnionDef(false, name, union_defs_[name], alignment);
+        if (!ret) {
+            union_defs_.remove(name);
+            struct_union_alignments_.remove(name);
+            addForwardUnion(name);
+            return StructResult::OutofMemory;
+        }
         restoreIncompleteType(name);
     } else {
         referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Union);
@@ -417,7 +461,7 @@ CTypeParser::defineUnion(const QString &name,
 CTypeParser::StructResult
 CTypeParser::defineStructOrUnion(bool isStruct, const QString &name,
                                  const QVector<VariableDeclaration> &members,
-                                 qsizetype alignment) {
+                                 int alignment) {
     if (isStruct) {
         return defineStruct(name, members, alignment);
     } else {
@@ -428,7 +472,7 @@ CTypeParser::defineStructOrUnion(bool isStruct, const QString &name,
 CTypeParser::StructResult
 CTypeParser::defineStruct(const QString &name,
                           const QVector<VariableDeclaration> &members,
-                          qsizetype alignment) {
+                          int alignment) {
     if (containsType(name) || containsConstVar(name))
         return StructResult::NameConflict;
 
@@ -445,6 +489,14 @@ CTypeParser::defineStruct(const QString &name,
         }
     }
 
+    if (struct_defs_.size() >= std::numeric_limits<int>::max() ||
+        struct_union_alignments_.size() >=
+            std::numeric_limits<qsizetype>::max() ||
+        referencedIncomplete_.size() >= std::numeric_limits<qsizetype>::max() ||
+        incompleteDeps_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
+    }
+
     struct_defs_.insert(name, members);
     switch (alignment) {
     case 1:
@@ -459,7 +511,14 @@ CTypeParser::defineStruct(const QString &name,
 
     auto missingDeps = getMissingDependencise(members);
     if (missingDeps.isEmpty()) {
-        storeStructUnionDef(true, name, struct_defs_[name], alignment);
+        auto ret =
+            storeStructUnionDef(true, name, struct_defs_[name], alignment);
+        if (!ret) {
+            struct_defs_.remove(name);
+            struct_union_alignments_.remove(name);
+            addForwardStruct(name);
+            return StructResult::OutofMemory;
+        }
         restoreIncompleteType(name);
     } else {
         referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Struct);
@@ -482,6 +541,11 @@ CTypeParser::StructResult CTypeParser::addForwardStruct(const QString &name) {
         }
         return StructResult::NameConflict;
     }
+
+    if (referencedIncomplete_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
+    }
+
     referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Struct);
     return StructResult::Ok;
 }
@@ -499,6 +563,11 @@ CTypeParser::StructResult CTypeParser::addForwardUnion(const QString &name) {
         }
         return StructResult::NameConflict;
     }
+
+    if (referencedIncomplete_.size() >= std::numeric_limits<qsizetype>::max()) {
+        return StructResult::CountOfLimit;
+    }
+
     referencedIncomplete_.insert(name, CTypeParser::IncompleteType::Union);
     return StructResult::Ok;
 }
@@ -512,13 +581,14 @@ CTypeParser::StructResult CTypeParser::addForwardUnion(const QString &name) {
 /// @note Shouldn't return 0 for unknown data type since "void" type has zero
 /// length
 ///
-qsizetype CTypeParser::getTypeSize(const QString &data_type) const {
+std::optional<quint64>
+CTypeParser::getTypeSize(const QString &data_type) const {
     if (type_maps_.contains(data_type)) {
         return type_maps_.value(data_type).second;
     } else if (enum_defs_.contains(data_type)) {
         return sizeof(qint64);
     } else {
-        return -1;
+        return std::nullopt;
     }
 }
 
@@ -591,8 +661,23 @@ bool CTypeParser::isCompletedType(const QString &name) const {
     return !referencedIncomplete_.contains(name);
 }
 
-std::variant<qint64, quint64>
-CTypeParser::constVarValue(const QString &name) const {
+bool CTypeParser::isCompletedStruct(const QString &name) const {
+    return struct_defs_.contains(name) &&
+           referencedIncomplete_.value(name, IncompleteType::Enum) !=
+               IncompleteType::Struct;
+}
+
+bool CTypeParser::isCompletedUnion(const QString &name) const {
+    return union_defs_.contains(name) &&
+           referencedIncomplete_.value(name, IncompleteType::Enum) !=
+               IncompleteType::Union;
+}
+
+QStringList CTypeParser::getMissingDependencise(const QString &name) const {
+    return incompleteDeps_.value(name);
+}
+
+CTypeParser::INT_TYPE CTypeParser::constVarValue(const QString &name) const {
     Q_ASSERT(const_defs_.contains(name));
     return const_defs_.value(name);
 }
@@ -827,7 +912,13 @@ void CTypeParser::dumpAllTypeDefines(QTextStream &output) const {
 
         auto members = itv->second;
         for (auto &&[key, value] : members.asKeyValueRange()) {
-            output << padding << key << "(" << value << ")" << Qt::endl;
+            output << padding << key << "(";
+            if (std::holds_alternative<quint64>(value)) {
+                output << std::get<quint64>(value) << 'u';
+            } else {
+                output << std::get<qint64>(value);
+            }
+            output << ")" << Qt::endl;
         }
 
         output << '\n' << Qt::endl;
@@ -863,16 +954,15 @@ QStringList CTypeParser::getMissingDependencise(
     return missingDeps;
 }
 
-qsizetype CTypeParser::calcUnionSize(const QList<VariableDeclaration> &members,
-                                     qsizetype alignment) const {
-    qsizetype size = 0;
+quint64 CTypeParser::calcUnionSize(const QList<VariableDeclaration> &members,
+                                   int alignment) const {
+    quint64 size = 0;
     for (auto it = members.begin(); it != members.end(); ++it) {
         size = qMax(size, it->var_size);
     }
 
-    if (0 != size % kAlignment_) {
-        size = static_cast<qsizetype>(ceil(size * 1.0 / kAlignment_) *
-                                      kAlignment_);
+    if (0 != size % alignment) {
+        size = static_cast<quint64>(ceil(size * 1.0 / alignment) * alignment);
     }
 
     return size;
@@ -883,28 +973,34 @@ qsizetype CTypeParser::calcUnionSize(const QList<VariableDeclaration> &members,
 /// For structs, the members are padded based on alignment, @see
 /// CTypeParser::padStruct
 ///
-void CTypeParser::storeStructUnionDef(const bool is_struct,
+bool CTypeParser::storeStructUnionDef(const bool is_struct,
                                       const QString &type_name,
                                       QVector<VariableDeclaration> &members,
                                       qsizetype alignment) {
     for (auto &m : members) {
         auto s = getTypeSize(m.data_type);
-        Q_ASSERT(s >= 0);
+        Q_ASSERT(s);
         auto total = m.element_count;
-        m.var_size = total * s;
+        m.var_size = total * s.value();
     }
 
-    qsizetype size = 0;
+    quint64 size = 0;
     if (is_struct) {
-        size = padStruct(members, alignment);
+        auto os = padStruct(members, alignment);
+        if (!os) {
+            return false;
+        }
+        size = os.value();
         struct_defs_[type_name] = members;
     } else {
         size = calcUnionSize(members, alignment);
+        Q_ASSERT(size >= 0);
         union_defs_[type_name] = members;
     }
 
     // struct meta type = QMetaType::User;
     type_maps_[type_name] = qMakePair(QMetaType::User, size);
+    return true;
 }
 
 void CTypeParser::restoreIncompleteType(const QString &name) {
@@ -920,14 +1016,26 @@ void CTypeParser::restoreIncompleteType(const QString &name) {
             auto name = item.first;
             if (item.second.isEmpty()) {
                 switch (referencedIncomplete_[name]) {
-                case IncompleteType::Struct:
-                    storeStructUnionDef(true, name, struct_defs_[name],
-                                        struct_union_alignments_[name]);
-                    break;
-                case IncompleteType::Union:
-                    storeStructUnionDef(false, name, union_defs_[name],
-                                        struct_union_alignments_[name]);
-                    break;
+                case IncompleteType::Struct: {
+                    auto ret =
+                        storeStructUnionDef(true, name, struct_defs_[name],
+                                            struct_union_alignments_[name]);
+                    if (!ret) {
+                        struct_defs_.remove(name);
+                        struct_union_alignments_.remove(name);
+                        addForwardStruct(name);
+                    }
+                } break;
+                case IncompleteType::Union: {
+                    auto ret =
+                        storeStructUnionDef(false, name, union_defs_[name],
+                                            struct_union_alignments_[name]);
+                    if (!ret) {
+                        union_defs_.remove(name);
+                        struct_union_alignments_.remove(name);
+                        addForwardUnion(name);
+                    }
+                } break;
                 case IncompleteType::Typedef:
                     type_maps_.insert(name, type_maps_[type_defs_[name].first]);
                     break;
@@ -946,24 +1054,29 @@ void CTypeParser::restoreIncompleteType(const QString &name) {
     }
 }
 
-qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
-                                 qsizetype alignment) {
+std::optional<quint64>
+CTypeParser::padStruct(QVector<VariableDeclaration> &members, int alignment) {
     // Helper: round 'offset' up to the next multiple of 'align'
-    auto align_up = [](qsizetype offset, qsizetype align) {
-        return ((offset + align - 1) / align) * align;
+    auto align_up = [](quint64 offset, int align) -> std::optional<quint64> {
+        quint64 av = align - 1;
+        quint64 r;
+        if (qAddOverflow(offset, av, &r)) {
+            return std::nullopt;
+        }
+        return (r / align) * align;
     };
 
-    qsizetype total = 0;
+    quint64 total = 0;
 
     // Bitfield‐tracking state
     //
     // We'll treat each
     // bitfield’s storage unit (char=1 byte, int=4 bytes, etc.) as aligned to
     // exactly 'alignment' bytes.
-    qsizetype bitfield_base_size = 0; // size in bytes of current unit
-    qsizetype bitfield_capacity = 0;  // bits in that unit = base_size * 8
-    qsizetype bitfield_used = 0;      // bits already consumed
-    qsizetype bitfield_offset = 0;    // byte offset where that unit starts
+    quint64 bitfield_base_size = 0;   // size in bytes of current unit
+    quint64 bitfield_capacity = 0;    // bits in that unit = base_size * 8
+    quint64 bitfield_used = 0;        // bits already consumed
+    quint64 bitfield_offset = 0;      // byte offset where that unit starts
     QString bitfield_type;            // data_type of ongoing bitfield block
 
     for (auto &member : members) {
@@ -973,9 +1086,9 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
             //
             // Determine this bitfield’s declared storage‐unit size (in bytes).
             //   e.g. var_size=4 → int (32 bits), var_size=1 → char (8 bits).
-            qsizetype this_base_size = member.var_size;
-            qsizetype this_capacity = this_base_size * 8;
-            qsizetype want_bits = static_cast<qsizetype>(member.bit_size);
+            quint64 this_base_size = member.var_size;
+            quint64 this_capacity = this_base_size * 8;
+            auto want_bits = member.bit_size;
 
             // Must start a new unit if:
             //  1) No unit is active (bitfield_used == 0), or
@@ -989,16 +1102,21 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
             if (needs_new_block) {
                 // Align 'total' up to exactly 'alignment' bytes (ignore natural
                 // alignment)
-                qsizetype align_req = alignment;
+                auto align_req = alignment;
                 if (align_req < 1)
                     align_req = 1;
-                total = align_up(total, align_req);
+
+                auto au = align_up(total, align_req);
+                if (!au) {
+                    return std::nullopt;
+                }
+                total = au.value();
 
                 // Start a new bitfield storage unit of size 'this_base_size'
                 bitfield_offset = total;
 
                 if (qAddOverflow(total, this_base_size, &total)) {
-                    return -1;
+                    return std::nullopt;
                 }
 
                 bitfield_base_size = this_base_size;
@@ -1010,7 +1128,7 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
             // Assign offset, mask, and shift for this bitfield:
             member.offset = bitfield_offset;
             member.op.shift = bitfield_used;
-            member.op.mask = ((size_t(1) << member.bit_size) - 1);
+            member.op.mask = ((quint64(1) << member.bit_size) - 1);
             bitfield_used += want_bits;
 
             // If this unit is now exactly full, flush it
@@ -1034,18 +1152,23 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
             // Compute total block_size (already given by member.var_size).
             // We do NOT use natural alignment at all; instead align every field
             // to exactly 'alignment' bytes.
-            qsizetype block_size = member.var_size;
+            quint64 block_size = member.var_size;
 
             // Align 'total' up to exactly 'alignment' bytes
-            qsizetype align_req = alignment;
+            auto align_req = alignment;
             if (align_req < 1)
                 align_req = 1;
-            total = align_up(total, align_req);
+
+            auto au = align_up(total, align_req);
+            if (!au) {
+                return std::nullopt;
+            }
+            total = au.value();
 
             member.offset = total;
 
             if (qAddOverflow(total, block_size, &total)) {
-                return -1;
+                return std::nullopt;
             }
         }
     }
@@ -1054,6 +1177,10 @@ qsizetype CTypeParser::padStruct(QVector<VariableDeclaration> &members,
     //
     // Align the overall
     // struct size up to 'alignment' bytes.
-    total = align_up(total, alignment);
+    auto au = align_up(total, alignment);
+    if (!au) {
+        return std::nullopt;
+    }
+    total = au.value();
     return total;
 }

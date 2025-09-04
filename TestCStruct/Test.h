@@ -27,6 +27,14 @@ struct Cont {
     const char ch;
 };
 
+struct alignas(4) NestAlign{
+    int a;
+    struct NAlign{
+        char a;
+        int b;
+    };
+};
+
 typedef union {
     int heu;
     short ss;

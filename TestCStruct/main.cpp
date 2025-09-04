@@ -41,16 +41,17 @@ int main(int argc, char *argv[]) {
 
     // only take effects before parsing
     parser.setPointerMode(PointerMode::X64);
-    parser.setPadAlignment(4);
+    parser.setPadAlignment(1);
 
     // parsing the file tests
 
-    // parser.parse(CODE_PATH "/Test.h");
+    parser.parse(CODE_PATH "/Test.h");
     // parser.parse(CODE_PATH "/TestPreDeclStruct.h");
     // parser.parse(CODE_PATH "/TestPreDeclUnion.h");
     // parser.parse(CODE_PATH "/TestPreEnum.h");
     // parser.parse(CODE_PATH "/TestAutoDeclStruct.h");
     // parser.parse(CODE_PATH "/TestLargeInt.h");
+    // parser.parse(CODE_PATH "/TestSoLargeStruct.h");
 
     // dump message to check
     parser.dumpAllTypeDefines(qout);

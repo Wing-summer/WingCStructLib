@@ -19,7 +19,7 @@ struct VariableDeclaration {
     QString data_type;  ///< name of a data type, either basic type or
                         ///< user-defined type
     QString var_name;   ///< variable name
-    qsizetype offset = -1;   ///< member offset in struct: -1 for non-struct
+    size_t offset = 0;  ///< member offset in struct: -1 for non-struct
     size_t bit_size = 0;     // int v : bit_size , 0 for no bit_size exists
     struct {
         size_t shift = 0;
@@ -27,8 +27,8 @@ struct VariableDeclaration {
     } op;
     QVector<size_t> array_dims; ///< array size: empty for non-array
     bool is_pointer = false; ///< true when it's a pointer
-    qsizetype var_size = -1; ///< total size in bytes
-    qint64 element_count = 1; ///< cached element_count
+    size_t var_size = 0;     ///< total size in bytes
+    size_t element_count = 1; ///< cached element_count
 };
 
 enum class MsgType { Error, Warn };
@@ -43,7 +43,7 @@ struct MsgInfo {
 struct StructUnionDecl {
     QString name;
     bool isStruct = true;
-    qsizetype alignment = 0;
+    int alignment = 0;
     QVector<VariableDeclaration> members;
 };
 

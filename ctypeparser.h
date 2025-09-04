@@ -20,6 +20,7 @@
 
 #include "define.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QHash>
@@ -38,6 +39,7 @@ enum class LongMode { LLP64, LP64 };
 
 class CTypeParser {
     Q_GADGET
+    Q_DECLARE_TR_FUNCTIONS(CTypeParser)
 
 public:
     // Result codes for manager operations
@@ -45,7 +47,9 @@ public:
         Ok,
         NameConflict,
         DuplicateDefinition,
-        IncompleteReference
+        IncompleteReference,
+        OutofMemory,
+        CountOfLimit,
     };
 
     enum class CType {
@@ -58,6 +62,8 @@ public:
         BasicType
     };
     Q_ENUM(CType);
+
+    using INT_TYPE = std::variant<qint64, quint64>;
 
 public:
     explicit CTypeParser(const std::function<void(const MsgInfo &)> &msgcb);
@@ -77,22 +83,21 @@ public:
     // Definitions (only register names)
     StructResult defineStruct(const QString &name,
                               const QVector<VariableDeclaration> &members,
-                              qsizetype alignment);
+                              int alignment);
     StructResult defineUnion(const QString &name,
                              const QVector<VariableDeclaration> &members,
-                             qsizetype alignment);
+                             int alignment);
     StructResult
     defineStructOrUnion(bool isStruct, const QString &name,
                         const QVector<VariableDeclaration> &members,
-                        qsizetype alignment);
+                        int alignment);
 
     StructResult defineEnum(const QString &name,
-                            const QHash<QString, qint64> &values);
+                            const QHash<QString, INT_TYPE> &values);
     StructResult defineTypedef(const QString &alias, const QString &origin,
                                bool isPointer);
 
-    StructResult defineConstVar(const QString &name,
-                                const std::variant<qint64, quint64> &var);
+    StructResult defineConstVar(const QString &name, const INT_TYPE &var);
 
 public:
     qsizetype padAlignment() const;
@@ -138,12 +143,17 @@ public:
     bool containsConstVar(const QString &name) const;
     bool isCompletedType(const QString &name) const;
 
-    std::variant<qint64, quint64> constVarValue(const QString &name) const;
+    INT_TYPE constVarValue(const QString &name) const;
+
+    bool isCompletedStruct(const QString &name) const;
+    bool isCompletedUnion(const QString &name) const;
+
+    QStringList getMissingDependencise(const QString &name) const;
 
 public:
     QMetaType::Type metaType(const QString &name) const;
     CType type(const QString &name) const;
-    qsizetype getTypeSize(const QString &data_type) const;
+    std::optional<quint64> getTypeSize(const QString &data_type) const;
 
 public:
     void dumpAllTypeDefines(QTextStream &output) const;
@@ -154,14 +164,15 @@ private:
     QStringList
     getMissingDependencise(const QVector<VariableDeclaration> &members);
 
-    qsizetype padStruct(QVector<VariableDeclaration> &members,
-                        qsizetype alignment);
-    qsizetype calcUnionSize(const QVector<VariableDeclaration> &members,
-                            qsizetype alignment) const;
+    std::optional<quint64> padStruct(QVector<VariableDeclaration> &members,
+                                     int alignment);
+    quint64 calcUnionSize(const QVector<VariableDeclaration> &members,
+                          int alignment) const;
 
-    void storeStructUnionDef(const bool is_struct, const QString &type_name,
-                             QVector<VariableDeclaration> &members,
-                             qsizetype alignment);
+    Q_REQUIRED_RESULT bool
+    storeStructUnionDef(const bool is_struct, const QString &type_name,
+                        QVector<VariableDeclaration> &members,
+                        qsizetype alignment);
 
     void restoreIncompleteType(const QString &name);
 
@@ -188,7 +199,7 @@ private:
 
     /// Size of C data types and also user-defined struct/union types
     /// @note All enum types have fixed size, so they're not stored
-    QHash<QString, QPair<QMetaType::Type, qsizetype>> type_maps_;
+    QHash<QString, QPair<QMetaType::Type, quint64>> type_maps_;
 
     /// names awaiting definition
     QHash<QString, IncompleteType> referencedIncomplete_;
@@ -215,13 +226,13 @@ private:
     QHash<QString, QPair<QString, bool>> type_defs_;
 
     /// enum definitions
-    QHash<QString, QHash<QString, qint64>> enum_defs_;
+    QHash<QString, QHash<QString, INT_TYPE>> enum_defs_;
 
     /// constants and macros that have integer values
     /// key     - constant/macro name
     /// value   - an integer (all types of number are cast to long type for
     /// convenience)
-    QHash<QString, std::variant<qint64, quint64>> const_defs_;
+    QHash<QString, INT_TYPE> const_defs_;
 
     std::function<void(const MsgInfo &)> _msgcb;
 

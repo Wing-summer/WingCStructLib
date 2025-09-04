@@ -195,19 +195,26 @@ CStructVisitorParser::parseIntegerConstant(const std::string &text) {
     } else {
         qsizetype i = 0;
         for (i = txt.size(); i > 0; --i) {
-            if (QChar::isLetter(txt[i - 1]))
-                continue;
-            break;
+            auto v = txt[i - 1];
+            if (v != 'u' && v != 'U' && v != 'l' && v != 'L')
+                break;
         }
         auto numberPart = txt.sliced(0, i);
+        auto suffix = txt.sliced(i);
         bool b = false;
         auto v = numberPart.toLongLong(&b, 0);
         if (b) {
-            return v;
+            if (suffix.contains('u') || suffix.contains('U')) {
+                return std::variant<std::monostate, qint64, quint64>{
+                    std::in_place_type<quint64>, v};
+            }
+            return std::variant<std::monostate, qint64, quint64>{
+                std::in_place_type<qint64>, v};
         } else {
             auto v = numberPart.toULongLong(&b, 0);
             if (b) {
-                return v;
+                return std::variant<std::monostate, qint64, quint64>{
+                    std::in_place_type<quint64>, v};
             }
         }
     }
@@ -311,6 +318,15 @@ CStructVisitorParser::reportCTypeError(size_t line, size_t charPositionInLine,
     case CTypeParser::StructResult::IncompleteReference:
         errlis->reportError(line, charPositionInLine,
                             tr("\"%1\" is incompleted type").arg(identifier));
+        break;
+    case CTypeParser::StructResult::OutofMemory:
+        errlis->reportError(line, charPositionInLine,
+                            tr("\"%1\" is too large type").arg(identifier));
+        break;
+    case CTypeParser::StructResult::CountOfLimit:
+        errlis->reportError(
+            line, charPositionInLine,
+            tr("Too many symbols when adding \"%1\"").arg(identifier));
         break;
     }
     return result;
@@ -807,8 +823,8 @@ std::any CStructVisitorParser::visitCastExpression(
         quint64 mask = 0;
         if (parser->isBasicType(tname)) {
             auto size = parser->getTypeSize(tname);
-            Q_ASSERT(size > 0);
-            switch (size) {
+            Q_ASSERT(size && size.value() > 0);
+            switch (size.value()) {
             case sizeof(quint8):
                 mask = std::numeric_limits<quint8>::max();
                 break;
@@ -1091,7 +1107,12 @@ std::any CStructVisitorParser::visitPrimaryExpression(
         auto type = ctx->specifierQualifierList();
         auto spec = getSpecifier(type);
         if (spec) {
-            return parser->getTypeSize(spec->tname);
+            auto v = parser->getTypeSize(spec->tname);
+            if (v) {
+                return v.value();
+            } else {
+                return 0;
+            }
         } else {
             return 0;
         }
@@ -1238,7 +1259,7 @@ CStructVisitorParser::visitDefineDecl(CStructParser::DefineDeclContext *ctx) {
         auto identifer = t->getText();
 
         auto dname = QString::fromStdString(identifer);
-        if (parser->containsType(dname)) {
+        if (parser->containsType(dname) || parser->containsConstVar(dname)) {
             // report error
             reportDupDeclError(t->getLine(), t->getCharPositionInLine(), dname);
             return defaultResult();
@@ -1287,7 +1308,7 @@ CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
         auto ex = ctx->Identifier();
         auto iden = QString::fromStdString(ex->getText());
 
-        if (parser->containsType(iden)) {
+        if (parser->containsType(iden) || parser->containsConstVar(iden)) {
             // error report
             auto t = ex->getSymbol();
             reportDupDeclError(t->getLine(), t->getCharPositionInLine(), iden);
@@ -1305,7 +1326,8 @@ CStructVisitorParser::visitDeclaration(CStructParser::DeclarationContext *ctx) {
 }
 
 std::optional<CStructVisitorParser::Specifier>
-CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
+CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx,
+                                   int alignment) {
     if (ctx == nullptr) {
         return std::nullopt;
     }
@@ -1426,7 +1448,7 @@ CStructVisitorParser::getSpecifier(CStructParser::TypeSpecifierContext *ctx) {
         auto sus = ctx->structOrUnionSpecifier();
         auto iden = sus->Identifier();
         if (sus->structDeclarationList()) {
-            auto st = parseStructOrUnion(sus);
+            auto st = parseStructOrUnion(sus, alignment);
             if (st) {
                 if (st->name.isEmpty()) {
                     st->name =
@@ -1548,16 +1570,16 @@ CStructVisitorParser::getDeclarator(
 
 std::optional<CStructVisitorParser::Specifier>
 CStructVisitorParser::getSpecifier(
-    CStructParser::SpecifierQualifierListContext *ctx) {
+    CStructParser::SpecifierQualifierListContext *ctx, int alignment) {
     if (!ctx) {
         return std::nullopt;
     }
     auto spec = ctx->typeSpecifier();
-    return getSpecifier(spec);
+    return getSpecifier(spec, alignment);
 }
 
 std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
-    CStructParser::StructOrUnionSpecifierContext *ctx) {
+    CStructParser::StructOrUnionSpecifierContext *ctx, int alignment) {
     if (ctx == nullptr) {
         return std::nullopt;
     }
@@ -1572,7 +1594,8 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
     if (name) {
         auto decl_name = QString::fromStdString(name->getText());
         decl.name = decl_name;
-        if (parser->containsType(decl.name)) {
+        if (parser->containsType(decl.name) ||
+            parser->containsConstVar(decl.name)) {
             auto sym = name->getSymbol();
             reportDupDeclError(sym->getLine(), sym->getCharPositionInLine(),
                                decl_name);
@@ -1618,23 +1641,31 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                                tr("Unsupported alignas value: %1 , "
                                   "supported alignas = {1, 2, 4, 8, 16}")
                                    .arg(QString::fromStdString(numstr)));
-            decl.alignment = parser->padAlignment();
+            decl.alignment = alignment > 0 ? alignment : parser->padAlignment();
         }
     } else {
-        decl.alignment = parser->padAlignment();
+        decl.alignment = alignment > 0 ? alignment : parser->padAlignment();
     }
 
     QStringList used_names;
 
     for (auto &m : mems->structDeclaration()) {
-        auto dl = getSpecifier(m->specifierQualifierList());
+        auto dl = getSpecifier(m->specifierQualifierList(), decl.alignment);
         if (!dl) {
             return std::nullopt;
         }
 
         auto dclist = m->structDeclaratorList();
         if (dclist) {
-            for (auto &sub : dclist->structDeclarator()) {
+            auto sd = dclist->structDeclarator();
+            if (sd.size() >= std::numeric_limits<qsizetype>::max()) {
+                auto sym = dclist->getStart();
+                reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                                 CTypeParser::StructResult::CountOfLimit,
+                                 decl.name);
+                return std::nullopt;
+            }
+            for (auto &sub : sd) {
                 VariableDeclaration var;
                 var.data_type = dl->tname;
 
@@ -1653,7 +1684,7 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                             return std::nullopt;
                         }
 
-                        auto tbits = parser->getTypeSize(dl->tname) * 8;
+                        auto tbits = parser->getTypeSize(dl->tname).value() * 8;
                         auto bits = visitAssignmentExpression(
                             sub->assignmentExpression());
                         if (bits.type() == typeid(quint64)) {
@@ -1686,7 +1717,8 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                     if (declor->pointer() && !sub->Colon()) {
                         var.is_pointer = true;
                         var.var_name = getFinalDeclaratorName(d);
-                        if (used_names.contains(var.var_name)) {
+                        if (used_names.contains(var.var_name) ||
+                            parser->containsConstVar(var.var_name)) {
                             auto sym = d->getStart();
                             reportDupError(sym->getLine(),
                                            sym->getCharPositionInLine(),
@@ -1723,21 +1755,19 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                                         getDeclarator(nestedInfo->next);
                                 }
                                 var.var_name = getFinalDeclaratorName(d);
-                                if (used_names.contains(var.var_name)) {
+                                if (used_names.contains(var.var_name) ||
+                                    parser->containsConstVar(var.var_name)) {
                                     auto sym = d->getStart();
                                     reportDupError(sym->getLine(),
                                                    sym->getCharPositionInLine(),
                                                    var.var_name);
                                     return std::nullopt;
                                 }
-                                if (var.var_size) {
-                                    var.array_dims = dims;
-                                } else {
-                                    var.array_dims = {0};
-                                }
+                                var.array_dims = dims;
                             } else {
                                 var.var_name = info->retName;
-                                if (used_names.contains(var.var_name)) {
+                                if (used_names.contains(var.var_name) ||
+                                    parser->containsConstVar(var.var_name)) {
                                     auto sym = d->getStart();
                                     reportDupError(sym->getLine(),
                                                    sym->getCharPositionInLine(),
@@ -1784,7 +1814,7 @@ std::optional<StructUnionDecl> CStructVisitorParser::parseStructOrUnion(
                         return std::nullopt;
                     }
 
-                    auto tbits = parser->getTypeSize(dl->tname) * 8;
+                    auto tbits = parser->getTypeSize(dl->tname).value() * 8;
                     auto bits =
                         visitAssignmentExpression(sub->assignmentExpression());
                     if (bits.type() == typeid(quint64)) {
@@ -1830,11 +1860,12 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
     Q_ASSERT(enums);
 
     QString decl_name;
-    QHash<QString, qint64> decl_enums;
+    QHash<QString, std::variant<qint64, quint64>> decl_enums;
 
     if (name) {
         decl_name = QString::fromStdString(name->getText());
-        if (parser->containsType(decl_name)) {
+        if (parser->containsType(decl_name) ||
+            parser->containsConstVar(decl_name)) {
             auto sym = name->getSymbol();
             reportDupDeclError(sym->getLine(), sym->getCharPositionInLine(),
                                decl_name);
@@ -1842,10 +1873,15 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
         }
     }
 
-    int i = 0;
+    std::variant<qint64, quint64> i;
 
     auto es = enums->enumerator();
-
+    if (es.size() >= std::numeric_limits<qsizetype>::max()) {
+        auto sym = enums->getStart();
+        reportCTypeError(sym->getLine(), sym->getCharPositionInLine(),
+                         CTypeParser::StructResult::CountOfLimit, decl_name);
+        return std::nullopt;
+    }
     for (auto &e : es) {
         QString name;
 
@@ -1870,10 +1906,7 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
             if (v.type() == typeid(qint64)) {
                 i = std::any_cast<qint64>(v);
             } else if (v.type() == typeid(quint64)) {
-                auto tk = value->getStart();
-                reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
-                                     QStringLiteral("uint64"), {"int64"});
-                return std::nullopt;
+                i = std::any_cast<quint64>(v);
             } else {
                 auto tk = value->getStart();
                 reportUnexpectedType(tk->getLine(), tk->getCharPositionInLine(),
@@ -1883,7 +1916,14 @@ CStructVisitorParser::parseEnum(CStructParser::EnumSpecifierContext *ctx) {
         }
 
         decl_enums.insert(name, i);
-        i++;
+
+        if (std::holds_alternative<quint64>(i)) {
+            auto v = std::get<quint64>(i);
+            i = v + 1;
+        } else {
+            auto v = std::get<qint64>(i);
+            i = v + 1;
+        }
     }
 
     return qMakePair(decl_name, decl_enums);
